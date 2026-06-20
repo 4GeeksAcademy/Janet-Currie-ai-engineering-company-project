@@ -1,0 +1,14 @@
+{
+  "name": "healthcore-programming-fundamentals",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Milestone 2 TypeScript logic for HealthCore operations",
+  "scripts": {
+    "build": "npx esbuild src/main.ts --bundle --format=esm --platform=browser --outfile=src/main.js",
+    "typecheck": "npx tsc --noEmit"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.5",
+    "typescript": "^5.6.3"
+  }
+}
