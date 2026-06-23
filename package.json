@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "test:fundamentals": "tsx scripts/run-programming-fundamentals-assertions.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.22.4"
+  }
+}
