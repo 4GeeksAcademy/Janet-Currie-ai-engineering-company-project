@@ -4,24 +4,37 @@ import {
   sampleClaims,
   sampleClinicians,
   sampleLocations,
-} from "./types/models";
+} from "../../src/types/sampleData";
 import {
   filterAppointmentsByStatus,
   filterClaims,
   groupClaimsBy,
   sortAppointmentsByDate,
   sortClaimsById,
-} from "./utils/collections";
-import { binarySearchClaimById, findClaimById, findClinicianById } from "./utils/search";
+} from "../../src/utils/collections";
+import {
+  binarySearchClaimById,
+  findClaimById,
+  findClinicianById,
+} from "../../src/utils/search";
 import {
   calculateDenialRate,
   calculateNoShowCost,
+  denialRateByLocation,
   denialRateByPayer,
   flagHighDenialPayers,
+  flagHighNoShowLocations,
   generateCMEReport,
+  getCliniciansAtRisk,
+  getCliniciansWithExpiringLicences,
   noShowRateByLocation,
-} from "./utils/transformations";
-import { validateClaim, validateClinician } from "./utils/validations";
+} from "../../src/utils/transformations";
+import {
+  isDenialRateAboveThreshold,
+  isNoShowRateAboveThreshold,
+  validateClaim,
+  validateClinician,
+} from "../../src/utils/validations";
 
 const getElement = (id: string): HTMLElement => {
   const element = document.getElementById(id);
@@ -79,31 +92,57 @@ const renderSearchSection = (): void => {
 
 const renderTransformationSection = (): void => {
   bindClick("btn-denial-rates", () => {
+    const denialRate = calculateDenialRate(sampleClaims);
     writeJson("out-transformations", {
-      denialRate: calculateDenialRate(sampleClaims),
+      denialRate,
       denialRateByPayer: denialRateByPayer(sampleClaims),
+      denialRateByLocation: denialRateByLocation(sampleClaims),
       highDenialPayersAbove8: flagHighDenialPayers(sampleClaims),
+      denialRateAboveDefaultThreshold: isDenialRateAboveThreshold(denialRate),
     });
   });
 
   bindClick("btn-no-show", () => {
+    const noShowRates = noShowRateByLocation(sampleAppointments);
     writeJson("out-transformations", {
-      noShowRateByLocation: noShowRateByLocation(sampleAppointments),
+      noShowRateByLocation: noShowRates,
       filteredNoShows: filterAppointmentsByStatus(sampleAppointments, ["no_show"]),
       noShowCostMiami: calculateNoShowCost(sampleAppointments, sampleLocations[1], "2025-03-14"),
+      highNoShowLocationsAbove20: flagHighNoShowLocations(sampleAppointments),
+      miamiNoShowRateAboveDefaultThreshold: isNoShowRateAboveThreshold(noShowRates["us-fl-001"] ?? 0),
     });
   });
 };
 
 const renderValidationSection = (): void => {
   bindClick("btn-cme", () => {
-    writeJson("out-validation", generateCMEReport(sampleClinicians, "2026-06-20"));
+    const asOfDate = "2026-06-20";
+    writeJson("out-validation", {
+      cmeReport: generateCMEReport(sampleClinicians, asOfDate),
+      cliniciansAtRisk: getCliniciansAtRisk(sampleClinicians, asOfDate),
+      cliniciansWithLicencesExpiringIn90Days: getCliniciansWithExpiringLicences(
+        sampleClinicians,
+        asOfDate,
+        90
+      ),
+      cliniciansWithLicencesExpiringIn30Days: getCliniciansWithExpiringLicences(
+        sampleClinicians,
+        asOfDate,
+        30
+      ),
+    });
   });
 
   bindClick("btn-validations", () => {
+    const invalidRoleClinician = {
+      ...sampleClinicians[0],
+      role: "invalid_role",
+    } as unknown as (typeof sampleClinicians)[number];
+
     writeJson("out-validation", {
       claimValidation: validateClaim(sampleClaims[1], knownLocationIds),
       clinicianValidation: validateClinician(sampleClinicians[0]),
+      invalidClinicianRoleValidation: validateClinician(invalidRoleClinician),
     });
   });
 };

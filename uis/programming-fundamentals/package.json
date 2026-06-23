@@ -4,7 +4,7 @@
   "private": true,
   "description": "Milestone 2 TypeScript logic for HealthCore operations",
   "scripts": {
-    "build": "npx esbuild src/main.ts --bundle --format=esm --platform=browser --outfile=src/main.js",
+    "build": "npx esbuild main.ts --bundle --format=esm --platform=browser --outfile=main.js",
     "typecheck": "npx tsc --noEmit"
   },
   "devDependencies": {

@@ -23,10 +23,10 @@ Compile TypeScript entrypoint to browser JavaScript:
 npm run build
 ```
 
-Then open [src/index.html](src/index.html) in a static server. Example:
+Then open [index.html](index.html) in a static server. Example:
 
 ```bash
-npx serve src
+npx serve .
 ```
 
 Equivalent direct command:
@@ -38,13 +38,17 @@ npx tsc --noEmit
 ## File Structure
 
 ```text
+uis/programming-fundamentals/
+├── index.html
+├── main.ts
+└── main.js
+
 src/
 ├── types/
 │   └── models.ts
-├── utils/
-│   ├── collections.ts
-│   ├── search.ts
-│   ├── transformations.ts
-│   └── validations.ts
-└── index.html
+└── utils/
+	├── collections.ts
+	├── search.ts
+	├── transformations.ts
+	└── validations.ts
 ```

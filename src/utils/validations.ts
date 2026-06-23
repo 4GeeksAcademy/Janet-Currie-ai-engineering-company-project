@@ -41,6 +41,12 @@ const nonNegative = (value: number): boolean => {
   return value >= 0;
 };
 
+const validClinicianRoles = ["physician", "nurse_practitioner", "nurse", "medical_assistant"] as const;
+
+const hasValidClinicianRole = (role: string): boolean => {
+  return validClinicianRoles.includes(role as (typeof validClinicianRoles)[number]);
+};
+
 const dateIsTodayOrLater = (dateValue: string): boolean => {
   return dateValue >= todayIsoDate();
 };
@@ -105,6 +111,11 @@ export const validateClinician = (clinician: Clinician): ValidationResult => {
     errors,
     dateIsTodayOrLater(clinician.licenceExpiryDate),
     "licenceExpiryDate must be today or a future date."
+  );
+  addError(
+    errors,
+    hasValidClinicianRole(clinician.role),
+    "role must be one of: physician, nurse_practitioner, nurse, medical_assistant."
   );
 
   return {

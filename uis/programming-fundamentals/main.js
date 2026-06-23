@@ -1,4 +1,4 @@
-// src/types/models.ts
+// ../../src/types/sampleData.ts
 var sampleLocations = [
   {
     locationId: "us-tx-001",
@@ -208,7 +208,7 @@ var sampleClinicians = [
   }
 ];
 
-// src/utils/collections.ts
+// ../../src/utils/collections.ts
 var claimFilterEntries = (filters) => {
   return Object.entries(filters);
 };
@@ -252,7 +252,7 @@ var groupClaimsBy = (claims, key) => {
   }, {});
 };
 
-// src/utils/search.ts
+// ../../src/utils/search.ts
 var middleIndex = (left, right) => {
   return Math.floor((left + right) / 2);
 };
@@ -282,7 +282,7 @@ var binarySearchClaimById = (sortedClaims, targetId) => {
   return -1;
 };
 
-// src/utils/transformations.ts
+// ../../src/utils/transformations.ts
 var MS_PER_DAY = 24 * 60 * 60 * 1e3;
 var parseDate = (dateValue) => {
   return /* @__PURE__ */ new Date(`${dateValue}T00:00:00Z`);
@@ -402,6 +402,12 @@ var denialRateByPayer = (claims) => {
     Object.entries(grouped).map(([payerName, payerClaims]) => [payerName, rateFromClaims(payerClaims)])
   );
 };
+var denialRateByLocation = (claims) => {
+  const grouped = groupCount(claims, (claim) => claim.locationId);
+  return Object.fromEntries(
+    Object.entries(grouped).map(([locationId, locationClaims]) => [locationId, rateFromClaims(locationClaims)])
+  );
+};
 var flagHighDenialPayers = (claims, threshold = 8) => {
   const rates = denialRateByPayer(claims);
   return Object.entries(rates).filter(([, rate]) => rate > threshold).map(([payerName]) => payerName);
@@ -420,6 +426,10 @@ var noShowRateByLocation = (appointments) => {
       return [locationId, roundToTwo(rate)];
     })
   );
+};
+var flagHighNoShowLocations = (appointments, threshold = 20) => {
+  const rates = noShowRateByLocation(appointments);
+  return Object.entries(rates).filter(([, rate]) => rate > threshold).map(([locationId]) => locationId);
 };
 var generateCMEReport = (clinicians, asOfDate) => {
   return clinicians.map((clinician) => {
@@ -446,8 +456,20 @@ var generateCMEReport = (clinicians, asOfDate) => {
     };
   });
 };
+var getCliniciansAtRisk = (clinicians, asOfDate) => {
+  const atRiskIds = new Set(
+    generateCMEReport(clinicians, asOfDate).filter((entry) => entry.complianceStatus === "at_risk" || entry.complianceStatus === "overdue").map((entry) => entry.clinicianId)
+  );
+  return clinicians.filter((clinician) => atRiskIds.has(clinician.clinicianId));
+};
+var getCliniciansWithExpiringLicences = (clinicians, asOfDate, daysThreshold) => {
+  return clinicians.filter((clinician) => {
+    const daysRemaining = calendarDayDiff(asOfDate, clinician.licenceExpiryDate);
+    return daysRemaining >= 0 && daysRemaining <= daysThreshold;
+  });
+};
 
-// src/utils/validations.ts
+// ../../src/utils/validations.ts
 var isValidDate = (dateValue) => {
   const parsed = new Date(dateValue);
   return !Number.isNaN(parsed.getTime());
@@ -475,6 +497,10 @@ var hasDenialReasonWhenDenied = (claim) => {
 };
 var nonNegative = (value) => {
   return value >= 0;
+};
+var validClinicianRoles = ["physician", "nurse_practitioner", "nurse", "medical_assistant"];
+var hasValidClinicianRole = (role) => {
+  return validClinicianRoles.includes(role);
 };
 var dateIsTodayOrLater = (dateValue) => {
   return dateValue >= todayIsoDate();
@@ -535,13 +561,24 @@ var validateClinician = (clinician) => {
     dateIsTodayOrLater(clinician.licenceExpiryDate),
     "licenceExpiryDate must be today or a future date."
   );
+  addError(
+    errors,
+    hasValidClinicianRole(clinician.role),
+    "role must be one of: physician, nurse_practitioner, nurse, medical_assistant."
+  );
   return {
     valid: errors.length === 0,
     errors
   };
 };
+var isDenialRateAboveThreshold = (rate, threshold = 8) => {
+  return rate > threshold;
+};
+var isNoShowRateAboveThreshold = (rate, threshold = 20) => {
+  return rate > threshold;
+};
 
-// src/main.ts
+// main.ts
 var getElement = (id) => {
   const element = document.getElementById(id);
   if (!element) {
@@ -588,28 +625,53 @@ var renderSearchSection = () => {
 };
 var renderTransformationSection = () => {
   bindClick("btn-denial-rates", () => {
+    const denialRate = calculateDenialRate(sampleClaims);
     writeJson("out-transformations", {
-      denialRate: calculateDenialRate(sampleClaims),
+      denialRate,
       denialRateByPayer: denialRateByPayer(sampleClaims),
-      highDenialPayersAbove8: flagHighDenialPayers(sampleClaims)
+      denialRateByLocation: denialRateByLocation(sampleClaims),
+      highDenialPayersAbove8: flagHighDenialPayers(sampleClaims),
+      denialRateAboveDefaultThreshold: isDenialRateAboveThreshold(denialRate)
     });
   });
   bindClick("btn-no-show", () => {
+    const noShowRates = noShowRateByLocation(sampleAppointments);
     writeJson("out-transformations", {
-      noShowRateByLocation: noShowRateByLocation(sampleAppointments),
+      noShowRateByLocation: noShowRates,
       filteredNoShows: filterAppointmentsByStatus(sampleAppointments, ["no_show"]),
-      noShowCostMiami: calculateNoShowCost(sampleAppointments, sampleLocations[1], "2025-03-14")
+      noShowCostMiami: calculateNoShowCost(sampleAppointments, sampleLocations[1], "2025-03-14"),
+      highNoShowLocationsAbove20: flagHighNoShowLocations(sampleAppointments),
+      miamiNoShowRateAboveDefaultThreshold: isNoShowRateAboveThreshold(noShowRates["us-fl-001"] ?? 0)
     });
   });
 };
 var renderValidationSection = () => {
   bindClick("btn-cme", () => {
-    writeJson("out-validation", generateCMEReport(sampleClinicians, "2026-06-20"));
+    const asOfDate = "2026-06-20";
+    writeJson("out-validation", {
+      cmeReport: generateCMEReport(sampleClinicians, asOfDate),
+      cliniciansAtRisk: getCliniciansAtRisk(sampleClinicians, asOfDate),
+      cliniciansWithLicencesExpiringIn90Days: getCliniciansWithExpiringLicences(
+        sampleClinicians,
+        asOfDate,
+        90
+      ),
+      cliniciansWithLicencesExpiringIn30Days: getCliniciansWithExpiringLicences(
+        sampleClinicians,
+        asOfDate,
+        30
+      )
+    });
   });
   bindClick("btn-validations", () => {
+    const invalidRoleClinician = {
+      ...sampleClinicians[0],
+      role: "invalid_role"
+    };
     writeJson("out-validation", {
       claimValidation: validateClaim(sampleClaims[1], knownLocationIds),
-      clinicianValidation: validateClinician(sampleClinicians[0])
+      clinicianValidation: validateClinician(sampleClinicians[0]),
+      invalidClinicianRoleValidation: validateClinician(invalidRoleClinician)
     });
   });
 };
