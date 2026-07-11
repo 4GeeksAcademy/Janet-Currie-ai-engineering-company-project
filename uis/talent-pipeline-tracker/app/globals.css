@@ -12,7 +12,7 @@
   --muted: #5c6b7c;
 }
 
-@theme inline {
+theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-manrope);
