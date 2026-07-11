@@ -25,11 +25,14 @@ import {
   STATUS_LABELS,
   type AsyncState,
   type CandidateFormValues,
-  type CandidateRecord,
+  type CandidateListResult,
   type ClinicLocation,
   type RecordStage,
   type RecordStatus,
 } from "@/types/tracker";
+
+const DEFAULT_RECORDS_LIMIT = 20;
+const MAX_RECORD_PAGES = 10;
 
 const emptyCandidateForm: CandidateFormValues = {
   full_name: "",
@@ -45,7 +48,15 @@ const emptyCandidateForm: CandidateFormValues = {
 type LoadableListState = {
   status: AsyncState;
   error: string | null;
-  data: CandidateRecord[];
+  data: CandidateListResult;
+};
+
+const emptyListResult: CandidateListResult = {
+  data: [],
+  total: 0,
+  page: 1,
+  limit: DEFAULT_RECORDS_LIMIT,
+  totalPages: 1,
 };
 
 function formatDate(value: string) {
@@ -63,7 +74,7 @@ export function CandidateListPage() {
   const [listState, setListState] = useState<LoadableListState>({
     status: "loading",
     error: null,
-    data: [],
+    data: emptyListResult,
   });
   const [searchInput, setSearchInput] = useState(searchQuery);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -76,15 +87,25 @@ export function CandidateListPage() {
   const selectedStage = (searchParams.get("stage") as RecordStage | null) ?? null;
   const selectedLocation =
     (searchParams.get("location") as ClinicLocation | null) ?? null;
+  const selectedPage = Math.max(
+    1,
+    Math.min(Number(searchParams.get("page") ?? "1") || 1, MAX_RECORD_PAGES),
+  );
 
-  const replaceQueryParam = useCallback(
-    (key: string, value?: string) => {
+  const replaceQueryParams = useCallback(
+    (updates: Record<string, string | undefined>, resetPage = false) => {
       const nextParams = new URLSearchParams(searchParams.toString());
 
-      if (!value || value === "all") {
-        nextParams.delete(key);
-      } else {
-        nextParams.set(key, value);
+      for (const [key, value] of Object.entries(updates)) {
+        if (!value || value === "all") {
+          nextParams.delete(key);
+        } else {
+          nextParams.set(key, value);
+        }
+      }
+
+      if (resetPage) {
+        nextParams.set("page", "1");
       }
 
       const current = searchParams.toString();
@@ -102,8 +123,13 @@ export function CandidateListPage() {
   );
 
   useEffect(() => {
-    replaceQueryParam("search", deferredSearch.trim());
-  }, [deferredSearch, replaceQueryParam]);
+    replaceQueryParams(
+      {
+        search: deferredSearch.trim() || undefined,
+      },
+      true,
+    );
+  }, [deferredSearch, replaceQueryParams]);
 
   useEffect(() => {
     let cancelled = false;
@@ -121,6 +147,8 @@ export function CandidateListPage() {
           stage: selectedStage ?? undefined,
           location: selectedLocation ?? undefined,
           search: searchParams.get("search") ?? undefined,
+          page: selectedPage,
+          limit: DEFAULT_RECORDS_LIMIT,
         });
 
         if (!cancelled) {
@@ -138,7 +166,7 @@ export function CandidateListPage() {
               error instanceof Error
                 ? error.message
                 : "Something went wrong while loading candidates.",
-            data: [],
+            data: emptyListResult,
           });
         }
       }
@@ -149,7 +177,7 @@ export function CandidateListPage() {
     return () => {
       cancelled = true;
     };
-  }, [searchParams, selectedLocation, selectedStage, selectedStatus]);
+  }, [searchParams, selectedLocation, selectedPage, selectedStage, selectedStatus]);
 
   async function handleCreate(values: CandidateFormValues) {
     setCreateState("loading");
@@ -163,6 +191,8 @@ export function CandidateListPage() {
         stage: selectedStage ?? undefined,
         location: selectedLocation ?? undefined,
         search: searchParams.get("search") ?? undefined,
+        page: selectedPage,
+        limit: DEFAULT_RECORDS_LIMIT,
       });
 
       setListState({
@@ -183,13 +213,13 @@ export function CandidateListPage() {
     }
   }
 
-  const selectedCount = listState.data.filter(
+  const selectedCount = listState.data.data.filter(
     (candidate) => candidate.status === "selected",
   ).length;
-  const activeReviewCount = listState.data.filter(
+  const activeReviewCount = listState.data.data.filter(
     (candidate) => candidate.status === "in_progress",
   ).length;
-  const noteVolume = listState.data.reduce(
+  const noteVolume = listState.data.data.reduce(
     (total, candidate) => total + candidate.notes_count,
     0,
   );
@@ -216,7 +246,7 @@ export function CandidateListPage() {
                 API configured: {trackerApiBaseUrl}
               </span>
               <span className="rounded-full border border-white/10 bg-white/10 px-4 py-2">
-                Local sandbox data enabled for stakeholder testing
+                Live candidate data from the Talent Tracker API
               </span>
             </div>
           </div>
@@ -226,7 +256,7 @@ export function CandidateListPage() {
               <div className="text-xs uppercase tracking-[0.28em] text-teal-100">
                 Filtered candidates
               </div>
-              <div className="mt-3 text-4xl font-semibold">{listState.data.length}</div>
+              <div className="mt-3 text-4xl font-semibold">{listState.data.data.length}</div>
             </div>
             <div className="rounded-[1.75rem] bg-white/10 p-5 ring-1 ring-white/10">
               <div className="text-xs uppercase tracking-[0.28em] text-teal-100">
@@ -296,7 +326,7 @@ export function CandidateListPage() {
                   <select
                     value={selectedStatus ?? "all"}
                     onChange={(event) =>
-                      replaceQueryParam("status", event.target.value)
+                      replaceQueryParams({ status: event.target.value }, true)
                     }
                     className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-teal-500"
                   >
@@ -313,7 +343,9 @@ export function CandidateListPage() {
                   Stage
                   <select
                     value={selectedStage ?? "all"}
-                    onChange={(event) => replaceQueryParam("stage", event.target.value)}
+                    onChange={(event) =>
+                      replaceQueryParams({ stage: event.target.value }, true)
+                    }
                     className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-teal-500"
                   >
                     <option value="all">All stages</option>
@@ -330,7 +362,7 @@ export function CandidateListPage() {
                   <select
                     value={selectedLocation ?? "all"}
                     onChange={(event) =>
-                      replaceQueryParam("location", event.target.value)
+                      replaceQueryParams({ location: event.target.value }, true)
                     }
                     className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-teal-500"
                   >
@@ -369,7 +401,7 @@ export function CandidateListPage() {
               </div>
             ) : null}
 
-            {listState.status === "success" && listState.data.length === 0 ? (
+            {listState.status === "success" && listState.data.data.length === 0 ? (
               <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-white/70 p-8 text-center">
                 <h3 className="text-lg font-semibold text-slate-950">
                   No candidates match these filters.
@@ -380,9 +412,9 @@ export function CandidateListPage() {
               </div>
             ) : null}
 
-            {listState.status === "success" && listState.data.length > 0 ? (
+            {listState.status === "success" && listState.data.data.length > 0 ? (
               <div className="grid gap-4">
-                {listState.data.map((candidate) => (
+                {listState.data.data.map((candidate) => (
                   <Link
                     key={candidate.id}
                     href={`/candidates/${candidate.id}`}
@@ -415,6 +447,96 @@ export function CandidateListPage() {
                     </div>
                   </Link>
                 ))}
+              </div>
+            ) : null}
+
+            {listState.status === "success" && listState.data.totalPages > 1 ? (
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white/70 px-4 py-3">
+                <div className="text-sm text-slate-600">
+                  Page {listState.data.page} of {listState.data.totalPages} • {listState.data.total} applicants
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    disabled={listState.data.page <= 1}
+                    onClick={() =>
+                      replaceQueryParams({ page: String(Math.max(1, listState.data.page - 1)) })
+                    }
+                    className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Prev
+                  </button>
+                  {Array.from({ length: listState.data.totalPages }, (_, index) => index + 1).map(
+                    (pageNumber) => (
+                      <button
+                        key={pageNumber}
+                        type="button"
+                        onClick={() => replaceQueryParams({ page: String(pageNumber) })}
+                        className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] transition ${
+                          pageNumber === listState.data.page
+                            ? "bg-slate-950 text-white"
+                            : "border border-slate-200 text-slate-700 hover:bg-white"
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    ),
+                  )}
+                  <button
+                    type="button"
+                    disabled={listState.data.page >= listState.data.totalPages}
+                    onClick={() =>
+                      replaceQueryParams({
+                        page: String(
+                          Math.min(listState.data.totalPages, listState.data.page + 1),
+                        ),
+                      })
+                    }
+                    className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+
+                  <form
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      const formData = new FormData(event.currentTarget);
+                      const raw = String(formData.get("jumpPage") ?? "");
+                      const parsed = Number(raw);
+
+                      if (Number.isNaN(parsed)) {
+                        return;
+                      }
+
+                      const targetPage = Math.max(
+                        1,
+                        Math.min(listState.data.totalPages, Math.trunc(parsed)),
+                      );
+
+                      replaceQueryParams({ page: String(targetPage) });
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <label htmlFor="jump-page" className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">
+                      Jump
+                    </label>
+                    <input
+                      id="jump-page"
+                      name="jumpPage"
+                      type="number"
+                      min={1}
+                      max={listState.data.totalPages}
+                      defaultValue={listState.data.page}
+                      className="w-16 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-center text-xs font-semibold text-slate-700 outline-none focus:border-teal-500"
+                    />
+                    <button
+                      type="submit"
+                      className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700 transition hover:bg-white"
+                    >
+                      Go
+                    </button>
+                  </form>
+                </div>
               </div>
             ) : null}
           </div>

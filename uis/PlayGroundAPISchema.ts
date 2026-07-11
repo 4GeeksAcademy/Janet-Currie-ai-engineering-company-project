@@ -111,6 +111,7 @@ export interface GetRecordsQuery {
   stage?: RecordStage;
   search?: string;
   page?: number;
+  /** Defaults to 20 when omitted. */
   limit?: number;
 }
 

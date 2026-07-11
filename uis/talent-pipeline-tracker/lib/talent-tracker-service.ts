@@ -1,79 +1,170 @@
-import { placeholderCandidates } from "@/lib/mock-data";
 import type {
   CandidateFilters,
+  CandidateListResult,
   CandidateFormValues,
   CandidateNote,
   CandidateRecord,
+  ClinicLocation,
   NoteCreate,
   RecordPatch,
+  RecordStage,
+  RecordStatus,
 } from "@/types/tracker";
+import { LOCATION_OPTIONS } from "@/types/tracker";
 
-const STORAGE_KEY = "healthcore-talent-pipeline";
-const LATENCY_MS = 220;
+const LOCATION_STORAGE_KEY = "healthcore-talent-pipeline-locations";
+const DEFAULT_RECORDS_LIMIT = 20;
+const MAX_RECORD_PAGES = 10;
 
 export const trackerApiBaseUrl =
   process.env.NEXT_PUBLIC_API_URL ?? "https://playground.4geeks.com/tracker/api/v1";
 
-function wait(ms: number) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
+type ApiListResponse<T> = {
+  data?: T[];
+  total?: number;
+  page?: number;
+  limit?: number;
+};
+
+type ApiNotesResponse = {
+  data?: Array<{
+    id: string;
+    record_id: string;
+    content: string;
+    created_at: string;
+  }>;
+};
+
+type ApiRecord = {
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  position: string;
+  linkedin_url: string | null;
+  cv_url: string | null;
+  status: RecordStatus | string;
+  stage: RecordStage | string;
+  experience_years: number;
+  notes_count: number;
+  applied_at: string;
+  updated_at: string;
+  notes?: Array<{
+    id: string;
+    record_id: string;
+    content: string;
+    created_at: string;
+  }>;
+};
+
+function inferLocation(recordId: string): ClinicLocation {
+  const seed = Array.from(recordId).reduce((total, character) => {
+    return total + character.charCodeAt(0);
+  }, 0);
+
+  return LOCATION_OPTIONS[seed % LOCATION_OPTIONS.length];
 }
 
-function clone<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value)) as T;
-}
-
-function synchronizeCounts(candidate: CandidateRecord): CandidateRecord {
-  return {
-    ...candidate,
-    notes_count: candidate.notes.length,
-  };
-}
-
-function nextId(prefix: string) {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return `${prefix}-${crypto.randomUUID()}`;
-  }
-
-  return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
-function readAllCandidates(): CandidateRecord[] {
-  const seeded = placeholderCandidates.map(synchronizeCounts);
-
+function readLocationMap(): Record<string, ClinicLocation> {
   if (typeof window === "undefined") {
-    return clone(seeded);
+    return {};
   }
 
-  const stored = window.localStorage.getItem(STORAGE_KEY);
+  const raw = window.localStorage.getItem(LOCATION_STORAGE_KEY);
 
-  if (!stored) {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(seeded));
-    return clone(seeded);
+  if (!raw) {
+    return {};
   }
 
   try {
-    const parsed = JSON.parse(stored) as CandidateRecord[];
-    return clone(parsed.map(synchronizeCounts));
+    return JSON.parse(raw) as Record<string, ClinicLocation>;
   } catch {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(seeded));
-    return clone(seeded);
+    return {};
   }
 }
 
-function writeAllCandidates(candidates: CandidateRecord[]) {
+function writeLocationMap(map: Record<string, ClinicLocation>) {
   if (typeof window === "undefined") {
     return;
   }
 
-  window.localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify(candidates.map(synchronizeCounts)),
-  );
+  window.localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(map));
 }
 
-function sortCandidates(candidates: CandidateRecord[]) {
+function normalizeNotes(
+  notes: Array<{ id: string; content: string; created_at: string }> | undefined,
+): CandidateNote[] {
+  return (notes ?? []).map((note) => ({
+    id: note.id,
+    content: note.content,
+    created_at: note.created_at,
+    author: "HealthCore Internal",
+  }));
+}
+
+function toCandidateRecord(
+  record: ApiRecord,
+  locationMap: Record<string, ClinicLocation>,
+): CandidateRecord {
+  const normalizedNotes = normalizeNotes(record.notes);
+
+  return {
+    ...record,
+    location_requested: locationMap[record.id] ?? inferLocation(record.id),
+    notes: normalizedNotes,
+    notes_count: record.notes_count ?? normalizedNotes.length,
+  };
+}
+
+async function apiRequest<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const response = await fetch(`${trackerApiBaseUrl}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers ?? {}),
+    },
+  });
+
+  if (!response.ok) {
+    let message = `Request failed with status ${response.status}.`;
+
+    try {
+      const body = (await response.json()) as { detail?: string };
+      if (body?.detail) {
+        message = body.detail;
+      }
+    } catch {
+      const text = await response.text();
+      if (text) {
+        message = text;
+      }
+    }
+
+    throw new Error(message);
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  return (await response.json()) as T;
+}
+
+function applyLocationFilter(
+  candidates: CandidateRecord[],
+  location?: ClinicLocation,
+) {
+  if (!location) {
+    return candidates;
+  }
+
+  return candidates.filter((candidate) => candidate.location_requested === location);
+}
+
+function sortByUpdatedAt(candidates: CandidateRecord[]) {
   return [...candidates].sort((left, right) => {
     return (
       new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime()
@@ -81,184 +172,162 @@ function sortCandidates(candidates: CandidateRecord[]) {
   });
 }
 
-function applyCandidateFilters(
-  candidates: CandidateRecord[],
-  filters: CandidateFilters = {},
-) {
-  const search = filters.search?.trim().toLowerCase();
+async function getNotesByRecordId(recordId: string): Promise<CandidateNote[]> {
+  const notesResponse = await apiRequest<ApiNotesResponse>(`/records/${recordId}/notes`);
 
-  return candidates.filter((candidate) => {
-    if (filters.status && candidate.status !== filters.status) {
-      return false;
-    }
-
-    if (filters.stage && candidate.stage !== filters.stage) {
-      return false;
-    }
-
-    if (filters.location && candidate.location_requested !== filters.location) {
-      return false;
-    }
-
-    if (!search) {
-      return true;
-    }
-
-    return [candidate.full_name, candidate.email].some((value) =>
-      value.toLowerCase().includes(search),
-    );
-  });
+  return normalizeNotes(notesResponse.data);
 }
 
-function assertCandidate(
-  candidates: CandidateRecord[],
-  candidateId: string,
-): CandidateRecord {
-  const candidate = candidates.find((item) => item.id === candidateId);
+async function getRecordById(recordId: string): Promise<CandidateRecord> {
+  const locationMap = readLocationMap();
+  const record = await apiRequest<ApiRecord>(`/records/${recordId}`);
+  const notes = await getNotesByRecordId(recordId);
 
-  if (!candidate) {
-    throw new Error("Candidate record could not be found.");
+  return {
+    ...toCandidateRecord(record, locationMap),
+    notes,
+    notes_count: notes.length,
+  };
+}
+
+function buildListQuery(filters: CandidateFilters = {}) {
+  const params = new URLSearchParams();
+  const page = Math.max(1, Math.min(filters.page ?? 1, MAX_RECORD_PAGES));
+  const limit = Math.max(1, filters.limit ?? DEFAULT_RECORDS_LIMIT);
+
+  if (filters.status) {
+    params.set("status", filters.status);
   }
 
-  return candidate;
+  if (filters.stage) {
+    params.set("stage", filters.stage);
+  }
+
+  if (filters.search?.trim()) {
+    params.set("search", filters.search.trim());
+  }
+
+  params.set("page", String(page));
+  params.set("limit", String(limit));
+
+  const query = params.toString();
+  return query ? `?${query}` : "";
 }
 
 export async function listCandidates(filters: CandidateFilters = {}) {
-  await wait(LATENCY_MS);
+  const list = await apiRequest<ApiListResponse<ApiRecord>>(
+    `/records${buildListQuery(filters)}`,
+  );
+  const page = Math.max(1, Math.min(list.page ?? filters.page ?? 1, MAX_RECORD_PAGES));
+  const limit = Math.max(1, list.limit ?? filters.limit ?? DEFAULT_RECORDS_LIMIT);
+  const total = Math.max(0, list.total ?? 0);
+  const totalPages = Math.max(1, Math.min(Math.ceil(total / limit), MAX_RECORD_PAGES));
+  const locationMap = readLocationMap();
+  const records = (list.data ?? []).map((record) => toCandidateRecord(record, locationMap));
 
-  return applyCandidateFilters(sortCandidates(readAllCandidates()), filters);
+  return {
+    data: applyLocationFilter(sortByUpdatedAt(records), filters.location),
+    total,
+    page,
+    limit,
+    totalPages,
+  } as CandidateListResult;
 }
 
 export async function getCandidate(candidateId: string) {
-  await wait(LATENCY_MS);
-
-  return synchronizeCounts(assertCandidate(readAllCandidates(), candidateId));
+  return getRecordById(candidateId);
 }
 
 export async function createCandidate(values: CandidateFormValues) {
-  await wait(LATENCY_MS);
+  const created = await apiRequest<ApiRecord>("/records", {
+    method: "POST",
+    body: JSON.stringify({
+      full_name: values.full_name,
+      email: values.email,
+      phone: values.phone,
+      position: values.position,
+      linkedin_url: values.linkedin_url ?? null,
+      cv_url: values.cv_url ?? null,
+      experience_years: values.experience_years,
+    }),
+  });
 
-  const candidates = readAllCandidates();
-  const now = new Date().toISOString();
+  const locationMap = readLocationMap();
+  locationMap[created.id] = values.location_requested;
+  writeLocationMap(locationMap);
 
-  const created: CandidateRecord = {
-    id: nextId("cand"),
-    full_name: values.full_name,
-    email: values.email,
-    phone: values.phone,
-    position: values.position,
-    location_requested: values.location_requested,
-    linkedin_url: values.linkedin_url ?? null,
-    cv_url: values.cv_url ?? null,
-    status: "received",
-    stage: "pending",
-    experience_years: values.experience_years,
-    notes_count: 0,
-    applied_at: now,
-    updated_at: now,
+  return {
+    ...toCandidateRecord(created, locationMap),
     notes: [],
+    notes_count: 0,
   };
-
-  writeAllCandidates([created, ...candidates]);
-
-  return created;
 }
 
 export async function updateCandidate(
   candidateId: string,
   values: CandidateFormValues,
 ) {
-  await wait(LATENCY_MS);
+  await apiRequest<ApiRecord>(`/records/${candidateId}`, {
+    method: "PUT",
+    body: JSON.stringify({
+      full_name: values.full_name,
+      email: values.email,
+      phone: values.phone,
+      position: values.position,
+      linkedin_url: values.linkedin_url ?? null,
+      cv_url: values.cv_url ?? null,
+      experience_years: values.experience_years,
+    }),
+  });
 
-  const candidates = readAllCandidates();
-  const candidate = assertCandidate(candidates, candidateId);
-  const updated: CandidateRecord = {
-    ...candidate,
-    full_name: values.full_name,
-    email: values.email,
-    phone: values.phone,
-    position: values.position,
-    location_requested: values.location_requested,
-    linkedin_url: values.linkedin_url ?? null,
-    cv_url: values.cv_url ?? null,
-    experience_years: values.experience_years,
-    updated_at: new Date().toISOString(),
-  };
+  const locationMap = readLocationMap();
+  locationMap[candidateId] = values.location_requested;
+  writeLocationMap(locationMap);
 
-  writeAllCandidates(
-    candidates.map((item) => (item.id === candidateId ? updated : item)),
-  );
-
-  return updated;
+  return getRecordById(candidateId);
 }
 
 export async function patchCandidate(
   candidateId: string,
   patch: RecordPatch,
 ) {
-  await wait(LATENCY_MS);
+  const payload: RecordPatch = {};
 
-  const candidates = readAllCandidates();
-  const candidate = assertCandidate(candidates, candidateId);
-  const updated: CandidateRecord = {
-    ...candidate,
-    status: patch.status ?? candidate.status,
-    stage: patch.stage ?? candidate.stage,
-    updated_at: new Date().toISOString(),
-  };
+  if (patch.status !== undefined) {
+    payload.status = patch.status;
+  }
 
-  writeAllCandidates(
-    candidates.map((item) => (item.id === candidateId ? updated : item)),
-  );
+  if (patch.stage !== undefined) {
+    payload.stage = patch.stage;
+  }
 
-  return updated;
+  await apiRequest<ApiRecord>(`/records/${candidateId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+
+  return getRecordById(candidateId);
 }
 
 export async function addCandidateNote(
   candidateId: string,
   note: NoteCreate,
 ) {
-  await wait(LATENCY_MS);
+  await apiRequest(`/records/${candidateId}/notes`, {
+    method: "POST",
+    body: JSON.stringify(note),
+  });
 
-  const candidates = readAllCandidates();
-  const candidate = assertCandidate(candidates, candidateId);
-  const nextNote: CandidateNote = {
-    id: nextId("note"),
-    author: "HealthCore Talent Ops",
-    content: note.content,
-    created_at: new Date().toISOString(),
-  };
-
-  const updated: CandidateRecord = {
-    ...candidate,
-    notes: [nextNote, ...candidate.notes],
-    updated_at: new Date().toISOString(),
-  };
-
-  writeAllCandidates(
-    candidates.map((item) => (item.id === candidateId ? updated : item)),
-  );
-
-  return synchronizeCounts(updated);
+  return getRecordById(candidateId);
 }
 
 export async function deleteCandidateNote(
   candidateId: string,
   noteId: string,
 ) {
-  await wait(LATENCY_MS);
+  await apiRequest(`/records/${candidateId}/notes/${noteId}`, {
+    method: "DELETE",
+  });
 
-  const candidates = readAllCandidates();
-  const candidate = assertCandidate(candidates, candidateId);
-  const updated: CandidateRecord = {
-    ...candidate,
-    notes: candidate.notes.filter((note) => note.id !== noteId),
-    updated_at: new Date().toISOString(),
-  };
-
-  writeAllCandidates(
-    candidates.map((item) => (item.id === candidateId ? updated : item)),
-  );
-
-  return synchronizeCounts(updated);
+  return getRecordById(candidateId);
 }

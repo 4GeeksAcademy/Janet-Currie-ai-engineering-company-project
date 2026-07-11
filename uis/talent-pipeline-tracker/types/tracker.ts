@@ -75,6 +75,16 @@ export interface CandidateFilters {
   stage?: RecordStage;
   location?: ClinicLocation;
   search?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface CandidateListResult {
+  data: CandidateRecord[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 export type AsyncState = "idle" | "loading" | "success" | "error";
