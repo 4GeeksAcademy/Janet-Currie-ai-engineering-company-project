@@ -1,0 +1,175 @@
+import type { CandidateRecord } from "@/types/tracker";
+
+export const placeholderCandidates: CandidateRecord[] = [
+  {
+    id: "cand-001",
+    full_name: "Camila Reyes",
+    email: "camila.reyes@example.com",
+    phone: "(305) 555-0112",
+    position: "Front Desk Coordinator",
+    location_requested: "Brickell",
+    linkedin_url: "https://linkedin.com/in/camilareyes",
+    cv_url: "https://example.com/cv/camila-reyes.pdf",
+    status: "in_progress",
+    stage: "review",
+    experience_years: 4,
+    notes_count: 2,
+    applied_at: "2026-07-02T14:20:00.000Z",
+    updated_at: "2026-07-10T16:40:00.000Z",
+    notes: [
+      {
+        id: "note-001",
+        author: "Maya, Talent Ops",
+        content:
+          "Strong bilingual communication. Confirmed availability for rotating Saturday shifts.",
+        created_at: "2026-07-09T10:00:00.000Z",
+      },
+      {
+        id: "note-002",
+        author: "Luis, Clinic Manager",
+        content:
+          "Would be a strong fit for the Brickell front desk team if she is comfortable with a faster patient volume.",
+        created_at: "2026-07-10T16:40:00.000Z",
+      },
+    ],
+  },
+  {
+    id: "cand-002",
+    full_name: "Jordan Patel",
+    email: "jordan.patel@example.com",
+    phone: "(786) 555-0198",
+    position: "Medical Assistant",
+    location_requested: "Coral Gables",
+    linkedin_url: "https://linkedin.com/in/jordanpatelma",
+    cv_url: "https://example.com/cv/jordan-patel.pdf",
+    status: "received",
+    stage: "pending",
+    experience_years: 3,
+    notes_count: 1,
+    applied_at: "2026-07-08T09:10:00.000Z",
+    updated_at: "2026-07-08T09:10:00.000Z",
+    notes: [
+      {
+        id: "note-003",
+        author: "Aisha, Recruiter",
+        content:
+          "Resume highlights pediatric clinic experience and strong EHR familiarity.",
+        created_at: "2026-07-08T09:10:00.000Z",
+      },
+    ],
+  },
+  {
+    id: "cand-003",
+    full_name: "Sofia Delgado",
+    email: "sofia.delgado@example.com",
+    phone: "(954) 555-0154",
+    position: "Radiology Technician",
+    location_requested: "Fort Lauderdale",
+    linkedin_url: "https://linkedin.com/in/sofiadelgado-rad",
+    cv_url: "https://example.com/cv/sofia-delgado.pdf",
+    status: "selected",
+    stage: "offer_presented",
+    experience_years: 7,
+    notes_count: 2,
+    applied_at: "2026-06-25T12:30:00.000Z",
+    updated_at: "2026-07-10T13:05:00.000Z",
+    notes: [
+      {
+        id: "note-004",
+        author: "Noah, Imaging Lead",
+        content:
+          "Technical panel was excellent. Strong trauma imaging background.",
+        created_at: "2026-07-06T15:20:00.000Z",
+      },
+      {
+        id: "note-005",
+        author: "Maya, Talent Ops",
+        content:
+          "Offer package drafted. Awaiting final sign-off from operations.",
+        created_at: "2026-07-10T13:05:00.000Z",
+      },
+    ],
+  },
+  {
+    id: "cand-004",
+    full_name: "Ethan Brooks",
+    email: "ethan.brooks@example.com",
+    phone: "(305) 555-0107",
+    position: "Clinic Operations Analyst",
+    location_requested: "Downtown Miami",
+    linkedin_url: "https://linkedin.com/in/ethanbrooksops",
+    cv_url: "https://example.com/cv/ethan-brooks.pdf",
+    status: "in_progress",
+    stage: "technical_interview",
+    experience_years: 5,
+    notes_count: 1,
+    applied_at: "2026-07-01T08:15:00.000Z",
+    updated_at: "2026-07-09T18:25:00.000Z",
+    notes: [
+      {
+        id: "note-006",
+        author: "Priya, Finance Partner",
+        content:
+          "Asked thoughtful questions about multi-site staffing analytics and forecasting.",
+        created_at: "2026-07-09T18:25:00.000Z",
+      },
+    ],
+  },
+  {
+    id: "cand-005",
+    full_name: "Leila Hassan",
+    email: "leila.hassan@example.com",
+    phone: "(786) 555-0177",
+    position: "Nurse Practitioner",
+    location_requested: "Aventura",
+    linkedin_url: "https://linkedin.com/in/leilahassannp",
+    cv_url: "https://example.com/cv/leila-hassan.pdf",
+    status: "discarded",
+    stage: "review",
+    experience_years: 9,
+    notes_count: 1,
+    applied_at: "2026-07-03T11:40:00.000Z",
+    updated_at: "2026-07-07T14:00:00.000Z",
+    notes: [
+      {
+        id: "note-007",
+        author: "Maya, Talent Ops",
+        content:
+          "Excellent profile, but availability window does not match the Aventura clinic schedule.",
+        created_at: "2026-07-07T14:00:00.000Z",
+      },
+    ],
+  },
+  {
+    id: "cand-006",
+    full_name: "Marcus Chen",
+    email: "marcus.chen@example.com",
+    phone: "(305) 555-0143",
+    position: "Physical Therapist",
+    location_requested: "Doral",
+    linkedin_url: "https://linkedin.com/in/marcuschenpt",
+    cv_url: "https://example.com/cv/marcus-chen.pdf",
+    status: "in_progress",
+    stage: "personal_interview",
+    experience_years: 6,
+    notes_count: 2,
+    applied_at: "2026-07-04T17:05:00.000Z",
+    updated_at: "2026-07-10T09:55:00.000Z",
+    notes: [
+      {
+        id: "note-008",
+        author: "Alina, Rehab Director",
+        content:
+          "Patient-centered answers stood out. Wants to grow into a lead therapist role.",
+        created_at: "2026-07-08T13:35:00.000Z",
+      },
+      {
+        id: "note-009",
+        author: "Maya, Talent Ops",
+        content:
+          "Requested follow-up on credential transfer timing before final round.",
+        created_at: "2026-07-10T09:55:00.000Z",
+      },
+    ],
+  },
+];
