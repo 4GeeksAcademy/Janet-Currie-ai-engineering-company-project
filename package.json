@@ -1,0 +1,15 @@
+{
+  "name": "ai-engineering-company-project",
+  "private": true,
+  "workspaces": [
+    "uis/website",
+    "uis/backoffice"
+  ],
+  "scripts": {
+    "dev:website": "npm run dev -w uis/website",
+    "dev:backoffice": "npm run dev -w uis/backoffice",
+    "build:website": "npm run build -w uis/website",
+    "build:backoffice": "npm run build -w uis/backoffice",
+    "typecheck": "npm run typecheck -w uis/website && npm run typecheck -w uis/backoffice"
+  }
+}
