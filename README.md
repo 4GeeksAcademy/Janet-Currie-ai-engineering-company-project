@@ -21,11 +21,12 @@ This repository is the **starter template** for transversal projects. You will w
 
 ## Current status of the template
 
-The repository currently provides a **base folder structure and documentation skeleton**. It does not include runnable apps or global scripts yet.
+HealthCore Digital scaffolding is in place for agent context and Next.js UIs.
 
-- `CONTEXT.md` is a placeholder and must be replaced with your assigned company context.
-- There is no root `AGENTS.md` yet.
-- Shared package metadata exists in `packages/shared/package.json` (`@repo/shared-types`), but no workspace runner is configured at root.
+- Company briefing: `CONTEXT-healthcore.md` (keep `CONTEXT.md` as programme placeholder).
+- Agent context: `memory-bank/`, root `AGENTS.md`, `.agents/rules/`, `skills/pre-delivery-verification/`.
+- npm workspaces: `uis/website` (public site, port 3000) and `uis/backoffice` (internal, port 3001).
+- Shared package metadata still exists in `packages/shared/package.json` (`@repo/shared-types`).
 
 ---
 
