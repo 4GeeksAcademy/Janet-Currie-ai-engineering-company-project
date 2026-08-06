@@ -13,7 +13,7 @@ Operate HealthCore Digital’s monorepo so agents and engineers can safely exten
 
 ## Constraints
 
-- Company briefing: [`CONTEXT-healthcore.md`](../CONTEXT-healthcore.md) (do not edit without instruction).
+- Company briefing: [`CONTEXT.md`](../CONTEXT.md) (do not edit without instruction).
 - Milestone 1 static archives: `uis/index.html`, `uis/application.html`, `uis/validation.js` — reference only.
 - Milestone 2 TS under `src/types/**` and `src/utils/**` — import only until API owns analytics (see decisions).
 - APIs live only under `services/`.
@@ -28,7 +28,7 @@ HealthCore: 12 outpatient clinics (US + UK), ~200 staff, ~$28M revenue. Pain poi
 
 | Path | Role |
 |------|------|
-| `CONTEXT-healthcore.md` | Company briefing |
+| `CONTEXT.md` | Company briefing |
 | `AGENTS.md` | Project agent operating rules |
 | `memory-bank/*` | Active iteration memory |
 | `docs/architecture_proposal.md` | Backend architecture decisions |

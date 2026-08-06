@@ -40,7 +40,7 @@ Follow these steps **in order**. Do not skip.
 
 | Path | Reason |
 |------|--------|
-| `CONTEXT-healthcore.md` | Canonical company briefing |
+| `CONTEXT.md` | Canonical company briefing (HealthCore) |
 | `src/types/**` | Milestone 2 domain models & sample data — **import only** until API ownership migration |
 | `src/utils/**` | Milestone 2 business logic — **import only** until API ownership migration |
 | `uis/index.html` | Milestone 1 archive |

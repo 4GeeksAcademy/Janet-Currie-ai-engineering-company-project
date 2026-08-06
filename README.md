@@ -1,9 +1,9 @@
-# AI Engineering Company Project — Student Template
+# AI Engineering Company Project — HealthCore Digital
 
 [![4Geeks Academy](https://img.shields.io/badge/4Geeks-Academy-blue)](https://4geeksacademy.com)
 [![AI Engineering](https://img.shields.io/badge/track-AI%20Engineering-green)](https://4geeksacademy.com/es/programas-de-carrera/ingenieria-ia)
 
-_Base template for transversal projects in the AI Engineering Career Program — 4Geeks Academy._
+_Base template for transversal projects in the AI Engineering Career Program — 4Geeks Academy. This fork is assigned to **HealthCore**._
 
 > _Instrucciones disponibles en español en [README.es.md](./README.es.md)._
 
@@ -11,45 +11,60 @@ _Base template for transversal projects in the AI Engineering Career Program —
 
 ## Purpose
 
-This repository is the **starter template** for transversal projects. You will work on real company scenarios (Brasaland, TrackFlow, Nexova), building deliverables that map to course milestones (Web, Programming, Backend, Telemetry, RAG, Agents, Workflows, Real-time).
+This repository is the working project for the HealthCore Digital unit. Deliverables map to course milestones (Web, Programming, Backend, Telemetry, RAG, Agents, Workflows, Real-time).
 
-- Create a template from this repository.
-- Replace the placeholder `CONTEXT.md` with your assigned company context.
-- Use `skills/` and the directory-level `README.md` files as working guidance.
+- Company context lives in [`CONTEXT.md`](./CONTEXT.md).
+- Use `skills/`, `AGENTS.md`, `memory-bank/`, and directory-level `README.md` files as working guidance.
 
 ---
 
-## Current status of the template
+## Current status
 
 HealthCore Digital scaffolding is in place for agent context and Next.js UIs.
 
-- Company briefing: `CONTEXT-healthcore.md` (keep `CONTEXT.md` as programme placeholder).
-- Agent context: `memory-bank/`, root `AGENTS.md`, `.agents/rules/`, `skills/pre-delivery-verification/`.
-- npm workspaces: `uis/website` (public site, port 3000) and `uis/backoffice` (internal, port 3001).
-- Shared package metadata still exists in `packages/shared/package.json` (`@repo/shared-types`).
+- Company briefing: [`CONTEXT.md`](./CONTEXT.md)
+- Agent context: `memory-bank/`, root `AGENTS.md`, `.agents/rules/`, `skills/pre-delivery-verification/`
+- npm workspaces: `uis/website` (port 3000) and `uis/backoffice` (port 3001)
+- Backend blueprint: [`docs/architecture_proposal.md`](./docs/architecture_proposal.md) (no API code yet)
+- Shared package metadata: `packages/shared/package.json` (`@repo/shared-types`)
+- Milestone 2 domain logic: `src/types/`, `src/utils/` (imported by backoffice; future API ownership)
 
 ---
 
 ## Repository structure
 
 ```text
-ai-engineering-company-project-monorepo/
+ai-engineering-company-project/
 ├── README.md
 ├── README.es.md
-├── CONTEXT.md                # Placeholder to be replaced with assigned context
+├── CONTEXT.md                # Assigned company briefing (HealthCore)
+├── AGENTS.md                 # How AI agents must operate in this repo
+├── memory-bank/              # Active agent memory (context, spec, progress, decisions)
+├── .agents/rules/            # Scoped agent rules
+├── .cursor/rules/            # Cursor always-apply project rules
 ├── agents/                   # Agent patterns/templates and tools docs
 ├── data/                     # raw, process, pipelines, eval
 ├── docs/                     # Project and architecture documentation
+│   ├── architecture_proposal.md
+│   ├── HealthCore-Landing-Page.md
+│   └── Healthcore-web-development-CONTEXT.md
 ├── infra/                    # Docker, Terraform, deployment configs
 ├── internal/                 # CLIs, packaged migration scripts, internal utilities
 ├── mcps/                     # Model Context Protocol (MCP) Servers
 ├── packages/
 │   └── shared/               # Shared package (@repo/shared-types)
 ├── scripts/                  # Script conventions/documentation
-├── services/                 # APIs and background workers
+├── services/                 # APIs and background workers (future healthcore-api)
 ├── shared/                   # Shared assets/conventions at repo level
 ├── skills/                   # Reusable agent skills
-├── uis/                      # User interfaces (React, Next.js, Streamlit, HTML)
+├── src/                      # Milestone 2 domain types + utils (import only)
+├── uis/                      # User interfaces
+│   ├── website/              # Public Next.js site
+│   ├── backoffice/           # Internal Next.js ops UI
+│   ├── programming-fundamentals/  # Milestone 2 browser demo
+│   ├── index.html            # Milestone 1 archive
+│   ├── application.html
+│   └── validation.js
 └── workflows/                # Automation/orchestration documentation
 ```
 
@@ -57,11 +72,19 @@ ai-engineering-company-project-monorepo/
 
 ## How to start
 
-1. **Use this repository as a template** and create your own project repo.
-2. **Clone** your repository (or open it in Codespaces).
-3. **Replace** `CONTEXT.md` with the full context for your assigned company.
-4. **Review** each top-level folder `README.md` to understand intended responsibilities (`uis/`, `services/`, `data/`, `skills/`, etc.).
-5. **Start implementing** milestone deliverables in `uis/` and `services/`, reusing `packages/shared/` and `data/` as needed.
+1. **Clone** this repository (or open it in Codespaces).
+2. **Read** [`CONTEXT.md`](./CONTEXT.md) and [`AGENTS.md`](./AGENTS.md).
+3. **Review** each top-level folder `README.md` (`uis/`, `services/`, `docs/`, `skills/`, etc.).
+4. **Install and run** UIs from the repo root:
+
+```bash
+npm install
+npm run dev:website      # http://localhost:3000
+npm run dev:backoffice   # http://localhost:3001
+npm run typecheck
+```
+
+5. **Continue milestones** in `uis/` and `services/`, reusing `packages/shared/` and `data/` as needed. Backend work should follow [`docs/architecture_proposal.md`](./docs/architecture_proposal.md).
 
 ---
 
