@@ -14,6 +14,7 @@ Material decisions and rejected alternatives. Full backend rationale: [`docs/arc
 | Separate Next.js frontends call API via HTTPS JSON + bearer scopes | Already two UIs; Next Route Handlers stay thin proxies |
 | CI-enforceable domain import boundaries (planned with backend) | Prevent modular-monolith erosion at larger team size |
 | Company briefing lives at root `CONTEXT.md`; Milestone docs under `docs/`; PF context under `uis/programming-fundamentals/` | Matches programme README structure; keeps `src/` in place for `@healthcore/*` imports |
+| Incident analyzer is a top-level `incidents-analysis/` stdlib CLI (not under `services/`) | Matches assignment path; keeps PHI-safe offline processing separate from the future FastAPI API |
 
 ## Rejected (for now)
 

@@ -2,9 +2,7 @@
 
 ## Current state
 
-Repository layout aligned with README structure (2026-08-06): company briefing at `CONTEXT.md`, Milestone 1 briefing/spec docs under `docs/`, programming-fundamentals context under `uis/programming-fundamentals/`. Active iteration remains **backend-ready documentation + agent memory alignment**. Frontend Milestone 4 deliverables and the architecture proposal are complete and remain in the tree.
-
-The `Incident-File_analyzer` branch now includes `Incident-File-Analyzer-Context.md`, defining the planned privacy-safe incident CSV analysis utility, validation rules, expected metrics, and output requirements. Implementation has not started.
+Incident File Analyzer CLI is implemented under `incidents-analysis/` (stdlib Python). Graded fixture aggregates match CONTEXT expectations (100 / 94 / 6). Active iteration also remains backend-ready for `services/healthcore-api` when requested.
 
 ## Completed
 
@@ -15,12 +13,12 @@ The `Incident-File_analyzer` branch now includes `Incident-File-Analyzer-Context
 - Merged milestone branches into `main` on `Janet-Currie-ai-engineering-company-project`
 - Memory bank realigned to global layout; prior files archived under `archive/2026-07-29-monorepo-ai-frontend/`
 - Root docs reorganized to match README structure (`CONTEXT.md`, `docs/*`, PF context co-located)
+- Incident CSV analyzer (`incidents-analysis/`): validate → summarize → console report + optional metrics export; PHI never printed
 
 ## Validation results
 
 - Website/backoffice previously typechecked and built successfully (2026-07-29).
-- This change: docs/layout restructuring only — no app code changed this session.
-- Incident analyzer context checked with `git diff --check`; documentation-only change, so no runtime tests were applicable.
+- Incident analyzer: `python3 -m unittest discover -s tests -v` (17 tests OK); `python3 analyze.py incidents-healthcore.csv --no-export` matches graded totals; export/report grepped for no `PAT-` values.
 
 ## Blockers
 
@@ -28,8 +26,8 @@ The `Incident-File_analyzer` branch now includes `Incident-File-Analyzer-Context
 
 ## Next steps
 
-1. When requested: implement the incident report processor from `Incident-File-Analyzer-Context.md` without exposing patient identifiers.
-2. When requested: scaffold `services/healthcore-api` per architecture proposal (health/ready, locations, then analytics parity).
+1. When requested: scaffold `services/healthcore-api` per architecture proposal (health/ready, locations, then analytics parity).
+2. Optionally integrate incident metrics into the patient experience dashboard / API later.
 3. Amend `.agents/rules/src-import-only.md` when API owns analytics (as noted in architecture proposal).
 4. Keep updating this file after any material work.
 
@@ -40,6 +38,10 @@ npm install
 npm run dev:website      # :3000
 npm run dev:backoffice   # :3001
 npm run typecheck
+
+cd incidents-analysis
+python3 analyze.py incidents-healthcore.csv --no-export
+python3 -m unittest discover -s tests -v
 ```
 
 Last updated: 2026-08-06

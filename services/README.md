@@ -8,3 +8,7 @@ Each subfolder inside `services/` must correspond to **one specific service** (f
 - **Recommendation**: document in this file (or in sub-READMEs) the services you add, their objective, the technology used, and how to run them.
 
 > _Spanish version: [README.es.md](./README.es.md)._
+
+## Related (not a service)
+
+The patient incident CSV analyzer is a **local Python CLI** under [`incidents-analysis/`](../incidents-analysis/). It is not an HTTP API and must not be placed here. Future dashboard integration may call similar rules from a `services/` module later.

@@ -26,6 +26,7 @@ HealthCore Digital scaffolding is in place for agent context and Next.js UIs.
 - Agent context: `memory-bank/`, root `AGENTS.md`, `.agents/rules/`, `skills/pre-delivery-verification/`
 - npm workspaces: `uis/website` (port 3000) and `uis/backoffice` (port 3001)
 - Backend blueprint: [`docs/architecture_proposal.md`](./docs/architecture_proposal.md) (no API code yet)
+- Incident CSV analyzer (Python CLI): [`incidents-analysis/`](./incidents-analysis/)
 - Shared package metadata: `packages/shared/package.json` (`@repo/shared-types`)
 - Milestone 2 domain logic: `src/types/`, `src/utils/` (imported by backoffice; future API ownership)
 
@@ -55,6 +56,7 @@ ai-engineering-company-project/
 │   └── shared/               # Shared package (@repo/shared-types)
 ├── scripts/                  # Script conventions/documentation
 ├── services/                 # APIs and background workers (future healthcore-api)
+├── incidents-analysis/       # Local Python CLI for incident CSV analysis (not an API)
 ├── shared/                   # Shared assets/conventions at repo level
 ├── skills/                   # Reusable agent skills
 ├── src/                      # Milestone 2 domain types + utils (import only)
