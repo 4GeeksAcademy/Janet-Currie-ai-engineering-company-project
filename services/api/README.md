@@ -1,8 +1,7 @@
 # HealthCore API (Phase 2)
 
 FastAPI HTTP surface for patient incident CSV analysis. Reuses validation and
-summarization from [`incidents-analysis/`](../../incidents-analysis/) — does not
-duplicate HealthCore field rules.
+summarization from [`scripts/`](../../scripts/) — does not duplicate HealthCore field rules.
 
 ## Endpoints
 
@@ -27,7 +26,7 @@ uvicorn app.main:app --reload --port 8000
 API: http://localhost:8000  
 Docs: http://localhost:8000/docs  
 
-CORS allows the backoffice at http://localhost:3001.
+CORS allows the web UI (`uis/web`) at http://localhost:3001.
 
 ## Test
 

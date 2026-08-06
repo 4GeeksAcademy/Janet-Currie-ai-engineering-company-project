@@ -2,48 +2,45 @@
 
 ## Current state
 
-Phase 2 incident analyzer is integrated: FastAPI under `services/api`, backoffice page at `/incidents`, shared logic from `incidents-analysis/`. Broader `healthcore-api` modular monolith remains future work per the architecture proposal.
+Course submission layout applied: Phase 1 under `scripts/` (`analyze.py`, `incidents-healthcore.csv`), Phase 2 API under `services/api/`, upload UI under `uis/web/`. Ready for PR with console + web screenshots.
 
 ## Completed
 
-- Milestone 1 static site (archived HTML under `uis/`)
-- Milestone 2 programming fundamentals (`src/`, demo under `uis/programming-fundamentals/`)
-- Milestone 4 agent scaffolding + Next.js website/backoffice
-- Backend architecture proposal (`docs/architecture_proposal.md`), including scale/evolution section
-- Incident CSV analyzer CLI (`incidents-analysis/`)
-- Phase 2 platform integration: `services/api` analyze/export + `uis/backoffice` `/incidents` UI
+- Milestone 1–4 prior deliverables (website, programming fundamentals, agent scaffolding)
+- Incident analyzer CLI + Phase 2 API/UI integration
+- Restructure to course paths: `scripts/` + `services/api/` + `uis/web/`
 
 ## Validation results
 
-- `incidents-analysis`: 17 unit tests OK
-- `services/api`: 7 API tests OK (graded fixture 100/94/6; no `PAT-` in JSON/export)
-- Backoffice `tsc --noEmit` OK
-- Smoke: live `POST /api/incidents/analyze` + `GET .../export` against graded CSV (100/94/6, avg 3.58, no PHI)
+- CLI from `scripts/`: 100/94/6, avg 3.58; 17 unit tests OK
+- `services/api`: 7 API tests OK (fixture path `scripts/`)
+- `npm run typecheck` (website + web) OK
+- Layout: `scripts/analyze.py`, `services/api/`, `uis/web/` present; `incidents-analysis/` and `uis/backoffice/` removed
 
 ## Blockers
 
-- None.
+- None. PR screenshots are manual.
 
 ## Next steps
 
-1. When requested: expand toward `services/healthcore-api` modular monolith (locations, analytics parity).
-2. Optionally persist analyses (replace in-memory store) and add auth scopes.
-3. Keep updating this file after any material work.
+1. Push branch and open PR; attach script console + web UI screenshots.
+2. When requested: expand toward `services/healthcore-api` modular monolith.
 
 ## Run commands (durable)
 
 ```bash
 npm install
 npm run dev:website      # :3000
-npm run dev:backoffice   # :3001
+npm run dev:web          # :3001
 npm run typecheck
+
+cd scripts
+python3 analyze.py incidents-healthcore.csv --no-export
+python3 -m unittest discover -s tests -v
 
 cd services/api && source .venv/bin/activate
 uvicorn app.main:app --reload --port 8000
-
-cd incidents-analysis
-python3 analyze.py incidents-healthcore.csv --no-export
-python3 -m unittest discover -s tests -v
+python -m unittest discover -s tests -v
 ```
 
 Last updated: 2026-08-06

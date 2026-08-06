@@ -8,17 +8,17 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# Make incidents-analysis package importable as `src.*`
+# Make scripts/ package importable as `src.*` (Phase 1 shared library)
 _REPO_ROOT = Path(__file__).resolve().parents[3]
-_INCIDENTS_ANALYSIS = _REPO_ROOT / "incidents-analysis"
-if str(_INCIDENTS_ANALYSIS) not in sys.path:
-    sys.path.insert(0, str(_INCIDENTS_ANALYSIS))
+_SCRIPTS = _REPO_ROOT / "scripts"
+if str(_SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS))
 
 from app.routers import incidents  # noqa: E402
 
 app = FastAPI(
     title="HealthCore API",
-    description="Phase 2 incident analysis endpoints (reuses incidents-analysis logic).",
+    description="Phase 2 incident analysis endpoints (reuses scripts/ validation logic).",
     version="0.1.0",
 )
 

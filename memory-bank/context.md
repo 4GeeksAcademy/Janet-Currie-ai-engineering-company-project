@@ -2,15 +2,15 @@
 
 ## Goal
 
-Operate HealthCore Digital’s monorepo so agents and engineers can safely extend the public website, internal backoffice, and (next) backend APIs without losing company or technical context.
+Operate HealthCore Digital’s monorepo so agents and engineers can safely extend the public website, internal web UI, and backend APIs without losing company or technical context.
 
 ## Scope (active)
 
 - Maintain agent memory bank per global working rules (`context`, `spec`, `progress`, `decisions`, `archive/`).
-- Keep shipped UIs runnable: `uis/website`, `uis/backoffice`.
-- Treat [`docs/architecture_proposal.md`](../docs/architecture_proposal.md) as the agreed backend blueprint before expanding beyond Phase 2.
-- Phase 2 API: [`services/api/`](../services/api/) (incident analyze/export).
-- Shared incident validation library + CLI: [`incidents-analysis/`](../incidents-analysis/).
+- Keep shipped UIs runnable: `uis/website`, `uis/web`.
+- Phase 1 incident CLI: [`scripts/`](../scripts/).
+- Phase 2 API: [`services/api/`](../services/api/).
+- Treat [`docs/architecture_proposal.md`](../docs/architecture_proposal.md) as the blueprint before expanding beyond Phase 2.
 - Do **not** invent production PHI flows or EHR integrations without explicit instruction.
 
 ## Constraints
@@ -35,9 +35,9 @@ HealthCore: 12 outpatient clinics (US + UK), ~200 staff, ~$28M revenue. Pain poi
 | `memory-bank/*` | Active iteration memory |
 | `docs/architecture_proposal.md` | Backend architecture decisions |
 | `uis/website/` | Public Next.js site |
-| `uis/backoffice/` | Internal Next.js ops UI |
-| `src/types/`, `src/utils/` | Milestone 2 domain logic (legacy-to-API path) |
+| `uis/web/` | Internal Next.js UI (ops + incidents) |
+| `scripts/` | Phase 1 analyze.py + CSV + shared validation |
 | `services/api/` | Phase 2 FastAPI incident analyze/export |
-| `incidents-analysis/` | Incident CSV CLI + shared validation (no PHI in output) |
+| `src/types/`, `src/utils/` | Milestone 2 domain logic (legacy-to-API path) |
 | `.agents/rules/` | Scoped path rules |
 | `skills/pre-delivery-verification/` | Pre-commit verification skill |

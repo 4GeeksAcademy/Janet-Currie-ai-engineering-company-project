@@ -2,10 +2,7 @@
 
 This folder contains **all the backend services** (APIs and background workers) related to the company for the cross-functional AI Engineering project.
 
-Each subfolder inside `services/` must correspond to **one specific service** (for example: `admin-api`, `data-processor-worker`) and include its own technical and functional documentation.
-
-- **Main purpose**: to centralize all the backend logic, APIs, and queue consumers that support the company's use cases.
-- **Recommendation**: document in this file (or in sub-READMEs) the services you add, their objective, the technology used, and how to run them.
+Each subfolder inside `services/` must correspond to **one specific service** and include its own technical and functional documentation.
 
 > _Spanish version: [README.es.md](./README.es.md)._
 
@@ -13,7 +10,7 @@ Each subfolder inside `services/` must correspond to **one specific service** (f
 
 | Service | Path | Purpose |
 |---------|------|---------|
-| HealthCore API (Phase 2) | [`api/`](api/) | FastAPI incident analyze + export endpoints; reuses [`incidents-analysis/`](../incidents-analysis/) |
+| HealthCore API (Phase 2) | [`api/`](api/) | FastAPI incident analyze + export endpoints; reuses [`scripts/`](../scripts/) |
 
 ```bash
 cd services/api
@@ -26,4 +23,4 @@ The full modular monolith described in [`docs/architecture_proposal.md`](../docs
 
 ## Related CLI (not a service)
 
-The patient incident CSV analyzer CLI remains under [`incidents-analysis/`](../incidents-analysis/). The API imports that package’s `src/` modules rather than copying rules.
+Phase 1 analyzer CLI: [`scripts/analyze.py`](../scripts/analyze.py). The API imports `scripts/src/` rather than copying rules.

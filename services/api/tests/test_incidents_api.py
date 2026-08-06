@@ -8,11 +8,11 @@ from pathlib import Path
 
 API_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = API_ROOT.parents[1]
-INCIDENTS_ANALYSIS = REPO_ROOT / "incidents-analysis"
-FIXTURE = INCIDENTS_ANALYSIS / "incidents-healthcore.csv"
+SCRIPTS = REPO_ROOT / "scripts"
+FIXTURE = SCRIPTS / "incidents-healthcore.csv"
 
-# Ensure both the API package root and incidents-analysis are importable
-for path in (str(API_ROOT), str(INCIDENTS_ANALYSIS)):
+# Ensure both the API package root and scripts/ are importable
+for path in (str(API_ROOT), str(SCRIPTS)):
     if path not in sys.path:
         sys.path.insert(0, path)
 
