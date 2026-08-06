@@ -4,6 +4,8 @@
 
 Repository layout aligned with README structure (2026-08-06): company briefing at `CONTEXT.md`, Milestone 1 briefing/spec docs under `docs/`, programming-fundamentals context under `uis/programming-fundamentals/`. Active iteration remains **backend-ready documentation + agent memory alignment**. Frontend Milestone 4 deliverables and the architecture proposal are complete and remain in the tree.
 
+The `Incident-File_analyzer` branch now includes `Incident-File-Analyzer-Context.md`, defining the planned privacy-safe incident CSV analysis utility, validation rules, expected metrics, and output requirements. Implementation has not started.
+
 ## Completed
 
 - Milestone 1 static site (archived HTML under `uis/`)
@@ -18,6 +20,7 @@ Repository layout aligned with README structure (2026-08-06): company briefing a
 
 - Website/backoffice previously typechecked and built successfully (2026-07-29).
 - This change: docs/layout restructuring only — no app code changed this session.
+- Incident analyzer context checked with `git diff --check`; documentation-only change, so no runtime tests were applicable.
 
 ## Blockers
 
@@ -25,9 +28,10 @@ Repository layout aligned with README structure (2026-08-06): company briefing a
 
 ## Next steps
 
-1. When requested: scaffold `services/healthcore-api` per architecture proposal (health/ready, locations, then analytics parity).
-2. Amend `.agents/rules/src-import-only.md` when API owns analytics (as noted in architecture proposal).
-3. Keep updating this file after any material work.
+1. When requested: implement the incident report processor from `Incident-File-Analyzer-Context.md` without exposing patient identifiers.
+2. When requested: scaffold `services/healthcore-api` per architecture proposal (health/ready, locations, then analytics parity).
+3. Amend `.agents/rules/src-import-only.md` when API owns analytics (as noted in architecture proposal).
+4. Keep updating this file after any material work.
 
 ## Run commands (durable)
 
