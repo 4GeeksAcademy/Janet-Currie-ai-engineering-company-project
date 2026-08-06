@@ -2,7 +2,7 @@
 
 ## Current state
 
-Global working rules applied to this project’s memory bank (2026-08-06). Active iteration is **backend-ready documentation + agent memory alignment**. Frontend Milestone 4 deliverables and the architecture proposal are complete and remain in the tree.
+Repository layout aligned with README structure (2026-08-06): company briefing at `CONTEXT.md`, Milestone 1 briefing/spec docs under `docs/`, programming-fundamentals context under `uis/programming-fundamentals/`. Active iteration remains **backend-ready documentation + agent memory alignment**. Frontend Milestone 4 deliverables and the architecture proposal are complete and remain in the tree.
 
 ## Completed
 
@@ -12,11 +12,12 @@ Global working rules applied to this project’s memory bank (2026-08-06). Activ
 - Backend architecture proposal (`docs/architecture_proposal.md`), including scale/evolution section
 - Merged milestone branches into `main` on `Janet-Currie-ai-engineering-company-project`
 - Memory bank realigned to global layout; prior files archived under `archive/2026-07-29-monorepo-ai-frontend/`
+- Root docs reorganized to match README structure (`CONTEXT.md`, `docs/*`, PF context co-located)
 
 ## Validation results
 
 - Website/backoffice previously typechecked and built successfully (2026-07-29).
-- This change: docs/memory-bank structure only — no app code changed this session.
+- This change: docs/layout restructuring only — no app code changed this session.
 
 ## Blockers
 
