@@ -8,8 +8,9 @@ Operate HealthCore Digital’s monorepo so agents and engineers can safely exten
 
 - Maintain agent memory bank per global working rules (`context`, `spec`, `progress`, `decisions`, `archive/`).
 - Keep shipped UIs runnable: `uis/website`, `uis/backoffice`.
-- Treat [`docs/architecture_proposal.md`](../docs/architecture_proposal.md) as the agreed backend blueprint before coding `services/`.
-- Maintain the local incident CSV analyzer under [`incidents-analysis/`](../incidents-analysis/) (CLI utility — not an HTTP service).
+- Treat [`docs/architecture_proposal.md`](../docs/architecture_proposal.md) as the agreed backend blueprint before expanding beyond Phase 2.
+- Phase 2 API: [`services/api/`](../services/api/) (incident analyze/export).
+- Shared incident validation library + CLI: [`incidents-analysis/`](../incidents-analysis/).
 - Do **not** invent production PHI flows or EHR integrations without explicit instruction.
 
 ## Constraints
@@ -36,7 +37,7 @@ HealthCore: 12 outpatient clinics (US + UK), ~200 staff, ~$28M revenue. Pain poi
 | `uis/website/` | Public Next.js site |
 | `uis/backoffice/` | Internal Next.js ops UI |
 | `src/types/`, `src/utils/` | Milestone 2 domain logic (legacy-to-API path) |
-| `services/` | Future FastAPI service(s) |
-| `incidents-analysis/` | Local Python CLI for patient-incident CSV analysis (no PHI in output) |
+| `services/api/` | Phase 2 FastAPI incident analyze/export |
+| `incidents-analysis/` | Incident CSV CLI + shared validation (no PHI in output) |
 | `.agents/rules/` | Scoped path rules |
 | `skills/pre-delivery-verification/` | Pre-commit verification skill |

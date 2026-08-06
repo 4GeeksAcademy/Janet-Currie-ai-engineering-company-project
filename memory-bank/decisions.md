@@ -15,6 +15,7 @@ Material decisions and rejected alternatives. Full backend rationale: [`docs/arc
 | CI-enforceable domain import boundaries (planned with backend) | Prevent modular-monolith erosion at larger team size |
 | Company briefing lives at root `CONTEXT.md`; Milestone docs under `docs/`; PF context under `uis/programming-fundamentals/` | Matches programme README structure; keeps `src/` in place for `@healthcore/*` imports |
 | Incident analyzer is a top-level `incidents-analysis/` stdlib CLI (not under `services/`) | Matches assignment path; keeps PHI-safe offline processing separate from the future FastAPI API |
+| Phase 2 HTTP surface is `services/api` with UI in `uis/backoffice` (screenshot `/uis/web` mapped to backoffice) | Matches programme API path; Patient Experience tooling belongs in the internal console |
 
 ## Rejected (for now)
 

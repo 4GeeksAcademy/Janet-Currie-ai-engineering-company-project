@@ -25,8 +25,9 @@ HealthCore Digital scaffolding is in place for agent context and Next.js UIs.
 - Company briefing: [`CONTEXT.md`](./CONTEXT.md)
 - Agent context: `memory-bank/`, root `AGENTS.md`, `.agents/rules/`, `skills/pre-delivery-verification/`
 - npm workspaces: `uis/website` (port 3000) and `uis/backoffice` (port 3001)
-- Backend blueprint: [`docs/architecture_proposal.md`](./docs/architecture_proposal.md) (no API code yet)
-- Incident CSV analyzer (Python CLI): [`incidents-analysis/`](./incidents-analysis/)
+- Backend blueprint: [`docs/architecture_proposal.md`](./docs/architecture_proposal.md)
+- Phase 2 API: [`services/api/`](./services/api/) (incident analyze/export on port 8000)
+- Incident CSV analyzer (Python CLI + shared logic): [`incidents-analysis/`](./incidents-analysis/)
 - Shared package metadata: `packages/shared/package.json` (`@repo/shared-types`)
 - Milestone 2 domain logic: `src/types/`, `src/utils/` (imported by backoffice; future API ownership)
 
@@ -55,8 +56,9 @@ ai-engineering-company-project/
 ├── packages/
 │   └── shared/               # Shared package (@repo/shared-types)
 ├── scripts/                  # Script conventions/documentation
-├── services/                 # APIs and background workers (future healthcore-api)
-├── incidents-analysis/       # Local Python CLI for incident CSV analysis (not an API)
+├── services/
+│   └── api/                  # FastAPI Phase 2 incident analyze/export
+├── incidents-analysis/       # Incident CSV CLI + shared validation library
 ├── shared/                   # Shared assets/conventions at repo level
 ├── skills/                   # Reusable agent skills
 ├── src/                      # Milestone 2 domain types + utils (import only)
@@ -86,7 +88,18 @@ npm run dev:backoffice   # http://localhost:3001
 npm run typecheck
 ```
 
-5. **Continue milestones** in `uis/` and `services/`, reusing `packages/shared/` and `data/` as needed. Backend work should follow [`docs/architecture_proposal.md`](./docs/architecture_proposal.md).
+5. **Run the Phase 2 incident API** (for backoffice `/incidents`):
+
+```bash
+cd services/api
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
+
+Optional: copy [`uis/backoffice/.env.example`](./uis/backoffice/.env.example) to `.env.local` if you need a non-default API URL.
+
+6. **Continue milestones** in `uis/` and `services/`, reusing `packages/shared/` and `data/` as needed. Broader backend work should follow [`docs/architecture_proposal.md`](./docs/architecture_proposal.md).
 
 ---
 

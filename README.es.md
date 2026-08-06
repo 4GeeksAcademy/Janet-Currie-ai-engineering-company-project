@@ -25,8 +25,9 @@ El andamiaje de HealthCore Digital está en su sitio para el contexto de agentes
 - Briefing de empresa: [`CONTEXT.md`](./CONTEXT.md)
 - Contexto de agentes: `memory-bank/`, `AGENTS.md` en la raíz, `.agents/rules/`, `skills/pre-delivery-verification/`
 - Workspaces npm: `uis/website` (puerto 3000) y `uis/backoffice` (puerto 3001)
-- Plano del backend: [`docs/architecture_proposal.md`](./docs/architecture_proposal.md) (aún no hay código de API)
-- Analizador de incidentes CSV (CLI Python): [`incidents-analysis/`](./incidents-analysis/)
+- Plano del backend: [`docs/architecture_proposal.md`](./docs/architecture_proposal.md)
+- API Fase 2: [`services/api/`](./services/api/) (análisis/export de incidentes en el puerto 8000)
+- Analizador de incidentes CSV (CLI Python + lógica compartida): [`incidents-analysis/`](./incidents-analysis/)
 - Metadata del paquete compartido: `packages/shared/package.json` (`@repo/shared-types`)
 - Lógica de dominio Milestone 2: `src/types/`, `src/utils/` (importada por el backoffice; futura propiedad de la API)
 
@@ -55,8 +56,9 @@ ai-engineering-company-project/
 ├── packages/
 │   └── shared/               # Paquete compartido (@repo/shared-types)
 ├── scripts/                  # Convenciones/documentación de scripts
-├── services/                 # APIs y workers en segundo plano (futuro healthcore-api)
-├── incidents-analysis/       # CLI Python local para análisis de incidentes CSV (no es una API)
+├── services/
+│   └── api/                  # FastAPI Fase 2 análisis/export de incidentes
+├── incidents-analysis/       # CLI de incidentes + librería de validación compartida
 ├── shared/                   # Recursos/convenciones compartidas a nivel repo
 ├── skills/                   # Skills reutilizables para agentes
 ├── src/                      # Tipos y utils de dominio Milestone 2 (solo importar)

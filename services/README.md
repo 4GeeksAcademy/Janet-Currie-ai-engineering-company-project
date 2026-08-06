@@ -9,6 +9,21 @@ Each subfolder inside `services/` must correspond to **one specific service** (f
 
 > _Spanish version: [README.es.md](./README.es.md)._
 
-## Related (not a service)
+## Active services
 
-The patient incident CSV analyzer is a **local Python CLI** under [`incidents-analysis/`](../incidents-analysis/). It is not an HTTP API and must not be placed here. Future dashboard integration may call similar rules from a `services/` module later.
+| Service | Path | Purpose |
+|---------|------|---------|
+| HealthCore API (Phase 2) | [`api/`](api/) | FastAPI incident analyze + export endpoints; reuses [`incidents-analysis/`](../incidents-analysis/) |
+
+```bash
+cd services/api
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
+
+The full modular monolith described in [`docs/architecture_proposal.md`](../docs/architecture_proposal.md) (`healthcore-api`) is still future work; `api/` is the first HTTP surface.
+
+## Related CLI (not a service)
+
+The patient incident CSV analyzer CLI remains under [`incidents-analysis/`](../incidents-analysis/). The API imports that package’s `src/` modules rather than copying rules.
