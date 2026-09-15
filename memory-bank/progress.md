@@ -7,7 +7,7 @@ No active feature iteration. Bullet-proof phase (AUTH-088, API-042, FE-019) is a
 ## Completed (standing)
 
 - AUTH-088 / API-042 / FE-019 test suites; results in [`TESTING.md`](../TESTING.md)
-- Phase guide moved off repo root into that archive (2026-09-04)
+- Phase guide moved off repo root into that archive (2026-09-04); empty archive copy restored from the full text on 2026-09-14
 
 ## Validation results
 
@@ -39,4 +39,4 @@ npm run typecheck
 npm test -w uis/web
 ```
 
-Last updated: 2026-09-04
+Last updated: 2026-09-14
