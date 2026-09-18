@@ -7,6 +7,7 @@ from pathlib import Path
 
 import logging
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.exception_handlers import http_exception_handler
 from fastapi.exceptions import RequestValidationError
@@ -22,12 +23,21 @@ _SCRIPTS = _REPO_ROOT / "scripts"
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
-from app.routers import auth, incidents, profiles, suppliers, users  # noqa: E402
+from app.database import init_db
+from app.routers import auth, incidents, inventory, profiles, suppliers, users  # noqa: E402
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    init_db()
+    yield
+
 
 app = FastAPI(
     title="HealthCore API",
-    description="Incident analysis, supplier directory, and staff authentication.",
-    version="0.3.0",
+    description="Incident analysis, supplier directory, staff authentication, and inventory.",
+    version="0.4.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -46,6 +56,7 @@ app.include_router(users.router)
 app.include_router(profiles.router)
 app.include_router(incidents.router)
 app.include_router(suppliers.router)
+app.include_router(inventory.router)
 
 
 @app.exception_handler(RequestValidationError)

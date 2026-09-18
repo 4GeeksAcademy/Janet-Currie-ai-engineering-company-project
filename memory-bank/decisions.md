@@ -1,13 +1,13 @@
 # Decisions — Active iteration
 
-Standing decisions that still constrain work. Completed-iteration snapshots: [`archive/2026-07-29-monorepo-ai-frontend/`](archive/2026-07-29-monorepo-ai-frontend/), [`archive/2026-08-28-supplier-directory/`](archive/2026-08-28-supplier-directory/), [`archive/2026-08-28-staff-auth/`](archive/2026-08-28-staff-auth/), [`archive/2026-08-31-error-handling/`](archive/2026-08-31-error-handling/), [`archive/2026-09-04-bullet-proof/`](archive/2026-09-04-bullet-proof/). Architecture rationale: [`docs/architecture_proposal.md`](../docs/architecture_proposal.md). AUTH, error-handling, and bullet-proof course/phase guides live in their archives (do not load unless asked).
+Standing decisions that still constrain work. Completed-iteration snapshots: [`archive/2026-07-29-monorepo-ai-frontend/`](archive/2026-07-29-monorepo-ai-frontend/), [`archive/2026-08-28-supplier-directory/`](archive/2026-08-28-supplier-directory/), [`archive/2026-08-28-staff-auth/`](archive/2026-08-28-staff-auth/), [`archive/2026-08-31-error-handling/`](archive/2026-08-31-error-handling/), [`archive/2026-09-04-bullet-proof/`](archive/2026-09-04-bullet-proof/), [`archive/2026-09-18-inventory-api/`](archive/2026-09-18-inventory-api/). Architecture rationale: [`docs/architecture_proposal.md`](../docs/architecture_proposal.md). Course/phase guides live in their archives (do not load unless asked).
 
 ## Adopted
 
 | Decision | Rationale |
 |----------|-----------|
 | Project memory bank uses global layout (`context`, `spec`, `progress`, `decisions`, `archive/YYYY-MM-DD-name/` with plan + tech-updates) | Aligns with global working rules; keeps active files concise |
-| Finished course contracts and phase guides live in `archive/`, not repo root or the four active files | AUTH, error-handling, and `BulletProofApp-Context.md` moved there after completion |
+| Finished course contracts and phase guides live in `archive/`, not repo root or the four active files | AUTH, error-handling, bullet-proof, and inventory guides moved there after completion |
 | AUTH-088 uses pytest + pytest-cov via `uv` in `services/api`; coverage is measured on `app.auth` | Course requires `uv run pytest --cov`; existing unittest files still run under pytest |
 | AUTH-088 skips Jest for auth crypto; FE-019 adds Jest in `uis/web` for `apiClient` helpers | `authApi.ts` is fetch-only; token storage, `messageForStatus`, `toUserMessage`, and `parseError` are the testable utilities |
 | API-042 extends existing incident/supplier unittest files rather than rewriting them as pytest functions | Smallest change; pytest already collects unittest.TestCase |
@@ -31,6 +31,8 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Password reset uses signed JWT + TinyDB `password_resets`; email via **Resend** | Single-use `jti`; AUTH-03 |
 | `uis/web` AuthGuard is client-side (`GET /auth/me`) | Middleware cannot read `localStorage` |
 | `cryptography` pinned to `>=42,<45` | 45+ failed to compile on this Mac without OpenSSL/pkg-config |
+| Inventory lives in SQLModel on `DATABASE_URL`; users stay TinyDB; `user_uuid` is `str(TinyDB id)` | HCR-0188; no UUID user key in this repo |
+| Inventory pytest uses temp SQLite; Postgres `SELECT FOR UPDATE` on outbound | Isolation without secrets; SQLite does not row-lock |
 
 ## Rejected (for now)
 

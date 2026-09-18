@@ -2,24 +2,23 @@
 
 ## Current state
 
-No active feature iteration. Bullet-proof phase (AUTH-088, API-042, FE-019) is archived under [`archive/2026-09-04-bullet-proof/`](archive/2026-09-04-bullet-proof/).
+No active course phase. Milestone 5 inventory API is complete and archived under [`archive/2026-09-18-inventory-api/`](archive/2026-09-18-inventory-api/).
 
 ## Completed (standing)
 
-- AUTH-088 / API-042 / FE-019 test suites; results in [`TESTING.md`](../TESTING.md)
-- Phase guide moved off repo root into that archive (2026-09-04); empty archive copy restored from the full text on 2026-09-14
+- Public site, staff UI, incident CLI, supplier directory, staff JWT auth, error handling, bullet-proof tests, inventory API (HCR-0188).
 
 ## Validation results
 
-Last measured 2026-09-04: full `uv run pytest` **80 passed**; selected backoffice modules **88%**; `npm test -w uis/web` **6 passed**; `npm run typecheck` passed.
+HCR-0188 (2026-09-18): 16 inventory pytest passed; 96 full pytest; compileall ok; live seed 6/4/3 gloves 105; live `/docs` + HTTP smoke of evaluator-critical flows. Details in [`TESTING.md`](../TESTING.md).
 
 ## Blockers
 
-None. Live Resend still needs a local `RESEND_API_KEY` for real inbox delivery.
+- None for inventory. Supabase MCP SQL still fails password auth; live checks used SQLAlchemy via `.env`.
 
 ## Next steps
 
-Wait for the next requested change.
+1. Await the next instruction.
 
 ## Run commands (durable)
 
@@ -27,16 +26,9 @@ Wait for the next requested change.
 cd services/api
 uv sync --group dev
 uv run pytest
-uv run pytest --cov=app.auth --cov-report=term-missing
-uv run pytest --cov=app.routers.incidents --cov=app.routers.suppliers --cov=app.suppliers --cov-report=term-missing
-uvicorn app.main:app --reload --port 8000
-
-cd scripts
-python3 -m unittest discover -s tests -v
-
-npm run dev:web
-npm run typecheck
-npm test -w uis/web
+uv run seed-auth
+uv run seed-inventory
+uv run uvicorn app.main:app --reload --port 8000
 ```
 
-Last updated: 2026-09-14
+Last updated: 2026-09-18

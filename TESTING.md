@@ -239,3 +239,21 @@ npm test -w uis/web
 ```
 
 `apiClient.ts` line coverage on that run was 56.55% (helpers under test; `apiFetch` and related plumbing are untested by design). `npm run typecheck -w uis/web` also passed. No application bug was found.
+
+## HCR-0188 — Inventory API tests
+
+Pytest against temp SQLite (`DATABASE_URL` forced in [`tests/helpers.py`](services/api/tests/helpers.py)). Modules: `test_inventory_products.py`, `test_inventory_orders.py`, `test_inventory_seed.py`.
+
+Observed 2026-09-18 from `services/api`:
+
+```bash
+uv run pytest tests/test_inventory_products.py tests/test_inventory_orders.py tests/test_inventory_seed.py
+# 16 passed, 1 warning in 12.66s
+
+uv run pytest
+# 96 passed, 1 warning in 81.98s
+```
+
+Evaluator-critical cases covered: over-consumption 400 with no write; invalid `consumption_type` 422; computed stock including seed (`HCR-PPE-001` = 105); `country` on model and response; `clinic_id` on both movement types. Live Supabase seed ran 2026-09-18 (`uv run seed-inventory`: 6/4/3 rows, gloves stock 105).
+
+Live `/docs` + HTTP smoke (2026-09-18, `uvicorn` on port 8000): OpenAPI lists the six inventory routes; `GET /docs` 200; unauthenticated products `401`; login then `GET /inventory/products` returns 6 rows with `HCR-PPE-001` stock 105 and `country=US`; outbound quantity 9999 returns `400` with the exact insufficient-stock message and stock stays 105; `consumption_type=theft` returns `422`; `GET /inventory/orders` includes inbound and outbound with `clinic_id`. `python -m compileall -q app` succeeded (no ruff/mypy configured).
