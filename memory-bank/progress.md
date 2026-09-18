@@ -2,48 +2,59 @@
 
 ## Current state
 
-Error-handling implementation is **complete** (not archived). Guide remains at root [`error-handling-context.md`](../error-handling-context.md) until you ask to archive it. Branch `auth_api`.
+Milestone 5 Part 2 inventory backoffice UI is implemented in `uis/web`. Phase guide remains at root [`Backoffice-Inventory-Interface-Context.md`](../Backoffice-Inventory-Interface-Context.md) until the iteration is archived.
 
-## Completed
+## Completed (this iteration)
 
-- Shared `toUserMessage` / `parseError` (no raw `detail` in UI), `ErrorBanner`, `uis/web` `app/error.tsx`, `apiFetch` timeout
-- Forgot-password catch + retry; AuthProvider 401 vs outage; auth forms; suppliers retry + row busy; IncidentAnalyzer uses `parseError`
-- FastAPI global sanitized 500; incident `LoadError` mapped to stable 400; supplier 422 `{detail, errors}`; Resend send failures stay 200
-- CLI export `OSError` → stderr + exit 1
+- `uis/web/src/lib/inventory.ts`: types, `stockStatus`, `InsufficientStockError`, list/get/create/listMovements.
+- `apiFetch` rethrows caller abort; timeout abort still maps to `ApiTimeoutError`.
+- Four protected pages + inventory components + Inventory nav link + `?supply_id=` preselect.
+- Jest: `inventory.test.ts`, `inventoryViews.test.tsx`, abort cases in `apiClient.test.ts`.
+- Local `uis/web/.env.local` copied from `.env.example` (gitignored; `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`).
+
+## Completed (standing)
+
+- Public site, staff UI, incident CLI, supplier directory, staff JWT auth, error handling, bullet-proof tests, inventory API (HCR-0188).
 
 ## Validation results
 
-- `cd services/api && python3 -m unittest discover -s tests -v`: **29 tests OK** (2026-08-28)
-- `cd scripts && python3 -m unittest discover -s tests -v`: **20 tests OK**
-- `npm run typecheck`: **passed**
-- Dev servers were started for local click-through (`uis/web` :3001, API :8000). Agent did not drive the browser.
+HCR-0188 (2026-09-18): 16 inventory pytest passed; 96 full pytest; compileall ok; live seed 6/4/3 gloves 105; live `/docs` + HTTP smoke of evaluator-critical flows. Details in [`TESTING.md`](../TESTING.md).
 
-## Tests added or updated
+Part 2 (2026-09-18):
 
-- New: `services/api/tests/test_error_handlers.py`, `services/api/tests/test_suppliers_api.py`
-- Updated: `test_incidents_api.py` (stable CSV 400), `test_auth_api.py` (forgot-password send failure still 200), `scripts/tests/test_analyze.py` (missing file, bad UTF-8, export I/O)
+- `npm test -w uis/web`: 34 passed, 3 suites (coverage on `apiClient.ts` + `inventory.ts`).
+- `npm run lint -w uis/web`: no ESLint warnings or errors.
+- `npm run build -w uis/web`: success; routes include the four `/backoffice/inventory/...` pages.
+- `npm run typecheck -w uis/web`: passed after abort-mock `RequestInit` typing fix (an earlier run failed only because a concurrent `next build` had wiped `.next/types`).
+- Live smoke (API `:8000`, web `:3001`): unauthenticated `/backoffice/inventory/products` → `/login`; registered staff user; supplies list showed live stock (gloves **105 box / In stock**, wound care humanized); delivery of 2 succeeded and stock became **107**; consumption loaded **107**, overstock warning blocked qty 200; stale-stock submit of 107 after a concurrent outbound 1 returned inline `Insufficient stock for supply 'Nitrile gloves (box of 100)'. Available: 106, requested: 107.` and refreshed stock; successful consumption of 1; history showed Delivery (inbound), Clinical use (outbound), Expiry waste (outbound), `en-GB` dates, `user_uuid`, no edit/delete.
 
 ## Blockers
 
-- Live password-reset email still needs a local `.env` with `RESEND_API_KEY` if you want real inbox delivery.
+- None for Part 2. Supabase MCP SQL still fails password auth; live checks used SQLAlchemy via `.env`.
+
+## Unverified / observed
+
+- Pre-existing AuthGuard hydration overlay (`src/components/AuthProvider.tsx`) appears on hard navigations in Next 15.2.4; dismissed with Escape and did not block the inventory flows. Not fixed in this iteration.
 
 ## Next steps
 
-1. When you confirm the phase is complete, move `error-handling-context.md` into `memory-bank/archive/`.
-2. Optionally keep smoking `uis/web` in the browser (forgot-password failure, API down on session, suppliers retry, incidents bad CSV).
+1. User review / evaluator pass; archive this iteration when asked.
 
 ## Run commands (durable)
 
 ```bash
 cd services/api
-python3 -m unittest discover -s tests -v
-uvicorn app.main:app --reload --port 8000
+uv sync --group dev
+uv run pytest
+uv run seed-auth
+uv run seed-inventory
+uv run uvicorn app.main:app --reload --port 8000
 
-cd scripts
-python3 -m unittest discover -s tests -v
-
-npm run dev:web
-npm run typecheck
+npm test -w uis/web
+npm run typecheck -w uis/web
+npm run lint -w uis/web
+npm run build -w uis/web
+npm run dev -w uis/web
 ```
 
-Last updated: 2026-08-28
+Last updated: 2026-09-18

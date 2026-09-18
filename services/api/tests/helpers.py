@@ -13,8 +13,11 @@ SCRIPTS = REPO_ROOT / "scripts"
 
 _fd, AUTH_DB = tempfile.mkstemp(suffix="-auth.json")
 os.close(_fd)
+_inv_fd, INV_DB = tempfile.mkstemp(suffix="-inventory.sqlite")
+os.close(_inv_fd)
 os.environ["SECRET_KEY"] = "test-secret-key-for-unittest"
 os.environ["AUTH_DB_PATH"] = AUTH_DB
+os.environ["DATABASE_URL"] = f"sqlite:///{INV_DB}"
 os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
 
 for path in (str(API_ROOT), str(SCRIPTS)):
@@ -36,6 +39,15 @@ def reset_auth_db() -> None:
         path.unlink()
 
 
+def reset_inventory_db() -> None:
+    from sqlmodel import SQLModel
+
+    from app.database import get_engine, init_db
+
+    SQLModel.metadata.drop_all(get_engine())
+    init_db()
+
+
 def register(
     email: str = "alice@healthcore.example",
     password: str = "secret123",
@@ -55,5 +67,23 @@ def login(email: str = "alice@healthcore.example", password: str = "secret123"):
 
 def auth_header(email: str = "alice@healthcore.example", password: str = "secret123") -> dict[str, str]:
     register(email=email, password=password)
+    token = login(email=email, password=password).json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
+def admin_header(
+    email: str = "admin@healthcore.example",
+    password: str = "adminpass",
+) -> dict[str, str]:
+    from app.auth.models import Role
+    from app.auth.security import hash_password
+    from app.auth.service import create_user
+
+    create_user(
+        email=email,
+        hashed_password=hash_password(password),
+        role=Role.admin,
+        name="Local Admin",
+    )
     token = login(email=email, password=password).json()["access_token"]
     return {"Authorization": f"Bearer {token}"}

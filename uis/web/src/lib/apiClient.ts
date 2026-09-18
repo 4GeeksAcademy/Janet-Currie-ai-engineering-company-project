@@ -63,11 +63,18 @@ export function messageForStatus(status: number): string {
   return "Something went wrong. Please try again.";
 }
 
+export function isAbortError(err: unknown): boolean {
+  if (typeof DOMException !== "undefined" && err instanceof DOMException && err.name === "AbortError") {
+    return true;
+  }
+  return err instanceof Error && err.name === "AbortError";
+}
+
 export function toUserMessage(err: unknown): string {
   if (err instanceof ApiTimeoutError) return err.message;
   if (err instanceof ApiValidationError) return messageForStatus(422);
   if (err instanceof ApiHttpError) return messageForStatus(err.status);
-  if (typeof DOMException !== "undefined" && err instanceof DOMException && err.name === "AbortError") {
+  if (isAbortError(err)) {
     return "The request took too long. Please try again.";
   }
   if (err instanceof TypeError) {
@@ -134,7 +141,8 @@ export async function apiFetch(path: string, options: ApiFetchOptions = {}): Pro
     return response;
   } catch (err) {
     if (err instanceof ApiTimeoutError) throw err;
-    if (typeof DOMException !== "undefined" && err instanceof DOMException && err.name === "AbortError") {
+    if (isAbortError(err)) {
+      if (signal?.aborted) throw err;
       throw new ApiTimeoutError();
     }
     throw err;
