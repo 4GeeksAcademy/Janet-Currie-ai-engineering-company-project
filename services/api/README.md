@@ -5,6 +5,7 @@ FastAPI surface for:
 - Phase 2 incident CSV analysis (reuses `scripts/` validation)
 - Milestone 09 supplier directory backed by **TinyDB** + **Pydantic**
 - AUTH-01/03 staff authentication (TinyDB users/profiles, JWT bearer, Resend password reset)
+- Milestone 5 inventory (SQLModel / Postgres; `current_stock` is computed)
 
 `uis/web` (http://localhost:3001) is the authenticated client. `uis/website` (http://localhost:3000) stays public and does not call this API.
 
@@ -27,10 +28,11 @@ Set a real `SECRET_KEY` in `.env`. Never commit `.env` or API keys.
 | `RESEND_FROM_EMAIL` | Resend `from` address (must be allowed by your Resend account) |
 | `AUTH_SEED_ADMIN_EMAIL` | Local admin email for `seed-auth` |
 | `AUTH_SEED_ADMIN_PASSWORD` | Local admin password for `seed-auth` |
+| `DATABASE_URL` | Inventory SQLModel engine. Use `postgresql+psycopg://...` for Supabase. If unset, local SQLite at `data/inventory.sqlite`. Tests force a temp SQLite file. |
 
 `cryptography` is pinned to `>=42,<45` so `pip`/`uv` can use a prebuilt wheel. `cryptography` 45+ may try to compile from source and fail without OpenSSL/pkg-config.
 
-Users and profiles live in `data/auth.json` (gitignored via `data/`). Supplier seed data is a separate TinyDB file.
+Users and profiles live in `data/auth.json` (gitignored via `data/`). Supplier seed data is a separate TinyDB file. Inventory tables live in Postgres when `DATABASE_URL` is set; pytest never opens that database.
 
 ## Auth routes
 
@@ -94,6 +96,31 @@ uv run seed
 
 This loads the exact 15 suppliers from `app/suppliers/seed_data.py`.
 
+## Inventory (HCR-0188)
+
+All `/inventory` routes require a bearer token. Staff identities stay in TinyDB (`user_uuid` is `str(user id)`). Stock is deliveries minus consumptions and is never stored.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/inventory/products` | List medical supplies with computed `current_stock` |
+| `POST` | `/inventory/products` | Register a catalogue item (no `current_stock` in the body) |
+| `GET` | `/inventory/products/{id}` | One supply + stock; `404` if missing |
+| `POST` | `/inventory/orders/inbound` | Record a `SupplyDelivery` |
+| `POST` | `/inventory/orders/outbound` | Record a `SupplyConsumption`; over-stock is `400` and does not write |
+| `GET` | `/inventory/orders` | Combined inbound/outbound history (`kind` + nested supply) |
+
+Consumption types: `clinical_use`, `expiry_waste`. Clinic IDs: 1–12. Country: `US` or `UK`.
+
+Hosted Postgres schema: [`app/inventory/schema.sql`](app/inventory/schema.sql) (run in the Supabase SQL Editor if MCP cannot migrate).
+
+```bash
+cd services/api
+uv run seed-auth
+uv run seed-inventory
+```
+
+Seeded `HCR-PPE-001` stock is **105** (deliveries 100+40, consumptions 25+10). `SELECT ... FOR UPDATE` is used on Postgres outbound writes; SQLite tests do not lock rows (race possible only under concurrent SQLite writers).
+
 ## Incident endpoints
 
 Incident analyze/export require a bearer token. `GET /health` stays public.
@@ -112,6 +139,7 @@ cp .env.example .env   # then set SECRET_KEY
 uv sync
 uv run seed
 uv run seed-auth
+uv run seed-inventory
 uv run uvicorn app.main:app --reload --port 8000
 ```
 
@@ -131,13 +159,8 @@ CORS allows the internal UI at http://localhost:3001.
 
 ```bash
 cd services/api
-uv run python -m unittest discover -s tests -v
+uv run pytest
+uv run pytest tests/test_inventory_products.py tests/test_inventory_orders.py tests/test_inventory_seed.py
 ```
 
-Or:
-
-```bash
-python3 -m unittest discover -s tests -v
-```
-
-Auth tests isolate TinyDB with a temp file and mock Resend. They do not send real email.
+Auth tests isolate TinyDB with a temp file and mock Resend. Inventory tests isolate SQLModel on a temp SQLite file. They do not send real email or touch Supabase.

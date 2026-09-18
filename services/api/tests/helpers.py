@@ -13,8 +13,11 @@ SCRIPTS = REPO_ROOT / "scripts"
 
 _fd, AUTH_DB = tempfile.mkstemp(suffix="-auth.json")
 os.close(_fd)
+_inv_fd, INV_DB = tempfile.mkstemp(suffix="-inventory.sqlite")
+os.close(_inv_fd)
 os.environ["SECRET_KEY"] = "test-secret-key-for-unittest"
 os.environ["AUTH_DB_PATH"] = AUTH_DB
+os.environ["DATABASE_URL"] = f"sqlite:///{INV_DB}"
 os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
 
 for path in (str(API_ROOT), str(SCRIPTS)):
@@ -34,6 +37,15 @@ def reset_auth_db() -> None:
     path = Path(os.environ["AUTH_DB_PATH"])
     if path.exists():
         path.unlink()
+
+
+def reset_inventory_db() -> None:
+    from sqlmodel import SQLModel
+
+    from app.database import get_engine, init_db
+
+    SQLModel.metadata.drop_all(get_engine())
+    init_db()
 
 
 def register(
