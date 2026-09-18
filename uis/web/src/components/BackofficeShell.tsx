@@ -8,6 +8,7 @@ const nav = [
   { href: "/", label: "Welcome" },
   { href: "/operations", label: "Operations analytics" },
   { href: "/incidents", label: "Incident analysis" },
+  { href: "/backoffice/inventory/products", label: "Inventory" },
   { href: "/suppliers", label: "Supplier directory" },
   { href: "/account/profile", label: "Profile" },
   { href: "/account/change-password", label: "Change password" },

@@ -1,4 +1,5 @@
 import {
+  apiFetch,
   ApiHttpError,
   ApiTimeoutError,
   clearAccessToken,
@@ -71,5 +72,40 @@ describe("toUserMessage and parseError", () => {
       expect(message).not.toContain("SECRET leaked");
       expect(String(err)).not.toContain("SECRET leaked");
     }
+  });
+});
+
+describe("apiFetch abort vs timeout", () => {
+  const originalFetch = global.fetch;
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  it("rethrows when the caller aborts", async () => {
+    const controller = new AbortController();
+    global.fetch = jest.fn((_url, init?: RequestInit) => {
+      return new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => {
+          reject(new DOMException("Aborted", "AbortError"));
+        });
+      });
+    });
+    const pending = apiFetch("/inventory/products", { signal: controller.signal, timeoutMs: 30_000 });
+    controller.abort();
+    await expect(pending).rejects.toMatchObject({ name: "AbortError" });
+  });
+
+  it("maps timeout abort to ApiTimeoutError", async () => {
+    global.fetch = jest.fn((_url, init?: RequestInit) => {
+      return new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => {
+          reject(new DOMException("Aborted", "AbortError"));
+        });
+      });
+    });
+    await expect(apiFetch("/inventory/products", { timeoutMs: 20 })).rejects.toBeInstanceOf(
+      ApiTimeoutError,
+    );
   });
 });

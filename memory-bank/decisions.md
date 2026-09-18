@@ -33,6 +33,12 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | `cryptography` pinned to `>=42,<45` | 45+ failed to compile on this Mac without OpenSSL/pkg-config |
 | Inventory lives in SQLModel on `DATABASE_URL`; users stay TinyDB; `user_uuid` is `str(TinyDB id)` | HCR-0188; no UUID user key in this repo |
 | Inventory pytest uses temp SQLite; Postgres `SELECT FOR UPDATE` on outbound | Isolation without secrets; SQLite does not row-lock |
+| Inventory UI reuses `NEXT_PUBLIC_API_BASE_URL` (no `NEXT_PUBLIC_INVENTORY_API_URL`) | Same origin as incidents/suppliers/auth; default `http://localhost:8000` |
+| Browser URLs include `/backoffice/inventory/...` with no Next `basePath` | Assignment URLs; app already lives at site root on port 3001 |
+| Outbound HTTP `400` whose `detail` starts with `Insufficient stock for supply` is shown inline | Designed staff message / evaluator check 7; other errors still use `toUserMessage` |
+| `apiFetch` rethrows caller-aborted signals and maps timeout abort to `ApiTimeoutError` | Consumption form must ignore stale `getSupply` without treating it as a timeout |
+| Stock bands 0 / 1–24 / 25+ are presentation-only | Official stock is API `current_stock`; seed gloves (105) stay healthy |
+| Inventory UI lives in `uis/web`, not `uis/backoffice` | Internal app is already the Next.js backoffice |
 
 ## Rejected (for now)
 
@@ -47,6 +53,8 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Access-token revocation on password change | Needs denylist or `password_changed_at` | If session kill-switch is required |
 | Rate limits / HTML email / reset audit logs | AUTH-03 extras; not approved | User asks |
 | Jest for `uis/website` enquiry validation in FE-019 | Different app; extra Jest setup; ticket met by `apiClient` helpers | User asks |
+| `NEXT_PUBLIC_INVENTORY_API_URL` | Would duplicate `apiBaseUrl()` | Never, unless inventory is hosted separately |
+| Inventory UI in leftover `uis/backoffice` | Empty `.next` only; staff app is `uis/web` | Never |
 
 ## Still provisional
 
