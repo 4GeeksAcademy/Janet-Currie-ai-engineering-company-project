@@ -43,7 +43,7 @@ FastAPI `services/api` → `app/routers/inventory.py` → `app/inventory/service
 
 - No User/Profile tables in Postgres.
 - Do not persist or accept `current_stock`.
-- Do not invent product update/delete or inventory UI.
+- Do not invent product update/delete. Staff UI lives in `uis/web` (see [inventory-backoffice-ui.md](inventory-backoffice-ui.md)).
 - Combined history uses `OrderMovement.kind` (`inbound` | `outbound`).
 
 ## Validation

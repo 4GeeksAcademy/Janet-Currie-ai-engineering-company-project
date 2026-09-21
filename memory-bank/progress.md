@@ -2,47 +2,51 @@
 
 ## Current state
 
-Milestone 5 Part 2 inventory backoffice UI is implemented in `uis/web`. Phase guide remains at root [`Backoffice-Inventory-Interface-Context.md`](../Backoffice-Inventory-Interface-Context.md) until the iteration is archived.
-
-## Completed (this iteration)
-
-- `uis/web/src/lib/inventory.ts`: types, `stockStatus`, `InsufficientStockError`, list/get/create/listMovements.
-- `apiFetch` rethrows caller abort; timeout abort still maps to `ApiTimeoutError`.
-- Four protected pages + inventory components + Inventory nav link + `?supply_id=` preselect.
-- Jest: `inventory.test.ts`, `inventoryViews.test.tsx`, abort cases in `apiClient.test.ts`.
-- Local `uis/web/.env.local` copied from `.env.example` (gitignored; `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`).
+infra-40 Compose stack is implemented and verified locally. `docker compose up --build` from the repo root starts `ui` and `backend` on named network `healthcore_dev`. Phase guide remains root [`Docker-Context.md`](../Docker-Context.md).
 
 ## Completed (standing)
 
-- Public site, staff UI, incident CLI, supplier directory, staff JWT auth, error handling, bullet-proof tests, inventory API (HCR-0188).
+- Public site, staff UI, incident CLI, supplier directory, staff JWT auth, error handling, bullet-proof tests, inventory API (HCR-0188), inventory backoffice UI.
+- Docker artifacts: `docker-compose.yml`, `uis/Dockerfile`, `uis/start.sh`, `uis/.dockerignore`, `services/Dockerfile`, `services/.dockerignore`, root `.dockerignore`, `.env.example`, gitignored `.env`.
+- CORS reads `CORS_ORIGINS`; `services/api/requirements.txt` includes `sqlmodel` and `psycopg[binary]`.
 
 ## Validation results
 
-HCR-0188 (2026-09-18): 16 inventory pytest passed; 96 full pytest; compileall ok; live seed 6/4/3 gloves 105; live `/docs` + HTTP smoke of evaluator-critical flows. Details in [`TESTING.md`](../TESTING.md).
+HCR-0188 (2026-09-18): 16 inventory pytest passed; 96 full pytest; compileall ok; live seed 6/4/3 gloves 105; live `/docs` + HTTP smoke. Details in [`TESTING.md`](../TESTING.md).
 
-Part 2 (2026-09-18):
+Inventory UI (2026-09-18): `npm test -w uis/web` 34 passed; lint clean; build and typecheck passed; live smoke of four `/backoffice/inventory/...` routes. Shipped in `afb1bed`. Durable notes: [`implementation-memory/inventory-backoffice-ui.md`](implementation-memory/inventory-backoffice-ui.md).
 
-- `npm test -w uis/web`: 34 passed, 3 suites (coverage on `apiClient.ts` + `inventory.ts`).
-- `npm run lint -w uis/web`: no ESLint warnings or errors.
-- `npm run build -w uis/web`: success; routes include the four `/backoffice/inventory/...` pages.
-- `npm run typecheck -w uis/web`: passed after abort-mock `RequestInit` typing fix (an earlier run failed only because a concurrent `next build` had wiped `.next/types`).
-- Live smoke (API `:8000`, web `:3001`): unauthenticated `/backoffice/inventory/products` → `/login`; registered staff user; supplies list showed live stock (gloves **105 box / In stock**, wound care humanized); delivery of 2 succeeded and stock became **107**; consumption loaded **107**, overstock warning blocked qty 200; stale-stock submit of 107 after a concurrent outbound 1 returned inline `Insufficient stock for supply 'Nitrile gloves (box of 100)'. Available: 106, requested: 107.` and refreshed stock; successful consumption of 1; history showed Delivery (inbound), Clinical use (outbound), Expiry waste (outbound), `en-GB` dates, `user_uuid`, no edit/delete.
+infra-40 (2026-09-18):
+
+- `docker compose config` ok; `.env` gitignored/untracked; Dockerfiles/Compose/`.env.example` contain only placeholders (`SECRET_KEY=change-me-in-local-dev`). Container-internal `localhost` is not used for service DNS.
+- `docker compose up --build`: images `ai-engineering-company-project-ui` and `-backend`; network `healthcore_dev`; ports 3000/3001/8000.
+- Host: website `GET /` 200 on 3000; staff UI 200 on 3001; `GET /health` `{"status":"ok"}` and `/docs` 200 on 8000.
+- UI container: `wget -qO- http://backend:8000/health` → `{"status":"ok"}`.
+- Browser login as local admin against `localhost:8000`; inventory products page listed the six seeded supplies (after `python -m app.inventory.seed` in the backend container).
+- Hot reload: website and `uis/web` recompiled after bind-mount edits; uvicorn WatchFiles reloaded `app/main.py`. Probe comments restored.
+- Host regression: `npm run typecheck` exit 0; `npm test -w uis/web` 34 passed; `cd services/api && uv run pytest` 99 passed (includes 3 CORS tests).
+- First Next compile after boot is slow (~30–75s). `@testing-library/jest-dom@7` warns EBADENGINE (wants Node 22; image is Node 20) — install still succeeds.
+- `RESEND_API_KEY` empty and `DATABASE_URL` empty (sqlite in `data/`) still boot. No extra DB/mail containers.
 
 ## Blockers
 
-- None for Part 2. Supabase MCP SQL still fails password auth; live checks used SQLAlchemy via `.env`.
-
-## Unverified / observed
-
-- Pre-existing AuthGuard hydration overlay (`src/components/AuthProvider.tsx`) appears on hard navigations in Next 15.2.4; dismissed with Escape and did not block the inventory flows. Not fixed in this iteration.
+- None for Compose start. Supabase MCP SQL still fails password auth; live inventory in this stack used sqlite because `DATABASE_URL` is empty.
+- Docker Desktop must be running (`~/.docker/run/docker.sock`). It was started during validation.
 
 ## Next steps
 
-1. User review / evaluator pass; archive this iteration when asked.
+1. Archive `Docker-Context.md` only after the user asks to close this phase.
 
 ## Run commands (durable)
 
 ```bash
+# Compose (repo root; copy .env.example → .env first)
+docker compose up --build
+
+# Optional one-time seed inside the backend container
+docker compose exec backend python -m app.auth.seed
+docker compose exec backend python -m app.inventory.seed
+
 cd services/api
 uv sync --group dev
 uv run pytest
@@ -57,4 +61,4 @@ npm run build -w uis/web
 npm run dev -w uis/web
 ```
 
-Last updated: 2026-09-18
+Last updated: 2026-09-21

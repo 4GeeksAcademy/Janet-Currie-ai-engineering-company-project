@@ -1,0 +1,15 @@
+node_modules
+**/node_modules
+.next
+**/.next
+.env*
+**/.env*
+*.log
+**/*.log
+backoffice
+coverage
+**/.coverage
+**/*.tsbuildinfo
+.DS_Store
+.git
+.gitignore

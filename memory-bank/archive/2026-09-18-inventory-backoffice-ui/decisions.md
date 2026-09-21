@@ -1,13 +1,13 @@
 # Decisions — Active iteration
 
-Standing decisions that still constrain work. Completed-iteration snapshots: [`archive/2026-07-29-monorepo-ai-frontend/`](archive/2026-07-29-monorepo-ai-frontend/), [`archive/2026-08-28-supplier-directory/`](archive/2026-08-28-supplier-directory/), [`archive/2026-08-28-staff-auth/`](archive/2026-08-28-staff-auth/), [`archive/2026-08-31-error-handling/`](archive/2026-08-31-error-handling/), [`archive/2026-09-04-bullet-proof/`](archive/2026-09-04-bullet-proof/), [`archive/2026-09-18-inventory-api/`](archive/2026-09-18-inventory-api/), [`archive/2026-09-18-inventory-backoffice-ui/`](archive/2026-09-18-inventory-backoffice-ui/). Architecture rationale: [`docs/architecture_proposal.md`](../docs/architecture_proposal.md). Course/phase guides live in their archives (do not load unless asked).
+Standing decisions that still constrain work. Completed-iteration snapshots: [`archive/2026-07-29-monorepo-ai-frontend/`](archive/2026-07-29-monorepo-ai-frontend/), [`archive/2026-08-28-supplier-directory/`](archive/2026-08-28-supplier-directory/), [`archive/2026-08-28-staff-auth/`](archive/2026-08-28-staff-auth/), [`archive/2026-08-31-error-handling/`](archive/2026-08-31-error-handling/), [`archive/2026-09-04-bullet-proof/`](archive/2026-09-04-bullet-proof/), [`archive/2026-09-18-inventory-api/`](archive/2026-09-18-inventory-api/). Architecture rationale: [`docs/architecture_proposal.md`](../docs/architecture_proposal.md). Course/phase guides live in their archives (do not load unless asked).
 
 ## Adopted
 
 | Decision | Rationale |
 |----------|-----------|
 | Project memory bank uses global layout (`context`, `spec`, `progress`, `decisions`, `archive/YYYY-MM-DD-name/` with plan + tech-updates) | Aligns with global working rules; keeps active files concise |
-| Finished course contracts and phase guides live in `archive/`, not repo root or the four active files | AUTH, error-handling, bullet-proof, inventory API, and inventory UI guides moved there after completion |
+| Finished course contracts and phase guides live in `archive/`, not repo root or the four active files | AUTH, error-handling, bullet-proof, and inventory guides moved there after completion |
 | AUTH-088 uses pytest + pytest-cov via `uv` in `services/api`; coverage is measured on `app.auth` | Course requires `uv run pytest --cov`; existing unittest files still run under pytest |
 | AUTH-088 skips Jest for auth crypto; FE-019 adds Jest in `uis/web` for `apiClient` helpers | `authApi.ts` is fetch-only; token storage, `messageForStatus`, `toUserMessage`, and `parseError` are the testable utilities |
 | API-042 extends existing incident/supplier unittest files rather than rewriting them as pytest functions | Smallest change; pytest already collects unittest.TestCase |
@@ -39,14 +39,6 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | `apiFetch` rethrows caller-aborted signals and maps timeout abort to `ApiTimeoutError` | Consumption form must ignore stale `getSupply` without treating it as a timeout |
 | Stock bands 0 / 1–24 / 25+ are presentation-only | Official stock is API `current_stock`; seed gloves (105) stay healthy |
 | Inventory UI lives in `uis/web`, not `uis/backoffice` | Internal app is already the Next.js backoffice |
-| Compose services are `ui` + `backend` on named network `healthcore_dev` | infra-40 contract; `backend` is the DNS name other containers use |
-| Compose `build.context` is repo root even though Dockerfiles live under `uis/` and `services/` | Root npm lockfile and `scripts/` (`parents[3]` from `app/main.py`) are outside those folders |
-| Browser `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000` | All `uis/web` API calls are client-side `fetch`; Docker DNS `http://backend:8000` would break the host browser |
-| CORS origins from `CORS_ORIGINS` (comma-separated), defaulting to the two localhost:3001 values | Brief requires config; no wildcard-with-credentials |
-| `requirements.txt` is exported/kept in sync with `pyproject.toml` (includes `sqlmodel`, `psycopg[binary]`) without `-e .` | Docker `uv pip install --system -r requirements.txt` cannot install the local package path |
-| Named volumes for `node_modules` and `/app/services/api/.venv` | Host bind mounts must not hide image deps or overwrite the Mac host `.venv` |
-| Uvicorn `--reload-dir app` plus `WATCHFILES_FORCE_POLLING=true` | Watching the whole `services/api` tree reloaded on `.venv` writes; native WatchFiles on Docker Desktop macOS can stall the worker |
-| Container seed is `python -m app.auth.seed` (system site-packages), not `uv run seed-auth` | `uv run` inside the bind mount created a Linux `.venv` on the host |
 
 ## Rejected (for now)
 
@@ -63,9 +55,6 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Jest for `uis/website` enquiry validation in FE-019 | Different app; extra Jest setup; ticket met by `apiClient` helpers | User asks |
 | `NEXT_PUBLIC_INVENTORY_API_URL` | Would duplicate `apiBaseUrl()` | Never, unless inventory is hosted separately |
 | Inventory UI in leftover `uis/backoffice` | Empty `.next` only; staff app is `uis/web` | Never |
-| Postgres or mail containers in the dev stack | Brief is two application services; extras already exist as Supabase/Resend | User asks |
-| `NEXT_PUBLIC_API_BASE_URL=http://backend:8000` | Host browser cannot resolve Compose DNS | Never for public Next vars |
-| Dockerfiles under `infra/` | Placeholder only; brief pins `uis/Dockerfile` and `services/Dockerfile` | Never for infra-40 |
 
 ## Still provisional
 
