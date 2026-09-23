@@ -1,13 +1,8 @@
-"use client";
-
 import { Card } from "@/components/ui/Card";
 import { Section } from "@/components/ui/Section";
-import { useLanguage } from "@/components/providers/LanguageProvider";
-import { services, t } from "@/lib/i18n";
+import { services, t, type Lang } from "@/lib/i18n";
 
-export function Services() {
-  const { lang } = useLanguage();
-
+export function Services({ lang }: { lang: Lang }) {
   return (
     <Section id="services" title={t(services.title, lang)}>
       <div className="grid gap-6 md:grid-cols-3 md:gap-8">

@@ -9,7 +9,7 @@ const config: Config = {
   testEnvironment: "jsdom",
   coverageProvider: "v8",
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
-  collectCoverageFrom: ["src/lib/apiClient.ts", "src/lib/inventory.ts"],
+  collectCoverageFrom: ["src/lib/apiClient.ts", "src/lib/inventory.ts", "src/lib/useAsyncResource.ts"],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
   },

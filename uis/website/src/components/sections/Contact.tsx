@@ -1,12 +1,7 @@
-"use client";
-
 import { Section } from "@/components/ui/Section";
-import { useLanguage } from "@/components/providers/LanguageProvider";
-import { contactCopy, t } from "@/lib/i18n";
+import { contactCopy, t, type Lang } from "@/lib/i18n";
 
-export function Contact() {
-  const { lang } = useLanguage();
-
+export function Contact({ lang }: { lang: Lang }) {
   return (
     <Section id="contact" title={t(contactCopy.title, lang)} narrow>
       <div className="flex flex-col items-center gap-6">

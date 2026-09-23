@@ -1,37 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
 import { ErrorBanner } from "@/components/ErrorBanner";
-import { toUserMessage } from "@/lib/apiClient";
 import {
   formatInventoryDate,
   listMovements,
   movementTypeLabel,
-  type OrderMovement,
 } from "@/lib/inventory";
+import { useAsyncResource } from "@/lib/useAsyncResource";
 
 export function MovementHistory() {
-  const [rows, setRows] = useState<OrderMovement[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      setRows(await listMovements());
-    } catch (err) {
-      setError(toUserMessage(err));
-      setRows([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const { data, error, loading, reload } = useAsyncResource(listMovements);
+  const rows = data ?? [];
 
   return (
     <div className="space-y-6">
@@ -41,7 +21,7 @@ export function MovementHistory() {
           Read-only deliveries and consumption events, newest first.
         </p>
       </div>
-      {error ? <ErrorBanner message={error} onRetry={() => void load()} /> : null}
+      {error ? <ErrorBanner message={error} onRetry={() => void reload()} /> : null}
       <section className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full text-left text-sm">
           <thead className="border-b border-slate-200 bg-slate-50 text-slate-600">

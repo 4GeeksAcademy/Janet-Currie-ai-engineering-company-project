@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 
@@ -14,13 +15,16 @@ export const metadata: Metadata = {
     "HealthCore: Outpatient healthcare network offering primary care, specialist consultations, chronic disease management, and preventive health programmes.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const jar = await cookies();
+  const lang = jar.get("hc_lang")?.value === "es" ? "es" : "en";
+
   return (
-    <html lang="en">
+    <html lang={lang}>
       <body className={`${sourceSans.variable} bg-white font-sans text-[18px] leading-relaxed text-gray-900 antialiased`}>
         {children}
       </body>
