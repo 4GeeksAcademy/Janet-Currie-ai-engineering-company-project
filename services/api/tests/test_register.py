@@ -10,8 +10,10 @@ def test_register_creates_user_and_profile_without_password_hash() -> None:
     response = register(name="Alice", phone="555", address="1 Clinic Rd")
     assert response.status_code == 201
     body = response.json()
-    assert body["email"] == "alice@healthcore.example"
+    assert "id" in body
     assert body["role"] == "user"
+    assert body["is_active"] is True
+    assert "email" not in body
     assert "hashed_password" not in body
     assert "password" not in body
     user = get_user_by_email("alice@healthcore.example")

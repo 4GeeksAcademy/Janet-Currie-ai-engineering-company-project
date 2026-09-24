@@ -60,6 +60,8 @@ class SupplierBase(BaseModel):
 class SupplierCreate(SupplierBase):
     """Payload for POST /suppliers and seeder rows."""
 
+    model_config = ConfigDict(extra="ignore")
+
 
 class SupplierRateUpdate(BaseModel):
     monthly_rate: float = Field(gt=0)

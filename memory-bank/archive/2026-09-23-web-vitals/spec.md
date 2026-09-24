@@ -14,32 +14,30 @@
 10. Milestone 5 inventory API is archived — do not load [`archive/2026-09-18-inventory-api/`](archive/2026-09-18-inventory-api/) unless asked. Durable notes: [`implementation-memory/inventory-api.md`](implementation-memory/inventory-api.md).
 11. Milestone 5 Part 2 inventory UI is archived — do not load [`archive/2026-09-18-inventory-backoffice-ui/`](archive/2026-09-18-inventory-backoffice-ui/) unless asked. Durable notes: [`implementation-memory/inventory-backoffice-ui.md`](implementation-memory/inventory-backoffice-ui.md).
 12. Docker Compose (`infra-40`) is archived — do not load [`archive/2026-09-23-docker-compose/`](archive/2026-09-23-docker-compose/) unless asked. Durable notes: [`implementation-memory/docker-compose-dev.md`](implementation-memory/docker-compose-dev.md).
-13. Web Vitals is archived — do not load [`archive/2026-09-23-web-vitals/`](archive/2026-09-23-web-vitals/) unless asked. Durable notes: [`implementation-memory/web-vitals.md`](implementation-memory/web-vitals.md). Evidence remains in root `AUDIT.md`, `REPORT.md`, and `audit/`.
-14. **Backend serialization:** audit every application-owned FastAPI route; explicit `response_model` (or documented special response); separate write vs public schemas; no secrets or unauthenticated email echo; list/detail/relationship shapes match [`uis/web`](../uis/web) consumers; trail in [`docs/serialization-audit.md`](../docs/serialization-audit.md).
+13. **Web Vitals audit:** measure both Next apps with production `next start` (not Compose `next dev`); record baseline before any UI fix; staff app is `uis/web`; at least one Lighthouse score must improve independently on each frontend; extract one real shared component or hook.
 
 ## Acceptance criteria
 
 - [x] Required memory-bank files exist at `memory-bank/` root.
-- [x] Completed iterations archived: `2026-07-29-monorepo-ai-frontend`, `2026-08-28-supplier-directory`, `2026-08-28-staff-auth`, `2026-08-31-error-handling`, `2026-09-04-bullet-proof`, `2026-09-18-inventory-api`, `2026-09-18-inventory-backoffice-ui`, `2026-09-23-docker-compose`, `2026-09-23-web-vitals`.
+- [x] Completed iterations archived: `2026-07-29-monorepo-ai-frontend`, `2026-08-28-supplier-directory`, `2026-08-28-staff-auth`, `2026-08-31-error-handling`, `2026-09-04-bullet-proof`, `2026-09-18-inventory-api`, `2026-09-18-inventory-backoffice-ui`, `2026-09-23-docker-compose`.
 - [x] Project `AGENTS.md` points at the global memory-bank file names.
 - [x] AUTH-088 / API-042 / FE-019 implemented; results in [`TESTING.md`](../TESTING.md).
 - [x] `BulletProofApp-Context.md` moved to `memory-bank/archive/2026-09-04-bullet-proof/`.
 - [x] Milestone 5 inventory API: six authenticated `/inventory` routes, SQLModel persistence, seed, pytest, live `/docs` smoke; phase guide in `archive/2026-09-18-inventory-api/`.
 - [x] Milestone 5 Part 2 inventory UI: four authenticated `/backoffice/inventory/...` views in `uis/web`; phase guide in `archive/2026-09-18-inventory-backoffice-ui/`.
 - [x] infra-40 Compose stack: `ui` + `backend` on `healthcore_dev`; phase guide in `archive/2026-09-23-docker-compose/`.
-- [x] Web Vitals audit: production Lighthouse loop on both Next apps; phase guide in `archive/2026-09-23-web-vitals/`.
-- [x] `Backend-Serialization.md` at repo root for the next phase.
-- [x] `docs/serialization-audit.md` lists every application endpoint with original classification, target fields, and final status.
-- [x] Every JSON route has an explicit `response_model`; special 204/CSV routes have documented contracts.
-- [x] Unauthenticated register/login/forgot/reset do not echo email; no password/hash/token leaks; `GET /auth/me` still returns the caller's email.
-- [x] Write schemas cannot set server-managed fields; list/detail/relationship shapes match consumers.
-- [x] Focused payload tests, full `uv run pytest`, three `/docs` checks, consumers still work.
+- [x] `Performance-Web-Vitals-Context.md` at repo root for the next phase.
+- [x] Web Vitals: baseline screenshots in `audit/before/` for website home (desktop+mobile) and staff `/operations` (desktop, authenticated).
+- [x] `AUDIT.md` has protocol, scores, root causes, two refactor candidates.
+- [x] At least one reusable component or hook extracted and integrated.
+- [x] After screenshots in `audit/after/`; `REPORT.md` with comparable deltas.
+- [x] At least one Lighthouse score improves for each frontend without removing required behavior.
 
 ## Interfaces / expected behavior (standing)
 
 | Surface | Expected behavior |
 |---------|-------------------|
-| `uis/website` | Public corporate site; EN/ES via `hc_lang` cookie; enquiry form; brand blues; no auth |
+| `uis/website` | Public corporate site; EN/ES; enquiry form; brand blues; no auth |
 | `uis/web` | Public `/login`, `/register`, `/forgot-password`, `/reset-password`; protected welcome, `/operations`, `/incidents`, `/suppliers`, `/backoffice/inventory/{products,orders,orders/inbound,orders/outbound}`, `/account/profile`, `/account/change-password` |
 | `scripts/` | Phase 1 `analyze.py` + `incidents-healthcore.csv` |
 | `services/api` | Incidents + suppliers (TinyDB) + staff auth + inventory (SQLModel). Login is `POST /auth/login`. `GET /health` public. Sensitive routes require bearer JWT. CORS from `CORS_ORIGINS` (default `http://localhost:3001`, `http://127.0.0.1:3001`). |

@@ -1,13 +1,13 @@
 # Decisions — Active iteration
 
-Standing decisions that still constrain work. Completed-iteration snapshots: [`archive/2026-07-29-monorepo-ai-frontend/`](archive/2026-07-29-monorepo-ai-frontend/), [`archive/2026-08-28-supplier-directory/`](archive/2026-08-28-supplier-directory/), [`archive/2026-08-28-staff-auth/`](archive/2026-08-28-staff-auth/), [`archive/2026-08-31-error-handling/`](archive/2026-08-31-error-handling/), [`archive/2026-09-04-bullet-proof/`](archive/2026-09-04-bullet-proof/), [`archive/2026-09-18-inventory-api/`](archive/2026-09-18-inventory-api/), [`archive/2026-09-18-inventory-backoffice-ui/`](archive/2026-09-18-inventory-backoffice-ui/), [`archive/2026-09-23-docker-compose/`](archive/2026-09-23-docker-compose/), [`archive/2026-09-23-web-vitals/`](archive/2026-09-23-web-vitals/). Architecture rationale: [`docs/architecture_proposal.md`](../docs/architecture_proposal.md). Course/phase guides live in their archives (do not load unless asked).
+Standing decisions that still constrain work. Completed-iteration snapshots: [`archive/2026-07-29-monorepo-ai-frontend/`](archive/2026-07-29-monorepo-ai-frontend/), [`archive/2026-08-28-supplier-directory/`](archive/2026-08-28-supplier-directory/), [`archive/2026-08-28-staff-auth/`](archive/2026-08-28-staff-auth/), [`archive/2026-08-31-error-handling/`](archive/2026-08-31-error-handling/), [`archive/2026-09-04-bullet-proof/`](archive/2026-09-04-bullet-proof/), [`archive/2026-09-18-inventory-api/`](archive/2026-09-18-inventory-api/), [`archive/2026-09-18-inventory-backoffice-ui/`](archive/2026-09-18-inventory-backoffice-ui/), [`archive/2026-09-23-docker-compose/`](archive/2026-09-23-docker-compose/). Architecture rationale: [`docs/architecture_proposal.md`](../docs/architecture_proposal.md). Course/phase guides live in their archives (do not load unless asked).
 
 ## Adopted
 
 | Decision | Rationale |
 |----------|-----------|
 | Project memory bank uses global layout (`context`, `spec`, `progress`, `decisions`, `archive/YYYY-MM-DD-name/` with plan + tech-updates) | Aligns with global working rules; keeps active files concise |
-| Finished course contracts and phase guides live in `archive/`, not repo root or the four active files | AUTH, error-handling, bullet-proof, inventory API, inventory UI, Docker Compose, and Web Vitals guides moved there after completion |
+| Finished course contracts and phase guides live in `archive/`, not repo root or the four active files | AUTH, error-handling, bullet-proof, inventory API, inventory UI, and Docker Compose guides moved there after completion |
 | AUTH-088 uses pytest + pytest-cov via `uv` in `services/api`; coverage is measured on `app.auth` | Course requires `uv run pytest --cov`; existing unittest files still run under pytest |
 | AUTH-088 skips Jest for auth crypto; FE-019 adds Jest in `uis/web` for `apiClient` helpers | `authApi.ts` is fetch-only; token storage, `messageForStatus`, `toUserMessage`, and `parseError` are the testable utilities |
 | API-042 extends existing incident/supplier unittest files rather than rewriting them as pytest functions | Smallest change; pytest already collects unittest.TestCase |
@@ -53,12 +53,6 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Website below-fold sections are Server Components; `hc_lang` cookie + `router.refresh()` for ES | Shrinks the hydrated tree (W1) without duplicating EN/ES markup; `next/dynamic` of those sections delayed LCP and was dropped |
 | Appointment modal is client-only after open | Not in LCP; avoids shipping the form on first load |
 | Staff role label uses `text-slate-600` | Lighthouse color-contrast on `#94a3b8` / white failed 2.56:1 |
-| Serialization audit stays in `services/api` with existing Pydantic v2 modules | Brief forbids a new backend; schemas already live in `auth/models.py`, `inventory/schemas.py`, `suppliers/models.py` |
-| Public `POST /users` must not echo email; `GET /auth/me` may | Evaluator rule 9 vs profile consumer `fetchMe` |
-| Do not slim supplier list fields that `SupplierDirectory` renders | notes, compliance, currency, `updated_at` are shown in the table |
-| Public register returns `UserRegisteredResponse` (`id`, `role`, `is_active`) | Drop email on unauthenticated `POST /users`; `registerRequest` ignores the body |
-| Incident analyze uses `IncidentAnalysisResponse`; export is documented `text/csv` | Untyped `dict` leaked in OpenAPI as `object` / fake JSON |
-| FastAPI 0.141 route audit walks `_IncludedRouter.original_router` | `app.routes` no longer flattens included `APIRoute`s |
 
 ## Rejected (for now)
 

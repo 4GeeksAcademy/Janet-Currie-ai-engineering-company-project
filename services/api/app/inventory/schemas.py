@@ -63,6 +63,8 @@ class ConsumptionCreate(BaseModel):
 
 
 class DeliveryPublic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     supply_id: int
     quantity: int
@@ -73,6 +75,8 @@ class DeliveryPublic(BaseModel):
 
 
 class ConsumptionPublic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     supply_id: int
     quantity: int

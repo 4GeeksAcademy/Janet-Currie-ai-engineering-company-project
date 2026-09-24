@@ -2,14 +2,14 @@
 
 ## Goal
 
-Evidence-based Lighthouse / Web Vitals audit of `uis/website` and `uis/web`. Phase guide: [`Performance-Web-Vitals-Context.md`](../Performance-Web-Vitals-Context.md). Measurement record: [`AUDIT.md`](../AUDIT.md). Results: [`REPORT.md`](../REPORT.md).
+Backend serialization audit of the existing FastAPI app in [`services/api`](../services/api) is complete. Phase guide: [`Backend-Serialization.md`](../Backend-Serialization.md). Audit trail: [`docs/serialization-audit.md`](../docs/serialization-audit.md).
 
 ## Scope (standing)
 
 - Keep shipped UIs runnable: `uis/website` (public), `uis/web` (staff JWT, including inventory).
 - Phase 1 incident CLI: [`scripts/`](../scripts/).
 - Phase 2 API: incidents, suppliers, staff JWT auth, inventory.
-- Local stack: `docker compose up` starts website (3000), staff UI (3001), and FastAPI (8000). **This audit uses host `next start` after `next build`, not Compose `next dev`.**
+- Local stack: `docker compose up` starts website (3000), staff UI (3001), and FastAPI (8000).
 - Treat [`docs/architecture_proposal.md`](../docs/architecture_proposal.md) as the blueprint before expanding beyond Phase 2.
 - Do **not** invent production PHI flows or EHR integrations without explicit instruction.
 
@@ -22,27 +22,24 @@ Evidence-based Lighthouse / Web Vitals audit of `uis/website` and `uis/web`. Pha
 - User/Profile stay in TinyDB only (`services/api/data/auth.json`). Do not add User/Profile tables in Postgres/Supabase.
 - No commit/push/PR unless the user requests it.
 - Treat implementation and validation as one task (see spec). Do not rewrite `memory-bank/archive/`.
-- Baseline Lighthouse screenshots live under `audit/before/` and must stay frozen.
-- Do not install optional performance skills unless the user authorizes it.
+- Do not rewrite error handlers, replace FastAPI/Pydantic/SQLModel/TinyDB, or create a new backend.
+- Stay on the current git branch; no new branch unless asked.
 
 ## Essential background
 
 HealthCore: 12 outpatient clinics (US + UK), ~200 staff, ~$28M revenue.
 
-Staff UI is `uis/web` (port 3001), not `uis/backoffice`. FastAPI lives at `services/api`. Browser API calls use `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`.
+Staff UI is `uis/web` (port 3001), not `uis/backoffice`. FastAPI lives at `services/api`. Browser API calls use `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`. The public website and `scripts/` do not call this HTTP API.
 
-Audited URLs: `http://localhost:3000/` (desktop + mobile), `http://localhost:3001/operations` (desktop, authenticated).
-
-Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai-frontend/`, `archive/2026-08-28-supplier-directory/`, `archive/2026-08-28-staff-auth/`, `archive/2026-08-31-error-handling/`, `archive/2026-09-04-bullet-proof/`, `archive/2026-09-18-inventory-api/`, `archive/2026-09-18-inventory-backoffice-ui/`, `archive/2026-09-23-docker-compose/`.
+Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai-frontend/`, `archive/2026-08-28-supplier-directory/`, `archive/2026-08-28-staff-auth/`, `archive/2026-08-31-error-handling/`, `archive/2026-09-04-bullet-proof/`, `archive/2026-09-18-inventory-api/`, `archive/2026-09-18-inventory-backoffice-ui/`, `archive/2026-09-23-docker-compose/`, `archive/2026-09-23-web-vitals/`.
 
 ## Relevant files
 
 | Path | Role |
 |------|------|
-| `Performance-Web-Vitals-Context.md` | Phase guide |
-| `AUDIT.md` | Protocol, baseline, findings |
-| `REPORT.md` | Corrections, refactor, before/after |
-| `audit/before/`, `audit/after/` | Lighthouse screenshots |
-| `uis/website` | Public site |
-| `uis/web` | Staff UI |
-| `TESTING.md` | Test commands |
+| `Backend-Serialization.md` | Phase guide |
+| `docs/serialization-audit.md` | Required audit matrix |
+| `services/api/app/main.py` | FastAPI entry point |
+| `services/api/app/routers/` | Application routes |
+| `services/api/app/auth/models.py` | Auth/user/profile schemas |
+| `uis/web/src/lib/{authApi,inventory,suppliersApi,incidentsApi}.ts` | HTTP consumers |

@@ -16,6 +16,8 @@ class Role(str, Enum):
 
 
 class UserCreate(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     email: EmailStr
     password: str = Field(min_length=1)
     name: Optional[str] = None
@@ -24,10 +26,20 @@ class UserCreate(BaseModel):
 
 
 class UserUpdate(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     email: Optional[EmailStr] = None
     password: Optional[str] = Field(default=None, min_length=1)
     role: Optional[Role] = None
     is_active: Optional[bool] = None
+
+
+class UserRegisteredResponse(BaseModel):
+    """Public register output — no email (unauthenticated client)."""
+
+    id: int
+    role: Role
+    is_active: bool
 
 
 class UserPublic(BaseModel):
@@ -49,6 +61,8 @@ class ProfilePublic(BaseModel):
 
 
 class ProfileUpdate(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     name: Optional[str] = None
     phone: Optional[str] = None
     address: Optional[str] = None
