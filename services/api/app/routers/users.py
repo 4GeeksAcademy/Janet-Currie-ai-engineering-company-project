@@ -6,7 +6,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.auth.models import Role, UserCreate, UserPublic, UserUpdate
+from app.auth.models import Role, UserCreate, UserPublic, UserRegisteredResponse, UserUpdate
 from app.auth.security import get_current_user, hash_password
 from app.auth.service import (
     create_user,
@@ -32,12 +32,20 @@ def _public(user: dict[str, Any]) -> UserPublic:
     )
 
 
+def _registered(user: dict[str, Any]) -> UserRegisteredResponse:
+    return UserRegisteredResponse(
+        id=user["id"],
+        role=user["role"],
+        is_active=user["is_active"],
+    )
+
+
 def _can_manage(current: dict[str, Any], user_id: int) -> bool:
     return current["id"] == user_id or current.get("role") == Role.admin.value
 
 
-@router.post("", response_model=UserPublic, status_code=status.HTTP_201_CREATED)
-def register(payload: UserCreate) -> UserPublic:
+@router.post("", response_model=UserRegisteredResponse, status_code=status.HTTP_201_CREATED)
+def register(payload: UserCreate) -> UserRegisteredResponse:
     if get_user_by_email(payload.email) is not None:
         raise HTTPException(status_code=409, detail="Email already registered")
     user = create_user(
@@ -48,7 +56,7 @@ def register(payload: UserCreate) -> UserPublic:
         phone=payload.phone,
         address=payload.address,
     )
-    return _public(user)
+    return _registered(user)
 
 
 @router.get("", response_model=list[UserPublic])
@@ -108,7 +116,12 @@ def update_credentials(
     return _public(updated)
 
 
-@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_model=None,
+    responses={204: {"description": "User deleted"}},
+)
 def remove_user(
     user_id: int, current: dict[str, Any] = Depends(get_current_user)
 ) -> None:

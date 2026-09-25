@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -13,6 +14,7 @@ from fastapi.exception_handlers import http_exception_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 logger = logging.getLogger(__name__)
@@ -24,6 +26,8 @@ if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
 from app.database import init_db
+from app.cache import response_cache
+from app.middleware import RequestTimingMiddleware
 from app.routers import auth, incidents, inventory, profiles, suppliers, users  # noqa: E402
 
 
@@ -31,6 +35,7 @@ from app.routers import auth, incidents, inventory, profiles, suppliers, users  
 async def lifespan(_app: FastAPI):
     init_db()
     yield
+    response_cache.clear()
 
 
 app = FastAPI(
@@ -40,16 +45,27 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+DEFAULT_CORS_ORIGINS = (
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
+)
+
+
+def cors_origins() -> list[str]:
+    raw = os.getenv("CORS_ORIGINS", "").strip()
+    if not raw:
+        return list(DEFAULT_CORS_ORIGINS)
+    return [part.strip() for part in raw.split(",") if part.strip()]
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3001",
-        "http://127.0.0.1:3001",
-    ],
+    allow_origins=cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(RequestTimingMiddleware)
 
 app.include_router(auth.router)
 app.include_router(users.router)
@@ -92,6 +108,10 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
     )
 
 
-@app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+class HealthResponse(BaseModel):
+    status: str
+
+
+@app.get("/health", response_model=HealthResponse)
+def health() -> HealthResponse:
+    return HealthResponse(status="ok")

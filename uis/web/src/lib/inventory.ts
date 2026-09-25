@@ -121,6 +121,36 @@ export function movementTypeLabel(row: OrderMovement): string {
   return "Consumption (outbound)";
 }
 
+export type MovementRowView = {
+  key: string;
+  name: string;
+  quantityLabel: string;
+  typeLabel: string;
+  kind: OrderKind;
+  dateLabel: string;
+  userUuid: string;
+};
+
+/** Pure sort + presentation mapping for movement history. */
+export function deriveMovementRows(rows: OrderMovement[]): MovementRowView[] {
+  return [...rows]
+    .sort((a, b) => {
+      const byDate = Date.parse(b.created_at) - Date.parse(a.created_at);
+      if (byDate !== 0) return byDate;
+      if (a.kind !== b.kind) return a.kind < b.kind ? -1 : 1;
+      return a.id - b.id;
+    })
+    .map((row) => ({
+      key: `${row.kind}-${row.id}`,
+      name: row.supply.name,
+      quantityLabel: `${row.quantity} ${row.supply.unit}`,
+      typeLabel: movementTypeLabel(row),
+      kind: row.kind,
+      dateLabel: formatInventoryDate(row.created_at),
+      userUuid: row.user_uuid,
+    }));
+}
+
 async function throwIfNotOk(response: Response): Promise<void> {
   if (response.ok) return;
   if (response.status === 400) {

@@ -15,6 +15,7 @@ from src.summarize import AnalysisSummary, summarize
 from src.validate import validate_records
 
 from app.auth.security import get_current_user
+from app.incidents.schemas import IncidentAnalysisResponse
 
 logger = logging.getLogger(__name__)
 
@@ -72,8 +73,8 @@ def _client_load_error_detail(exc: LoadError) -> str:
     return "We could not read that CSV. Please check the file and try again."
 
 
-@router.post("/analyze")
-async def analyze_incidents(file: UploadFile = File(...)) -> dict:
+@router.post("/analyze", response_model=IncidentAnalysisResponse)
+async def analyze_incidents(file: UploadFile = File(...)) -> IncidentAnalysisResponse:
     filename = file.filename or "upload.csv"
     if not filename.lower().endswith(".csv"):
         raise HTTPException(
@@ -96,10 +97,20 @@ async def analyze_incidents(file: UploadFile = File(...)) -> dict:
     result = validate_records(records)
     summary = summarize(result, source_file=filename)
     store.save_analysis(summary)
-    return summary_to_json(summary)
+    return IncidentAnalysisResponse.model_validate(summary_to_json(summary))
 
 
-@router.get("/results/export")
+@router.get(
+    "/results/export",
+    response_class=Response,
+    response_model=None,
+    responses={
+        200: {
+            "description": "Incident metrics CSV export",
+            "content": {"text/csv": {"schema": {"type": "string"}}},
+        }
+    },
+)
 def export_results() -> Response:
     latest = store.get_latest()
     if latest is None:

@@ -2,59 +2,39 @@
 
 ## Current state
 
-Milestone 5 Part 2 inventory backoffice UI is implemented in `uis/web`. Phase guide remains at root [`Backoffice-Inventory-Interface-Context.md`](../Backoffice-Inventory-Interface-Context.md) until the iteration is archived.
-
-## Completed (this iteration)
-
-- `uis/web/src/lib/inventory.ts`: types, `stockStatus`, `InsufficientStockError`, list/get/create/listMovements.
-- `apiFetch` rethrows caller abort; timeout abort still maps to `ApiTimeoutError`.
-- Four protected pages + inventory components + Inventory nav link + `?supply_id=` preselect.
-- Jest: `inventory.test.ts`, `inventoryViews.test.tsx`, abort cases in `apiClient.test.ts`.
-- Local `uis/web/.env.local` copied from `.env.example` (gitignored; `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`).
+Caching optimisation **implemented** on `Caching-Optimisation`. Report: [`CACHING_REPORT.md`](../CACHING_REPORT.md). Durable notes: [`implementation-memory/caching.md`](implementation-memory/caching.md). Not archived until the user asks.
 
 ## Completed (standing)
 
-- Public site, staff UI, incident CLI, supplier directory, staff JWT auth, error handling, bullet-proof tests, inventory API (HCR-0188).
+- Public site, staff UI, incident CLI, supplier directory, staff JWT auth, error handling, bullet-proof tests, inventory API (HCR-0188), inventory backoffice UI, Docker Compose (`c96f167`), Web Vitals (`ebec7d6`), serialization (`34c1e99`).
+- Caching: timing middleware; volume seeds; cache on `GET /inventory/products` and `GET /inventory/orders`; lazy `/operations` and `/incidents`; `deriveMovementRows` `useMemo`.
 
 ## Validation results
 
-HCR-0188 (2026-09-18): 16 inventory pytest passed; 96 full pytest; compileall ok; live seed 6/4/3 gloves 105; live `/docs` + HTTP smoke of evaluator-critical flows. Details in [`TESTING.md`](../TESTING.md).
+- `cd services/api && uv run pytest` — **113 passed** (2026-09-24).
+- `npm run typecheck` — pass.
+- `npm run lint -w uis/website` / `npm run lint -w uis/web` — no ESLint warnings or errors.
+- `npm test -w uis/web -- --coverage=false` — **5 suites, 43 passed**.
+- `npm run build -w uis/website` and `npm run build -w uis/web` — pass.
+- Products miss/hit median 105.89 ms / 6.16 ms (86 supplies); orders 19.18 ms / 10.54 ms (127 rows).
+- Staff production chunks: `/operations` 1.43 kB, `/incidents` 1.44 kB, first load 102 kB vs `/suppliers` 4.46 kB / 108 kB.
 
-Part 2 (2026-09-18):
-
-- `npm test -w uis/web`: 34 passed, 3 suites (coverage on `apiClient.ts` + `inventory.ts`).
-- `npm run lint -w uis/web`: no ESLint warnings or errors.
-- `npm run build -w uis/web`: success; routes include the four `/backoffice/inventory/...` pages.
-- `npm run typecheck -w uis/web`: passed after abort-mock `RequestInit` typing fix (an earlier run failed only because a concurrent `next build` had wiped `.next/types`).
-- Live smoke (API `:8000`, web `:3001`): unauthenticated `/backoffice/inventory/products` → `/login`; registered staff user; supplies list showed live stock (gloves **105 box / In stock**, wound care humanized); delivery of 2 succeeded and stock became **107**; consumption loaded **107**, overstock warning blocked qty 200; stale-stock submit of 107 after a concurrent outbound 1 returned inline `Insufficient stock for supply 'Nitrile gloves (box of 100)'. Available: 106, requested: 107.` and refreshed stock; successful consumption of 1; history showed Delivery (inbound), Clinical use (outbound), Expiry waste (outbound), `en-GB` dates, `user_uuid`, no edit/delete.
+Unverified: headed `next start` + live API login (production server not started in this environment); Postgres row-lock path; React Profiler numbers. Auth-required lazy routes are covered by AuthGuard tests plus Jest loading `role="status"`.
 
 ## Blockers
 
-- None for Part 2. Supabase MCP SQL still fails password auth; live checks used SQLAlchemy via `.env`.
-
-## Unverified / observed
-
-- Pre-existing AuthGuard hydration overlay (`src/components/AuthProvider.tsx`) appears on hard navigations in Next 15.2.4; dismissed with Escape and did not block the inventory flows. Not fixed in this iteration.
+None.
 
 ## Next steps
 
-1. User review / evaluator pass; archive this iteration when asked.
+1. Archive this iteration only if asked.
 
 ## Run commands (durable)
 
 ```bash
-cd services/api
-uv sync --group dev
-uv run pytest
-uv run seed-auth
-uv run seed-inventory
-uv run uvicorn app.main:app --reload --port 8000
-
+cd services/api && uv run pytest
 npm test -w uis/web
-npm run typecheck -w uis/web
-npm run lint -w uis/web
-npm run build -w uis/web
-npm run dev -w uis/web
+npm run typecheck
 ```
 
-Last updated: 2026-09-18
+Last updated: 2026-09-24

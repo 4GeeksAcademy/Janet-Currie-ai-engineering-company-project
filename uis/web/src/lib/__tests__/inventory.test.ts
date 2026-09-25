@@ -9,12 +9,14 @@ import {
   InsufficientStockError,
   createConsumption,
   createDelivery,
+  deriveMovementRows,
   getSupply,
   listMovements,
   listSupplies,
   movementTypeLabel,
   stockStatus,
   stockStatusLabel,
+  type OrderMovement,
 } from "@/lib/inventory";
 
 const gloves = {
@@ -47,6 +49,70 @@ describe("stockStatus", () => {
     expect(stockStatus(24)).toBe("low");
     expect(stockStatus(25)).toBe("healthy");
     expect(stockStatus(105)).toBe("healthy");
+  });
+});
+
+const movementGloves = {
+  id: 1,
+  name: "Nitrile gloves (box of 100)",
+  sku: "HCR-PPE-001",
+  category: "ppe",
+  unit: "box",
+  country: "US",
+};
+
+function movement(
+  partial: Partial<OrderMovement> & Pick<OrderMovement, "id" | "kind" | "created_at">,
+): OrderMovement {
+  return {
+    supply_id: 1,
+    quantity: 1,
+    clinic_id: 1,
+    user_uuid: "1",
+    vendor_name: partial.kind === "inbound" ? "MedLine" : null,
+    consumption_type: partial.kind === "outbound" ? "clinical_use" : null,
+    supply: movementGloves,
+    ...partial,
+  };
+}
+
+describe("deriveMovementRows", () => {
+  it("returns an empty list for empty input", () => {
+    expect(deriveMovementRows([])).toEqual([]);
+  });
+
+  it("sorts newest first and maps labels", () => {
+    const older = movement({ id: 1, kind: "inbound", created_at: "2026-01-01T00:00:00Z", quantity: 10 });
+    const newer = movement({
+      id: 2,
+      kind: "outbound",
+      created_at: "2026-02-01T00:00:00Z",
+      quantity: 3,
+      consumption_type: "expiry_waste",
+    });
+    const rows = deriveMovementRows([older, newer]);
+    expect(rows.map((row) => row.key)).toEqual(["outbound-2", "inbound-1"]);
+    expect(rows[0].typeLabel).toBe("Expiry waste (outbound)");
+    expect(rows[1].quantityLabel).toBe("10 box");
+  });
+
+  it("does not mutate the source array when reordering", () => {
+    const older = movement({ id: 1, kind: "inbound", created_at: "2026-01-01T00:00:00Z" });
+    const newer = movement({ id: 2, kind: "inbound", created_at: "2026-03-01T00:00:00Z" });
+    const source = [older, newer];
+    deriveMovementRows(source);
+    expect(source.map((row) => row.id)).toEqual([1, 2]);
+  });
+
+  it("replaces rows when the input set changes", () => {
+    const first = deriveMovementRows([
+      movement({ id: 1, kind: "inbound", created_at: "2026-01-01T00:00:00Z" }),
+    ]);
+    const next = deriveMovementRows([
+      movement({ id: 9, kind: "outbound", created_at: "2026-04-01T00:00:00Z" }),
+    ]);
+    expect(first[0].key).toBe("inbound-1");
+    expect(next[0].key).toBe("outbound-9");
   });
 });
 

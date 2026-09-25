@@ -12,44 +12,50 @@
 8. Error-handling is archived — do not load it unless asked. User-facing errors remain sanitized (no raw `detail`, stacks, or status codes in the UI), **except** outbound HTTP `400` insufficient-stock `detail`, which is shown inline as designed staff copy.
 9. Bullet-proof test coverage is archived — do not load it unless asked. Run commands remain in [`TESTING.md`](../TESTING.md).
 10. Milestone 5 inventory API is archived — do not load [`archive/2026-09-18-inventory-api/`](archive/2026-09-18-inventory-api/) unless asked. Durable notes: [`implementation-memory/inventory-api.md`](implementation-memory/inventory-api.md).
-11. **Part 2 inventory UI:** four authenticated views consume `/inventory` only through `inventory.ts`. No `NEXT_PUBLIC_INVENTORY_API_URL`. No supply CRUD UI. `user_uuid` is JWT-derived and never sent in create bodies.
+11. Milestone 5 Part 2 inventory UI is archived — do not load [`archive/2026-09-18-inventory-backoffice-ui/`](archive/2026-09-18-inventory-backoffice-ui/) unless asked. Durable notes: [`implementation-memory/inventory-backoffice-ui.md`](implementation-memory/inventory-backoffice-ui.md).
+12. Docker Compose (`infra-40`) is archived — do not load [`archive/2026-09-23-docker-compose/`](archive/2026-09-23-docker-compose/) unless asked. Durable notes: [`implementation-memory/docker-compose-dev.md`](implementation-memory/docker-compose-dev.md).
+13. Web Vitals is archived — do not load [`archive/2026-09-23-web-vitals/`](archive/2026-09-23-web-vitals/) unless asked. Durable notes: [`implementation-memory/web-vitals.md`](implementation-memory/web-vitals.md). Evidence remains in root `AUDIT.md`, `REPORT.md`, and `audit/`.
+14. Backend serialization is archived — do not load [`archive/2026-09-24-serialization/`](archive/2026-09-24-serialization/) unless asked. Durable notes: [`implementation-memory/serialization-audit.md`](implementation-memory/serialization-audit.md). Trail remains in [`docs/serialization-audit.md`](../docs/serialization-audit.md).
+15. **Caching optimisation:** profile first; two new staff lazy-loads; one non-trivial `useMemo`; TTL cache on at least two FastAPI reads with write invalidation; no shared cache of personalized/sensitive data; trail in [`CACHING_REPORT.md`](../CACHING_REPORT.md).
 
 ## Acceptance criteria
 
 - [x] Required memory-bank files exist at `memory-bank/` root.
-- [x] Completed iterations archived: `2026-07-29-monorepo-ai-frontend`, `2026-08-28-supplier-directory`, `2026-08-28-staff-auth`, `2026-08-31-error-handling`, `2026-09-04-bullet-proof`, `2026-09-18-inventory-api`.
+- [x] Completed iterations archived: `2026-07-29-monorepo-ai-frontend`, `2026-08-28-supplier-directory`, `2026-08-28-staff-auth`, `2026-08-31-error-handling`, `2026-09-04-bullet-proof`, `2026-09-18-inventory-api`, `2026-09-18-inventory-backoffice-ui`, `2026-09-23-docker-compose`, `2026-09-23-web-vitals`, `2026-09-24-serialization`.
 - [x] Project `AGENTS.md` points at the global memory-bank file names.
 - [x] AUTH-088 / API-042 / FE-019 implemented; results in [`TESTING.md`](../TESTING.md).
 - [x] `BulletProofApp-Context.md` moved to `memory-bank/archive/2026-09-04-bullet-proof/`.
 - [x] Milestone 5 inventory API: six authenticated `/inventory` routes, SQLModel persistence, seed, pytest, live `/docs` smoke; phase guide in `archive/2026-09-18-inventory-api/`.
-- [x] Four protected inventory pages: `/backoffice/inventory/products`, `/orders/inbound`, `/orders/outbound`, `/orders`.
-- [x] Inventory nav link; `?supply_id=` preselect validated against `GET /inventory/products`.
-- [x] Caller abort vs timeout distinguished in `apiFetch`; insufficient-stock `400` shown inline.
-- [x] Jest for `inventory.ts` + evaluator-critical UI; typecheck, lint, build; live browser smoke of four routes.
+- [x] Milestone 5 Part 2 inventory UI: four authenticated `/backoffice/inventory/...` views in `uis/web`; phase guide in `archive/2026-09-18-inventory-backoffice-ui/`.
+- [x] infra-40 Compose stack: `ui` + `backend` on `healthcore_dev`; phase guide in `archive/2026-09-23-docker-compose/`.
+- [x] Web Vitals audit: production Lighthouse loop on both Next apps; phase guide in `archive/2026-09-23-web-vitals/`.
+- [x] Serialization audit: explicit FastAPI contracts; phase guide in `archive/2026-09-24-serialization/`; trail in [`docs/serialization-audit.md`](../docs/serialization-audit.md).
+- [x] `Cashing-Optimisation-Context.md` at repo root for the next phase.
+- [x] Every FastAPI endpoint assessed for cache suitability; realistic-data profiling recorded.
+- [x] At least two new staff components/routes lazy-loaded (`next/dynamic`); `AppointmentModal` not recounted.
+- [x] At least one non-trivial `useMemo` with complete dependencies; `useAsyncResource` preserved.
+- [x] At least two GET endpoints use TTL cache; successful writes invalidate; failures do not; no shared PII/session cache.
+- [x] Focused tests (hit/miss/TTL/invalidation/isolation) plus `CACHING_REPORT.md` with rejected candidate and measured results.
+- [x] Existing auth, inventory, suppliers, incidents, Web Vitals, and serialization behavior intact.
 
 ## Interfaces / expected behavior (standing)
 
 | Surface | Expected behavior |
 |---------|-------------------|
-| `uis/website` | Public corporate site; EN/ES; enquiry form; brand blues; no auth |
-| `uis/web` | Public `/login`, `/register`, `/forgot-password`, `/reset-password`; protected welcome, `/operations`, `/incidents`, `/suppliers`, `/account/profile`, `/account/change-password`, `/backoffice/inventory/{products,orders,orders/inbound,orders/outbound}` |
+| `uis/website` | Public corporate site; EN/ES via `hc_lang` cookie; enquiry form; brand blues; no auth |
+| `uis/web` | Public `/login`, `/register`, `/forgot-password`, `/reset-password`; protected welcome, `/operations`, `/incidents`, `/suppliers`, `/backoffice/inventory/{products,orders,orders/inbound,orders/outbound}`, `/account/profile`, `/account/change-password` |
 | `scripts/` | Phase 1 `analyze.py` + `incidents-healthcore.csv` |
-| `services/api` | Incidents + suppliers (TinyDB) + staff auth + inventory (SQLModel). Login is `POST /auth/login`. `GET /health` public. Sensitive routes require bearer JWT. |
+| `services/api` | Incidents + suppliers (TinyDB) + staff auth + inventory (SQLModel). Login is `POST /auth/login`. `GET /health` public. Sensitive routes require bearer JWT. CORS from `CORS_ORIGINS` (default `http://localhost:3001`, `http://127.0.0.1:3001`). Public `POST /users` does not return email. |
+| Compose | `docker compose up` from repo root: website 3000, staff UI 3001, API 8000 on network `healthcore_dev` |
 | Future `services/healthcore-api` | FastAPI `/api/v1` domains; OpenAPI contract for frontends |
 | Agents | Skill discovery before non-trivial work; smallest change that satisfies the ask; no secrets; no git publish unless asked |
-
-### Inventory UI contracts
-
-- API origin: `NEXT_PUBLIC_API_BASE_URL` (default `http://localhost:8000`).
-- Paths: `GET /inventory/products`, `GET /inventory/products/{id}`, `POST /inventory/orders/inbound`, `POST /inventory/orders/outbound`, `GET /inventory/orders`.
-- Create bodies: `{ supply_id, quantity, vendor_name, clinic_id }` and `{ supply_id, quantity, consumption_type, clinic_id }`.
-- Stock bands (UI only): 0 = out, 1–24 = low, 25+ = healthy.
-- Labels: Medical supply, Delivery, Clinical use, Expiry waste.
 
 ## Validation
 
 - Code changes: follow requirement 6; report tests added/updated, commands run, results, and unverified risks.
-- API: `uv run pytest` from `services/api`. Auth coverage: `uv run pytest --cov=app.auth`. Backoffice coverage: `--cov=app.routers.incidents --cov=app.routers.suppliers --cov=app.suppliers`. Inventory: `uv run pytest tests/test_inventory_products.py tests/test_inventory_orders.py tests/test_inventory_seed.py`.
-- UI: `npm run typecheck`. Frontend helpers: `npm test -w uis/web`. Part 2 also: `npm run lint -w uis/web`, `npm run build -w uis/web`.
+- API: `uv run pytest` from `services/api`. Auth coverage: `uv run pytest --cov=app.auth`. Backoffice coverage: `--cov=app.routers.incidents --cov=app.routers.suppliers --cov=app.suppliers`. Inventory: `uv run pytest tests/test_inventory_products.py tests/test_inventory_orders.py tests/test_inventory_seed.py`. CORS: `uv run pytest tests/test_cors.py`.
+- UI: `npm run typecheck`. Frontend helpers: `npm test -w uis/web`.
+- Compose: `docker compose config`; `docker compose up --build`; host curls on 3000/3001/8000; `docker compose exec ui wget -qO- http://backend:8000/health`.
 - Docs-only: confirm memory files present and `AGENTS.md` links resolve. No runtime test required.
-- Real Resend delivery requires a local `RESEND_API_KEY` (not in git).
+- Real Resend delivery requires a local `RESEND_API_KEY` (not in git). Empty `DATABASE_URL` uses sqlite under `services/api/data/`.
+- Optional one-time seed (system packages in the image, not host `.venv`): `docker compose exec backend python -m app.auth.seed` then `python -m app.inventory.seed`.

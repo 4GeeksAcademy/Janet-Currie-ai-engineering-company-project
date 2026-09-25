@@ -1,33 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
 import { ErrorBanner } from "@/components/ErrorBanner";
 import { StockBadge } from "@/components/inventory/StockBadge";
-import { toUserMessage } from "@/lib/apiClient";
-import { categoryLabel, listSupplies, type MedicalSupply } from "@/lib/inventory";
+import { categoryLabel, listSupplies } from "@/lib/inventory";
+import { useAsyncResource } from "@/lib/useAsyncResource";
 
 export function MedicalSuppliesList() {
-  const [supplies, setSupplies] = useState<MedicalSupply[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      setSupplies(await listSupplies());
-    } catch (err) {
-      setError(toUserMessage(err));
-      setSupplies([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const { data, error, loading, reload } = useAsyncResource(listSupplies);
+  const supplies = data ?? [];
 
   return (
     <div className="space-y-6">
@@ -37,7 +18,7 @@ export function MedicalSuppliesList() {
           Live catalogue stock is computed by the inventory API (deliveries minus consumption).
         </p>
       </div>
-      {error ? <ErrorBanner message={error} onRetry={() => void load()} /> : null}
+      {error ? <ErrorBanner message={error} onRetry={() => void reload()} /> : null}
       <section className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full text-left text-sm">
           <thead className="border-b border-slate-200 bg-slate-50 text-slate-600">

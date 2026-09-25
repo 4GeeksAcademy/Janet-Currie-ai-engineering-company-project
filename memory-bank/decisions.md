@@ -1,13 +1,13 @@
 # Decisions — Active iteration
 
-Standing decisions that still constrain work. Completed-iteration snapshots: [`archive/2026-07-29-monorepo-ai-frontend/`](archive/2026-07-29-monorepo-ai-frontend/), [`archive/2026-08-28-supplier-directory/`](archive/2026-08-28-supplier-directory/), [`archive/2026-08-28-staff-auth/`](archive/2026-08-28-staff-auth/), [`archive/2026-08-31-error-handling/`](archive/2026-08-31-error-handling/), [`archive/2026-09-04-bullet-proof/`](archive/2026-09-04-bullet-proof/), [`archive/2026-09-18-inventory-api/`](archive/2026-09-18-inventory-api/). Architecture rationale: [`docs/architecture_proposal.md`](../docs/architecture_proposal.md). Course/phase guides live in their archives (do not load unless asked).
+Standing decisions that still constrain work. Completed-iteration snapshots: [`archive/2026-07-29-monorepo-ai-frontend/`](archive/2026-07-29-monorepo-ai-frontend/), [`archive/2026-08-28-supplier-directory/`](archive/2026-08-28-supplier-directory/), [`archive/2026-08-28-staff-auth/`](archive/2026-08-28-staff-auth/), [`archive/2026-08-31-error-handling/`](archive/2026-08-31-error-handling/), [`archive/2026-09-04-bullet-proof/`](archive/2026-09-04-bullet-proof/), [`archive/2026-09-18-inventory-api/`](archive/2026-09-18-inventory-api/), [`archive/2026-09-18-inventory-backoffice-ui/`](archive/2026-09-18-inventory-backoffice-ui/), [`archive/2026-09-23-docker-compose/`](archive/2026-09-23-docker-compose/), [`archive/2026-09-23-web-vitals/`](archive/2026-09-23-web-vitals/), [`archive/2026-09-24-serialization/`](archive/2026-09-24-serialization/). Architecture rationale: [`docs/architecture_proposal.md`](../docs/architecture_proposal.md). Course/phase guides live in their archives (do not load unless asked).
 
 ## Adopted
 
 | Decision | Rationale |
 |----------|-----------|
 | Project memory bank uses global layout (`context`, `spec`, `progress`, `decisions`, `archive/YYYY-MM-DD-name/` with plan + tech-updates) | Aligns with global working rules; keeps active files concise |
-| Finished course contracts and phase guides live in `archive/`, not repo root or the four active files | AUTH, error-handling, bullet-proof, and inventory guides moved there after completion |
+| Finished course contracts and phase guides live in `archive/`, not repo root or the four active files | AUTH, error-handling, bullet-proof, inventory API, inventory UI, Docker Compose, Web Vitals, and serialization guides moved there after completion |
 | AUTH-088 uses pytest + pytest-cov via `uv` in `services/api`; coverage is measured on `app.auth` | Course requires `uv run pytest --cov`; existing unittest files still run under pytest |
 | AUTH-088 skips Jest for auth crypto; FE-019 adds Jest in `uis/web` for `apiClient` helpers | `authApi.ts` is fetch-only; token storage, `messageForStatus`, `toUserMessage`, and `parseError` are the testable utilities |
 | API-042 extends existing incident/supplier unittest files rather than rewriting them as pytest functions | Smallest change; pytest already collects unittest.TestCase |
@@ -39,6 +39,35 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | `apiFetch` rethrows caller-aborted signals and maps timeout abort to `ApiTimeoutError` | Consumption form must ignore stale `getSupply` without treating it as a timeout |
 | Stock bands 0 / 1–24 / 25+ are presentation-only | Official stock is API `current_stock`; seed gloves (105) stay healthy |
 | Inventory UI lives in `uis/web`, not `uis/backoffice` | Internal app is already the Next.js backoffice |
+| Compose services are `ui` + `backend` on named network `healthcore_dev` | infra-40 contract; `backend` is the DNS name other containers use |
+| Compose `build.context` is repo root even though Dockerfiles live under `uis/` and `services/` | Root npm lockfile and `scripts/` (`parents[3]` from `app/main.py`) are outside those folders |
+| Browser `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000` | All `uis/web` API calls are client-side `fetch`; Docker DNS `http://backend:8000` would break the host browser |
+| CORS origins from `CORS_ORIGINS` (comma-separated), defaulting to the two localhost:3001 values | Brief requires config; no wildcard-with-credentials |
+| `requirements.txt` is exported/kept in sync with `pyproject.toml` (includes `sqlmodel`, `psycopg[binary]`) without `-e .` | Docker `uv pip install --system -r requirements.txt` cannot install the local package path |
+| Named volumes for `node_modules` and `/app/services/api/.venv` | Host bind mounts must not hide image deps or overwrite the Mac host `.venv` |
+| Uvicorn `--reload-dir app` plus `WATCHFILES_FORCE_POLLING=true` | Watching the whole `services/api` tree reloaded on `.venv` writes; native WatchFiles on Docker Desktop macOS can stall the worker |
+| Container seed is `python -m app.auth.seed` (system site-packages), not `uv run seed-auth` | `uv run` inside the bind mount created a Linux `.venv` on the host |
+| Web Vitals audits use host `next build` + `next start`, not Compose `next dev` | Comparable lab scores; brief forbids mixing `dev` baseline with production after |
+| Staff Lighthouse target is `uis/web` `/operations`, not leftover `uis/backoffice` | Internal app is already the Next.js backoffice on port 3001 |
+| Optional Lighthouse skills are not installed unless the user authorizes them | Brief makes install optional; user rule forbids creating/installing skills without permission |
+| Website below-fold sections are Server Components; `hc_lang` cookie + `router.refresh()` for ES | Shrinks the hydrated tree (W1) without duplicating EN/ES markup; `next/dynamic` of those sections delayed LCP and was dropped |
+| Appointment modal is client-only after open | Not in LCP; avoids shipping the form on first load |
+| Staff role label uses `text-slate-600` | Lighthouse color-contrast on `#94a3b8` / white failed 2.56:1 |
+| Serialization audit stays in `services/api` with existing Pydantic v2 modules | Brief forbids a new backend; schemas already live in `auth/models.py`, `inventory/schemas.py`, `suppliers/models.py` |
+| Public `POST /users` must not echo email; `GET /auth/me` may | Evaluator rule 9 vs profile consumer `fetchMe` |
+| Do not slim supplier list fields that `SupplierDirectory` renders | notes, compliance, currency, `updated_at` are shown in the table |
+| Public register returns `UserRegisteredResponse` (`id`, `role`, `is_active`) | Drop email on unauthenticated `POST /users`; `registerRequest` ignores the body |
+| Incident analyze uses `IncidentAnalysisResponse`; export is documented `text/csv` | Untyped `dict` leaked in OpenAPI as `object` / fake JSON |
+| FastAPI 0.141 route audit walks `_IncludedRouter.original_router` | `app.routes` no longer flattens included `APIRoute`s |
+| Caching uses in-process TTL, not Redis | Compose has no Redis; brief forbids adding infrastructure without measured need |
+| Do not cache `/health`, writes, auth/me, profiles, or incident CSV | Personalized, mutating, or upload/export payloads are unsafe or not reusable |
+| Do not recount website `AppointmentModal` as a new lazy-load | Already `next/dynamic`; homepage below-fold dynamic imports delayed LCP |
+| Cache `GET /inventory/products` and `GET /inventory/orders` (plus product-by-id) | Profiled: products miss ~106 ms from 1+2N stock queries; orders join/serialize |
+| Reject `GET /suppliers` at current TinyDB volume | ~10 ms; filter-key invalidation cost exceeds benefit |
+| TTL 30 s plus write invalidation | Staff freshness after movements; TTL covers missed invalidation / out-of-band SQL |
+| Cache keys omit user/token/email | Catalogue payloads do not vary by staff identity |
+| Lazy-load `OperationsAnalytics` and `IncidentAnalyzer` | Route-only heavy islands; production page JS 1.43–1.44 kB vs static `/suppliers` 4.46 kB |
+| `useMemo` on `deriveMovementRows` in MovementHistory | Pure sort/label of expanded movement lists; not the existing supplier filter |
 
 ## Rejected (for now)
 
@@ -55,6 +84,13 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Jest for `uis/website` enquiry validation in FE-019 | Different app; extra Jest setup; ticket met by `apiClient` helpers | User asks |
 | `NEXT_PUBLIC_INVENTORY_API_URL` | Would duplicate `apiBaseUrl()` | Never, unless inventory is hosted separately |
 | Inventory UI in leftover `uis/backoffice` | Empty `.next` only; staff app is `uis/web` | Never |
+| Postgres or mail containers in the dev stack | Brief is two application services; extras already exist as Supabase/Resend | User asks |
+| `NEXT_PUBLIC_API_BASE_URL=http://backend:8000` | Host browser cannot resolve Compose DNS | Never for public Next vars |
+| Dockerfiles under `infra/` | Placeholder only; brief pins `uis/Dockerfile` and `services/Dockerfile` | Never for infra-40 |
+| `next/dynamic` for website below-fold sections | Delayed LCP; mobile Performance did not rise | Keep Header/Hero eager; ship sections as server children |
+| Dual EN/ES markup hidden with CSS | Doubled HTML and delayed LCP | Cookie-selected single language |
+| Redis / HTTP cache headers / service workers | No multi-process proof locally; Compose has no Redis | Measured multi-worker stale reads |
+| Cache `GET /health` or `GET /auth/me` | Health is cheap; me is personalized | Never for `/auth/me` |
 
 ## Still provisional
 

@@ -1,7 +1,4 @@
-"use client";
-
-import { useLanguage } from "@/components/providers/LanguageProvider";
-import { contactCopy, t } from "@/lib/i18n";
+import { contactCopy, t, type Lang } from "@/lib/i18n";
 
 export function Footer() {
   return (
@@ -41,9 +38,7 @@ export function Footer() {
   );
 }
 
-export function QuickHelpBar() {
-  const { lang } = useLanguage();
-
+export function QuickHelpBar({ lang }: { lang: Lang }) {
   return (
     <aside
       className="fixed inset-x-0 bottom-0 z-40 border-t border-blue-700 bg-blue-900 text-white md:hidden"

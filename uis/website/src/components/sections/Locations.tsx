@@ -1,11 +1,8 @@
-"use client";
-
 import { Section } from "@/components/ui/Section";
-import { useLanguage } from "@/components/providers/LanguageProvider";
+import type { Lang } from "@/lib/i18n";
 import { clinics } from "@/lib/locations";
 
-export function Locations() {
-  const { lang } = useLanguage();
+export function Locations({ lang }: { lang: Lang }) {
   const title = lang === "en" ? "Our US Locations" : "Nuestras ubicaciones en EE. UU.";
 
   return (

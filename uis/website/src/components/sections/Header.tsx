@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Logo } from "@/components/ui/Logo";
+import { LangToggle } from "@/components/ui/LangToggle";
 import { useLanguage } from "@/components/providers/LanguageProvider";
 import { navItems, t } from "@/lib/i18n";
 
@@ -85,43 +86,5 @@ export function Header({ onRequestAppointment }: HeaderProps) {
         </nav>
       ) : null}
     </header>
-  );
-}
-
-function LangToggle({
-  lang,
-  setLang,
-}: {
-  lang: "en" | "es";
-  setLang: (lang: "en" | "es") => void;
-}) {
-  return (
-    <>
-      <button
-        type="button"
-        onClick={() => setLang("en")}
-        aria-pressed={lang === "en"}
-        className={`rounded px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 ${
-          lang === "en"
-            ? "border border-blue-700 bg-blue-50 text-blue-700"
-            : "border border-gray-300 bg-gray-50 text-gray-700"
-        }`}
-      >
-        EN
-      </button>
-      <span className="text-gray-400">|</span>
-      <button
-        type="button"
-        onClick={() => setLang("es")}
-        aria-pressed={lang === "es"}
-        className={`rounded px-3 py-2 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 ${
-          lang === "es"
-            ? "border border-blue-700 bg-blue-50 text-blue-700"
-            : "border border-gray-300 bg-gray-50 text-gray-700"
-        }`}
-      >
-        ES
-      </button>
-    </>
   );
 }

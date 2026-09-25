@@ -29,6 +29,7 @@ Set a real `SECRET_KEY` in `.env`. Never commit `.env` or API keys.
 | `AUTH_SEED_ADMIN_EMAIL` | Local admin email for `seed-auth` |
 | `AUTH_SEED_ADMIN_PASSWORD` | Local admin password for `seed-auth` |
 | `DATABASE_URL` | Inventory SQLModel engine. Use `postgresql+psycopg://...` for Supabase. If unset, local SQLite at `data/inventory.sqlite`. Tests force a temp SQLite file. |
+| `CORS_ORIGINS` | Comma-separated browser origins (default `http://localhost:3001,http://127.0.0.1:3001`) |
 
 `cryptography` is pinned to `>=42,<45` so `pip`/`uv` can use a prebuilt wheel. `cryptography` 45+ may try to compile from source and fail without OpenSSL/pkg-config.
 

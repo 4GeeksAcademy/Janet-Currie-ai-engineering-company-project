@@ -1,21 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import dynamic from "next/dynamic";
 import { LanguageProvider } from "@/components/providers/LanguageProvider";
 import { Header } from "@/components/sections/Header";
 import { Hero } from "@/components/sections/Hero";
-import { WhyHealthCore } from "@/components/sections/WhyHealthCore";
-import { Services } from "@/components/sections/Services";
-import { Locations } from "@/components/sections/Locations";
-import { Contact } from "@/components/sections/Contact";
-import { Footer, QuickHelpBar } from "@/components/sections/Footer";
-import { AppointmentModal } from "@/components/sections/AppointmentModal";
+import type { Lang } from "@/lib/i18n";
 
-export function HomePage() {
+const AppointmentModal = dynamic(
+  () => import("@/components/sections/AppointmentModal").then((m) => ({ default: m.AppointmentModal })),
+  { ssr: false },
+);
+
+type HomePageProps = {
+  initialLang: Lang;
+  mainAfterHero: ReactNode;
+  afterMain: ReactNode;
+};
+
+export function HomePage({ initialLang, mainAfterHero, afterMain }: HomePageProps) {
   const [modalOpen, setModalOpen] = useState(false);
 
   return (
-    <LanguageProvider>
+    <LanguageProvider initialLang={initialLang}>
       <a
         href="#main-content"
         className="sr-only rounded bg-blue-100 px-4 py-3 text-blue-900 focus:not-sr-only focus:absolute focus:left-2 focus:top-2"
@@ -25,14 +32,10 @@ export function HomePage() {
       <Header onRequestAppointment={() => setModalOpen(true)} />
       <main id="main-content" tabIndex={-1} className="pb-24 md:pb-0">
         <Hero onRequestAppointment={() => setModalOpen(true)} />
-        <WhyHealthCore />
-        <Services />
-        <Locations />
-        <Contact />
+        {mainAfterHero}
       </main>
-      <QuickHelpBar />
-      <Footer />
-      <AppointmentModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      {afterMain}
+      {modalOpen ? <AppointmentModal open={modalOpen} onClose={() => setModalOpen(false)} /> : null}
     </LanguageProvider>
   );
 }

@@ -1,13 +1,8 @@
-"use client";
-
 import { Card } from "@/components/ui/Card";
 import { Section } from "@/components/ui/Section";
-import { useLanguage } from "@/components/providers/LanguageProvider";
-import { t, whyHealthCore } from "@/lib/i18n";
+import { t, whyHealthCore, type Lang } from "@/lib/i18n";
 
-export function WhyHealthCore() {
-  const { lang } = useLanguage();
-
+export function WhyHealthCore({ lang }: { lang: Lang }) {
   return (
     <Section id="why-healthcore" title={t(whyHealthCore.title, lang)}>
       <div className="grid gap-6 md:grid-cols-2 md:gap-8">
