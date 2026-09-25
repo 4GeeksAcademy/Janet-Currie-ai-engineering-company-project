@@ -1,17 +1,14 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { ErrorBanner } from "@/components/ErrorBanner";
-import {
-  formatInventoryDate,
-  listMovements,
-  movementTypeLabel,
-} from "@/lib/inventory";
+import { deriveMovementRows, listMovements } from "@/lib/inventory";
 import { useAsyncResource } from "@/lib/useAsyncResource";
 
 export function MovementHistory() {
   const { data, error, loading, reload } = useAsyncResource(listMovements);
-  const rows = data ?? [];
+  const rows = useMemo(() => deriveMovementRows(data ?? []), [data]);
 
   return (
     <div className="space-y-6">
@@ -48,11 +45,9 @@ export function MovementHistory() {
               </tr>
             ) : (
               rows.map((row) => (
-                <tr key={`${row.kind}-${row.id}`} className="border-b border-slate-100">
-                  <td className="px-4 py-3 font-medium text-slate-900">{row.supply.name}</td>
-                  <td className="px-4 py-3 tabular-nums text-slate-700">
-                    {row.quantity} {row.supply.unit}
-                  </td>
+                <tr key={row.key} className="border-b border-slate-100">
+                  <td className="px-4 py-3 font-medium text-slate-900">{row.name}</td>
+                  <td className="px-4 py-3 tabular-nums text-slate-700">{row.quantityLabel}</td>
                   <td className="px-4 py-3">
                     <span
                       className={
@@ -61,11 +56,11 @@ export function MovementHistory() {
                           : "rounded-full bg-slate-200 px-2 py-1 text-xs font-semibold text-slate-800"
                       }
                     >
-                      {movementTypeLabel(row)}
+                      {row.typeLabel}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-slate-700">{formatInventoryDate(row.created_at)}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-slate-700">{row.user_uuid}</td>
+                  <td className="px-4 py-3 text-slate-700">{row.dateLabel}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-slate-700">{row.userUuid}</td>
                 </tr>
               ))
             )}

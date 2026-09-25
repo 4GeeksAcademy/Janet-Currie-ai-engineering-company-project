@@ -2,7 +2,7 @@
 
 ## Goal
 
-Caching optimisation of [`uis/web`](../uis/web) and [`services/api`](../services/api): evidence-based lazy loading, one `useMemo`, TTL cache on at least two FastAPI reads, trail in [`CACHING_REPORT.md`](../CACHING_REPORT.md). Phase guide: [`Cashing-Optimisation-Context.md`](../Cashing-Optimisation-Context.md).
+Backend serialization audit of the existing FastAPI app in [`services/api`](../services/api) is complete. Phase guide: [`Backend-Serialization.md`](../Backend-Serialization.md). Audit trail: [`docs/serialization-audit.md`](../docs/serialization-audit.md).
 
 ## Scope (standing)
 
@@ -23,7 +23,7 @@ Caching optimisation of [`uis/web`](../uis/web) and [`services/api`](../services
 - No commit/push/PR unless the user requests it.
 - Treat implementation and validation as one task (see spec). Do not rewrite `memory-bank/archive/`.
 - Do not rewrite error handlers, replace FastAPI/Pydantic/SQLModel/TinyDB, or create a new backend.
-- Stay on `Caching-Optimisation`. Do not add Redis/CDN/service workers unless measurements force it. Preserve leftover `uv.lock` / `.coverage`. Caching must not bypass serialization contracts.
+- Stay on the current git branch; no new branch unless asked.
 
 ## Essential background
 
@@ -31,15 +31,15 @@ HealthCore: 12 outpatient clinics (US + UK), ~200 staff, ~$28M revenue.
 
 Staff UI is `uis/web` (port 3001), not `uis/backoffice`. FastAPI lives at `services/api`. Browser API calls use `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`. The public website and `scripts/` do not call this HTTP API.
 
-Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai-frontend/`, `archive/2026-08-28-supplier-directory/`, `archive/2026-08-28-staff-auth/`, `archive/2026-08-31-error-handling/`, `archive/2026-09-04-bullet-proof/`, `archive/2026-09-18-inventory-api/`, `archive/2026-09-18-inventory-backoffice-ui/`, `archive/2026-09-23-docker-compose/`, `archive/2026-09-23-web-vitals/`, `archive/2026-09-24-serialization/`.
+Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai-frontend/`, `archive/2026-08-28-supplier-directory/`, `archive/2026-08-28-staff-auth/`, `archive/2026-08-31-error-handling/`, `archive/2026-09-04-bullet-proof/`, `archive/2026-09-18-inventory-api/`, `archive/2026-09-18-inventory-backoffice-ui/`, `archive/2026-09-23-docker-compose/`, `archive/2026-09-23-web-vitals/`.
 
 ## Relevant files
 
 | Path | Role |
 |------|------|
-| `Cashing-Optimisation-Context.md` | Phase guide |
-| `CACHING_REPORT.md` | Required investigation and results |
-| `services/api/app/main.py` | FastAPI entry + timing middleware |
-| `services/api/app/cache.py` | In-process TTL cache |
-| `uis/web/src/app/(protected)/` | Staff pages to lazy-load |
-| `docs/serialization-audit.md` | Response contracts (do not rewrite) |
+| `Backend-Serialization.md` | Phase guide |
+| `docs/serialization-audit.md` | Required audit matrix |
+| `services/api/app/main.py` | FastAPI entry point |
+| `services/api/app/routers/` | Application routes |
+| `services/api/app/auth/models.py` | Auth/user/profile schemas |
+| `uis/web/src/lib/{authApi,inventory,suppliersApi,incidentsApi}.ts` | HTTP consumers |

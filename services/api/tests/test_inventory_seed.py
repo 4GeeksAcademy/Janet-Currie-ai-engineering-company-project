@@ -42,3 +42,15 @@ def test_seed_meets_required_counts_and_glove_balance() -> None:
     gloves_api = next(row for row in listed if row["sku"] == "HCR-PPE-001")
     assert gloves_api["current_stock"] == 105
     assert gloves_api["country"] == "US"
+
+
+def test_volume_seed_is_idempotent() -> None:
+    from app.inventory.seed import seed_inventory_volume
+
+    with Session(get_engine()) as session:
+        seed_inventory(session, user_uuid="1", reset=True)
+        first = seed_inventory_volume(session, user_uuid="1", extra_count=5)
+        second = seed_inventory_volume(session, user_uuid="1", extra_count=5)
+    assert first["extra_supplies"] == 5
+    assert second["extra_supplies"] == 0
+    assert first["total_supplies"] == second["total_supplies"] == 11

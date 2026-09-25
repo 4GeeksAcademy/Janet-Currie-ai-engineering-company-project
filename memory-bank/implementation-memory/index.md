@@ -8,3 +8,4 @@
 | Docker Compose dev stack | Two-service `docker compose up` for website, staff UI, FastAPI | [docker-compose-dev.md](docker-compose-dev.md) | infra-40, healthcore_dev, CORS_ORIGINS, NEXT_PUBLIC_API_BASE_URL |
 | Web Vitals audit | Production Lighthouse loop on `uis/website` and `uis/web` | [web-vitals.md](web-vitals.md) | Lighthouse, hc_lang, LangToggle, useAsyncResource |
 | Serialization audit | Explicit FastAPI `response_model` contracts; no email on public register | [serialization-audit.md](serialization-audit.md) | UserRegisteredResponse, HealthResponse, IncidentAnalysisResponse, response_model |
+| Caching optimisation | Staff `next/dynamic` islands + in-process TTL on inventory GETs | [caching.md](caching.md) | TtlCache, REQUEST_TIMING, deriveMovementRows, INVENTORY_LOAD_EXTRA |
