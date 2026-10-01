@@ -10,6 +10,7 @@ services:
       - .env
     environment:
       NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+      NEXT_PUBLIC_TELEMETRY_ENDPOINT: ${NEXT_PUBLIC_TELEMETRY_ENDPOINT:-http://localhost:8000/telemetry/events}
     volumes:
       - ./uis/website:/app/uis/website
       - ./uis/web:/app/uis/web
@@ -36,6 +37,7 @@ services:
       RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL}
       DATABASE_URL: ${DATABASE_URL}
       CORS_ORIGINS: ${CORS_ORIGINS}
+      TELEMETRY_ENDPOINT: ${TELEMETRY_ENDPOINT:-http://localhost:8000/telemetry/events}
       WATCHFILES_FORCE_POLLING: "true"
     volumes:
       - ./services/api:/app/services/api

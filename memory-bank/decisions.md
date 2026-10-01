@@ -68,6 +68,9 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Cache keys omit user/token/email | Catalogue payloads do not vary by staff identity |
 | Lazy-load `OperationsAnalytics` and `IncidentAnalyzer` | Route-only heavy islands; production page JS 1.43–1.44 kB vs static `/suppliers` 4.46 kB |
 | `useMemo` on `deriveMovementRows` in MovementHistory | Pure sort/label of expanded movement lists; not the existing supplier filter |
+| Telemetry `event_type` values come from HealthCore plan/schemas, not README placeholders | Capture assignment forbids generic names |
+| Single public `track()`; ingest URL from `NEXT_PUBLIC_TELEMETRY_ENDPOINT` | Tech-lead: no scattered fetch; stub URL swappable later |
+| Stub `POST /telemetry/events` is unauthenticated | `sendBeacon` cannot attach JWT; payloads are allowlisted and non-PII |
 
 ## Rejected (for now)
 

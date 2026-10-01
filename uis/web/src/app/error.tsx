@@ -1,13 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
+import { track } from "@/lib/telemetry";
 
 export default function Error({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    track("frontend_error_raised", {
+      route: typeof window !== "undefined" ? window.location.pathname : "/",
+      message: (error.message || "error").slice(0, 200),
+    });
+  }, [error]);
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">

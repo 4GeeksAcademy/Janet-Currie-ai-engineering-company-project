@@ -28,7 +28,7 @@ if str(_SCRIPTS) not in sys.path:
 from app.database import init_db
 from app.cache import response_cache
 from app.middleware import RequestTimingMiddleware
-from app.routers import auth, incidents, inventory, profiles, suppliers, users  # noqa: E402
+from app.routers import auth, incidents, inventory, profiles, suppliers, telemetry, users  # noqa: E402
 
 
 @asynccontextmanager
@@ -73,6 +73,7 @@ app.include_router(profiles.router)
 app.include_router(incidents.router)
 app.include_router(suppliers.router)
 app.include_router(inventory.router)
+app.include_router(telemetry.router)
 
 
 @app.exception_handler(RequestValidationError)

@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState, type FormEvent } from "react";
-import { toUserMessage } from "@/lib/apiClient";
 import { loginRequest } from "@/lib/authApi";
 import { ErrorBanner } from "@/components/ErrorBanner";
+import { ApiHttpError, getAccessToken, toUserMessage } from "@/lib/apiClient";
+import { opaqueUserIdFromToken, setTelemetryUserId, track } from "@/lib/telemetry";
 
 function LoginForm() {
   const router = useRouter();
@@ -22,8 +23,15 @@ function LoginForm() {
     setError(null);
     try {
       await loginRequest(email, password);
+      setTelemetryUserId(opaqueUserIdFromToken(getAccessToken()));
+      track("user_login_succeeded");
       router.replace("/");
     } catch (err) {
+      const reason =
+        err instanceof ApiHttpError && err.status === 401
+          ? "invalid_credentials"
+          : "network_error";
+      track("user_login_failed", { reason });
       setError(toUserMessage(err));
     } finally {
       setSubmitting(false);

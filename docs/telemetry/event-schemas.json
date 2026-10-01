@@ -1,0 +1,147 @@
+{
+  "schemaVersion": "1.0.0",
+  "envelope": [
+    "eventId",
+    "timestamp",
+    "sessionId",
+    "userId",
+    "event_type",
+    "schemaVersion",
+    "requestId",
+    "properties"
+  ],
+  "events": {
+    "inbound_order_created": {
+      "classification": "mandatory",
+      "category": "inventory",
+      "properties": {
+        "clinic_id": { "type": "integer", "required": true },
+        "country": { "type": "string", "enum": ["US", "UK"], "required": true },
+        "product_id": { "type": "string", "required": true },
+        "product_category": { "type": "string", "enum": ["medication", "ppe", "consumable", "equipment"], "required": true },
+        "quantity": { "type": "integer", "required": true }
+      }
+    },
+    "outbound_order_created": {
+      "classification": "mandatory",
+      "category": "inventory",
+      "properties": {
+        "clinic_id": { "type": "integer", "required": true },
+        "country": { "type": "string", "enum": ["US", "UK"], "required": true },
+        "product_id": { "type": "string", "required": true },
+        "product_category": { "type": "string", "enum": ["medication", "ppe", "consumable", "equipment"], "required": true },
+        "quantity": { "type": "integer", "required": true },
+        "department": { "type": "string", "required": false }
+      }
+    },
+    "stock_threshold_triggered": {
+      "classification": "mandatory",
+      "category": "inventory",
+      "properties": {
+        "clinic_id": { "type": "integer", "required": true },
+        "country": { "type": "string", "enum": ["US", "UK"], "required": true },
+        "product_id": { "type": "string", "required": true },
+        "product_category": { "type": "string", "enum": ["medication", "ppe", "consumable", "equipment"], "required": true },
+        "quantity": { "type": "integer", "required": true }
+      }
+    },
+    "direct_stock_edit_rejected": {
+      "classification": "mandatory",
+      "category": "inventory",
+      "properties": {
+        "clinic_id": { "type": "integer", "required": true },
+        "country": { "type": "string", "enum": ["US", "UK"], "required": true },
+        "product_id": { "type": "string", "required": true },
+        "product_category": { "type": "string", "enum": ["medication", "ppe", "consumable", "equipment"], "required": true },
+        "quantity": { "type": "integer", "required": true }
+      }
+    },
+    "supply_expiry_flagged": {
+      "classification": "mandatory",
+      "category": "inventory",
+      "properties": {
+        "clinic_id": { "type": "integer", "required": true },
+        "country": { "type": "string", "enum": ["US", "UK"], "required": true },
+        "product_id": { "type": "string", "required": true },
+        "product_category": { "type": "string", "enum": ["medication", "ppe", "consumable", "equipment"], "required": true },
+        "quantity": { "type": "integer", "required": true }
+      }
+    },
+    "inbound_order_validation_failed": {
+      "classification": "identified",
+      "category": "inventory",
+      "properties": {
+        "clinic_id": { "type": "integer", "required": false },
+        "country": { "type": "string", "enum": ["US", "UK"], "required": false },
+        "product_id": { "type": "string", "required": false },
+        "product_category": { "type": "string", "enum": ["medication", "ppe", "consumable", "equipment"], "required": false },
+        "quantity": { "type": "integer", "required": false },
+        "reason": { "type": "string", "required": true }
+      }
+    },
+    "outbound_order_rejected": {
+      "classification": "identified",
+      "category": "inventory",
+      "properties": {
+        "clinic_id": { "type": "integer", "required": false },
+        "country": { "type": "string", "enum": ["US", "UK"], "required": false },
+        "product_id": { "type": "string", "required": false },
+        "product_category": { "type": "string", "enum": ["medication", "ppe", "consumable", "equipment"], "required": false },
+        "quantity": { "type": "integer", "required": false },
+        "reason": { "type": "string", "required": true }
+      }
+    },
+    "user_login_failed": {
+      "classification": "identified",
+      "category": "auth",
+      "properties": {
+        "reason": { "type": "string", "enum": ["invalid_credentials", "session_expired", "network_error"], "required": true }
+      }
+    },
+    "user_login_succeeded": {
+      "classification": "identified",
+      "category": "auth",
+      "properties": {}
+    },
+    "session_expired": {
+      "classification": "identified",
+      "category": "auth",
+      "properties": {
+        "reason": { "type": "string", "enum": ["session_expired"], "required": true }
+      }
+    },
+    "page_viewed": {
+      "classification": "identified",
+      "category": "navigation",
+      "properties": {
+        "route": { "type": "string", "required": true }
+      }
+    },
+    "api_latency_recorded": {
+      "classification": "identified",
+      "category": "performance",
+      "properties": {
+        "route": { "type": "string", "required": true },
+        "duration_ms": { "type": "number", "required": true },
+        "status": { "type": "integer", "required": false }
+      }
+    },
+    "frontend_error_raised": {
+      "classification": "identified",
+      "category": "errors",
+      "properties": {
+        "route": { "type": "string", "required": false },
+        "message": { "type": "string", "required": true }
+      }
+    },
+    "web_vital_recorded": {
+      "classification": "identified",
+      "category": "performance",
+      "properties": {
+        "route": { "type": "string", "required": true },
+        "name": { "type": "string", "required": true },
+        "value": { "type": "number", "required": true }
+      }
+    }
+  }
+}

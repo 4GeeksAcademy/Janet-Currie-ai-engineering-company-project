@@ -2,7 +2,7 @@
 
 ## Goal
 
-No active implementation. Await the next phase. Caching optimisation is archived.
+Telemetry **capture** on branch `telemetry-capture`. Contract: [`Telemetry-Context.md`](../Telemetry-Context.md), [`docs/telemetry/telemetry-plan.md`](../docs/telemetry/telemetry-plan.md), [`docs/telemetry/event-schemas.json`](../docs/telemetry/event-schemas.json). Capture implementation: [`docs/telemetry/capture-implementation-plan.md`](../docs/telemetry/capture-implementation-plan.md).
 
 ## Scope (standing)
 
@@ -23,6 +23,7 @@ No active implementation. Await the next phase. Caching optimisation is archived
 - No commit/push/PR unless the user requests it.
 - Treat implementation and validation as one task (see spec). Do not rewrite `memory-bank/archive/`.
 - Do not rewrite error handlers, replace FastAPI/Pydantic/SQLModel/TinyDB, or create a new backend.
+- Stay on `telemetry-capture` until this phase is committed. Do not start storage/report on this branch. Preserve leftover `uv.lock` / `.coverage`.
 
 ## Essential background
 
@@ -36,6 +37,10 @@ Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai
 
 | Path | Role |
 |------|------|
+| `Telemetry-Context.md` | HealthCore telemetry design handoff |
+| `docs/telemetry/` | Plan, JSON schemas, capture implementation plan |
+| `services/api/app/telemetry/` | Envelope models |
+| `uis/web/src/lib/telemetry.ts` | Single `track()` + queue |
 | `CACHING_REPORT.md` | Caching investigation trail (keep at repo root) |
 | `docs/serialization-audit.md` | FastAPI response contracts |
 | `docs/architecture_proposal.md` | Future backend blueprint |
