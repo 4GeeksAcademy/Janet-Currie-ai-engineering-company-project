@@ -30,3 +30,17 @@ class TelemetryBatch(BaseModel):
 
 class TelemetryReceivedResponse(BaseModel):
     received: int
+
+
+class TelemetryStoreResponse(BaseModel):
+    received: int
+    stored: int
+    rejected: int
+
+
+class TelemetryBatchRaw(BaseModel):
+    """Loose envelope: items are raw dicts so one invalid event cannot 422 the batch."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    events: list[Any]

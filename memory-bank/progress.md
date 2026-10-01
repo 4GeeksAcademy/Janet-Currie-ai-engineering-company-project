@@ -2,7 +2,12 @@
 
 ## Current state
 
-On `telemetry-capture`. Capture stub + `track()` queue implemented. Next after commit: storage plan on `telemetry-storage`.
+On `telemetry-storage`. Capture committed (`3a2f533`). Storage: per-event validate + bulk insert (Supabase PostgREST; pytest uses in-memory inserter). Live Supabase DDL timed out from this environment.
+
+## Validation results
+
+- Capture: pytest 118 passed; focused Jest 26; typecheck/lint web.
+- Storage focused: **14 passed**; full `uv run pytest` **122 passed**.
 
 ## Completed (standing)
 

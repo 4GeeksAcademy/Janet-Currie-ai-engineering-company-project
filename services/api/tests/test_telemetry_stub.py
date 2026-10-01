@@ -31,18 +31,23 @@ def test_ingest_returns_received_count() -> None:
     payload = {"events": [_event("inbound_order_created"), _event("page_viewed")]}
     response = client.post("/telemetry/events", json=payload)
     assert response.status_code == 200
-    assert response.json() == {"received": 2}
+    body = response.json()
+    assert body["received"] == 2
+    assert "stored" in body
+    assert "rejected" in body
 
 
 def test_empty_batch_is_ok() -> None:
     response = client.post("/telemetry/events", json={"events": []})
     assert response.status_code == 200
-    assert response.json() == {"received": 0}
+    assert response.json()["received"] == 0
 
 
-def test_invalid_envelope_is_422() -> None:
+def test_invalid_item_does_not_fail_the_batch() -> None:
     response = client.post("/telemetry/events", json={"events": [{"event_type": "x"}]})
-    assert response.status_code == 422
+    assert response.status_code == 200
+    assert response.json()["rejected"] == 1
+    assert response.json()["stored"] == 0
 
 
 def test_unauthenticated_ingest_is_allowed() -> None:

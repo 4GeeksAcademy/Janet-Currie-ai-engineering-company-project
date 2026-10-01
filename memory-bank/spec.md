@@ -34,6 +34,7 @@
 - [x] Caching optimisation: staff lazy-loads + inventory TTL cache; phase guide in `archive/2026-09-30-caching-optimisation/`; trail in [`CACHING_REPORT.md`](../CACHING_REPORT.md).
 - [x] `Telemetry-Context.md` at repo root on branch `telemetry`.
 - [x] Capture: stub ingest, TelemetryService, mandatory + technical baseline events, no PII.
+- [x] Storage: per-event validate, bulk insert, `{received,stored,rejected}`; frontend unchanged.
 
 ## Interfaces / expected behavior (standing)
 
