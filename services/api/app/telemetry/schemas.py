@@ -38,6 +38,21 @@ class TelemetryStoreResponse(BaseModel):
     rejected: int
 
 
+class TelemetryPeriod(BaseModel):
+    from_ts: str
+    to_ts: str
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    def model_dump_period(self) -> dict[str, str]:
+        return {"from": self.from_ts, "to": self.to_ts}
+
+
+class TelemetryReportResponse(BaseModel):
+    period: dict[str, str]
+    metrics: dict[str, list[dict[str, Any]]]
+
+
 class TelemetryBatchRaw(BaseModel):
     """Loose envelope: items are raw dicts so one invalid event cannot 422 the batch."""
 

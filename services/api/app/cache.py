@@ -81,8 +81,10 @@ PRODUCTS_PREFIX = f"{CACHE_VERSION}:inventory:products:"
 ORDERS_PREFIX = f"{CACHE_VERSION}:inventory:orders:"
 
 INVENTORY_TTL_SECONDS = 30.0
+TELEMETRY_REPORT_TTL_SECONDS = 60.0
 
 response_cache = TtlCache(maxsize=512, default_ttl=INVENTORY_TTL_SECONDS)
+report_cache = TtlCache(maxsize=64, default_ttl=TELEMETRY_REPORT_TTL_SECONDS)
 
 
 def product_item_key(supply_id: int) -> str:

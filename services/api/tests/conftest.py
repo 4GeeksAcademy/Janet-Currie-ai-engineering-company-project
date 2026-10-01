@@ -7,12 +7,14 @@ from collections.abc import Iterator
 import pytest
 
 from tests.helpers import reset_auth_db
-from app.cache import response_cache
+from app.cache import report_cache, response_cache
 
 
 @pytest.fixture(autouse=True)
 def _isolated_auth_db() -> Iterator[None]:
     reset_auth_db()
     response_cache.clear()
+    report_cache.clear()
     yield
     response_cache.clear()
+    report_cache.clear()

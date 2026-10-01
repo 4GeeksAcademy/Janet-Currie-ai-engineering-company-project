@@ -35,6 +35,7 @@
 - [x] `Telemetry-Context.md` at repo root on branch `telemetry`.
 - [x] Capture: stub ingest, TelemetryService, mandatory + technical baseline events, no PII.
 - [x] Storage: per-event validate, bulk insert, `{received,stored,rejected}`; frontend unchanged.
+- [x] Report: three-plus Pandas operational metrics, `GET /telemetry/report`, 60s cache.
 
 ## Interfaces / expected behavior (standing)
 
