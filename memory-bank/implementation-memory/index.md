@@ -9,3 +9,4 @@
 | Web Vitals audit | Production Lighthouse loop on `uis/website` and `uis/web` | [web-vitals.md](web-vitals.md) | Lighthouse, hc_lang, LangToggle, useAsyncResource |
 | Serialization audit | Explicit FastAPI `response_model` contracts; no email on public register | [serialization-audit.md](serialization-audit.md) | UserRegisteredResponse, HealthResponse, IncidentAnalysisResponse, response_model |
 | Caching optimisation | Staff `next/dynamic` islands + in-process TTL on inventory GETs | [caching.md](caching.md) | TtlCache, REQUEST_TIMING, deriveMovementRows, INVENTORY_LOAD_EXTRA |
+| Telemetry | Capture queue, Supabase bulk insert, operational report | [telemetry.md](telemetry.md) | track, TelemetryEvent, telemetry_events, GET /telemetry/report |

@@ -26,7 +26,7 @@ if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
 from app.database import init_db
-from app.cache import response_cache
+from app.cache import report_cache, response_cache
 from app.middleware import RequestTimingMiddleware
 from app.routers import auth, incidents, inventory, profiles, suppliers, telemetry, users  # noqa: E402
 
@@ -36,6 +36,7 @@ async def lifespan(_app: FastAPI):
     init_db()
     yield
     response_cache.clear()
+    report_cache.clear()
 
 
 app = FastAPI(
