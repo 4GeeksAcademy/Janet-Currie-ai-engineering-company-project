@@ -2,15 +2,20 @@
 
 ## Current state
 
-No active implementation. Caching optimisation is archived under [`archive/2026-09-30-caching-optimisation/`](archive/2026-09-30-caching-optimisation/). Durable notes: [`implementation-memory/caching.md`](implementation-memory/caching.md). Trail remains in [`CACHING_REPORT.md`](../CACHING_REPORT.md).
+On `telemetry-capture`. Capture stub + `track()` queue implemented. Next after commit: storage plan on `telemetry-storage`.
 
 ## Completed (standing)
 
-- Public site, staff UI, incident CLI, supplier directory, staff JWT auth, error handling, bullet-proof tests, inventory API (HCR-0188), inventory backoffice UI, Docker Compose (`c96f167`), Web Vitals (`ebec7d6`), serialization (`34c1e99`), caching (`341d3d8`).
+- Public site, staff UI, incident CLI, supplier directory, staff JWT auth, error handling, bullet-proof tests, inventory API, inventory UI, Compose, Web Vitals, serialization, caching.
+- Telemetry capture (this branch): `POST /telemetry/events` stub; HealthCore catalogue in `docs/telemetry/`; staff `track()` with batch/beacon/retry.
 
 ## Validation results
 
-Standing: caching `uv run pytest` 113 passed; staff Jest 43 passed; typecheck/lint/builds (2026-09-24). Docs-only archive this session: no runtime tests required.
+- `uv run pytest` — **118 passed** (2026-09-30).
+- `npm test -w uis/web` focused (telemetry/inventoryViews/apiClient/lazyPages) — **26 passed**.
+- `npm run typecheck -w uis/web` and lint — pass.
+
+Unverified: headed DevTools batch screenshot against `next start`.
 
 ## Blockers
 
@@ -18,7 +23,8 @@ None.
 
 ## Next steps
 
-1. Await the next phase.
+1. Commit `telemetry-capture` (requested by sprint overview).
+2. Storage phase plan, then implement.
 
 ## Run commands (durable)
 

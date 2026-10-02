@@ -1,3 +1,5 @@
+import { track } from "@/lib/telemetry";
+
 const TOKEN_KEY = "healthcore_access_token";
 const DEFAULT_TIMEOUT_MS = 15_000;
 
@@ -128,6 +130,7 @@ export async function apiFetch(path: string, options: ApiFetchOptions = {}): Pro
     else signal.addEventListener("abort", onAbort, { once: true });
   }
   const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const started = typeof performance !== "undefined" ? performance.now() : Date.now();
 
   try {
     const response = await fetch(`${apiBaseUrl()}${path}`, {
@@ -135,6 +138,10 @@ export async function apiFetch(path: string, options: ApiFetchOptions = {}): Pro
       headers: nextHeaders,
       signal: controller.signal,
     });
+    const duration_ms = Math.round(
+      (typeof performance !== "undefined" ? performance.now() : Date.now()) - started,
+    );
+    track("api_latency_recorded", { route: path, duration_ms, status: response.status });
     if (auth && redirectOn401 && response.status === 401) {
       redirectToLogin();
     }

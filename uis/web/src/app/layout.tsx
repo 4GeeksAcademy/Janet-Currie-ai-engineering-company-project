@@ -1,3 +1,4 @@
+import { TelemetryProvider } from "@/components/TelemetryProvider";
 import type { Metadata } from "next";
 import { IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
@@ -22,7 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${ibmPlex.variable} bg-slate-100 font-sans text-slate-900 antialiased`}>
-        {children}
+        <TelemetryProvider>{children}</TelemetryProvider>
       </body>
     </html>
   );

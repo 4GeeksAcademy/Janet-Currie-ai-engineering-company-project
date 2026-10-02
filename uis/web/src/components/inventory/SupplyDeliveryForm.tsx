@@ -6,6 +6,7 @@ import { ErrorBanner } from "@/components/ErrorBanner";
 import { SupplySelect } from "@/components/inventory/SupplySelect";
 import { toUserMessage } from "@/lib/apiClient";
 import { CLINIC_IDS, createDelivery, isClinicId, listSupplies, type MedicalSupply } from "@/lib/inventory";
+import { inventoryProperties, track } from "@/lib/telemetry";
 
 export function SupplyDeliveryForm() {
   const searchParams = useSearchParams();
@@ -51,12 +52,33 @@ export function SupplyDeliveryForm() {
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
     const qty = Number(quantity);
+    const clinic = Number(clinicId);
+    const selected = supplies.find((row) => String(row.id) === supplyId);
     if (!Number.isInteger(qty) || qty < 1) {
+      track("inbound_order_validation_failed", {
+        ...inventoryProperties({
+          clinic_id: isClinicId(clinic) ? clinic : 1,
+          country: selected?.country ?? "US",
+          product_id: selected?.id ?? supplyId ?? "unknown",
+          category: selected?.category ?? "consumable",
+          quantity: Number.isFinite(qty) ? qty : 0,
+        }),
+        reason: "invalid_quantity",
+      });
       setFormError("Enter a positive whole-number quantity.");
       return;
     }
-    const clinic = Number(clinicId);
     if (!isClinicId(clinic)) {
+      track("inbound_order_validation_failed", {
+        ...inventoryProperties({
+          clinic_id: 1,
+          country: selected?.country ?? "US",
+          product_id: selected?.id ?? supplyId ?? "unknown",
+          category: selected?.category ?? "consumable",
+          quantity: qty,
+        }),
+        reason: "invalid_clinic",
+      });
       setFormError("Clinic must be between 1 and 12.");
       return;
     }
@@ -70,6 +92,18 @@ export function SupplyDeliveryForm() {
         vendor_name: vendorName.trim(),
         clinic_id: clinic,
       });
+      if (selected) {
+        track(
+          "inbound_order_created",
+          inventoryProperties({
+            clinic_id: clinic,
+            country: selected.country,
+            product_id: selected.id,
+            category: selected.category,
+            quantity: qty,
+          }),
+        );
+      }
       setSuccess("Delivery recorded.");
       setQuantity("");
       setVendorName("");

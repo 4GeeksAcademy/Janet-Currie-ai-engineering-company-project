@@ -14,6 +14,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ErrorBanner } from "@/components/ErrorBanner";
 import { ApiHttpError, clearAccessToken, getAccessToken, toUserMessage } from "@/lib/apiClient";
 import { fetchMe, type MeResponse } from "@/lib/authApi";
+import { setTelemetryUserId, track } from "@/lib/telemetry";
 
 type AuthContextValue = {
   user: MeResponse | null;
@@ -43,10 +44,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const me = await fetchMe();
       setUser(me);
+      setTelemetryUserId(String(me.profile.user_id));
       setSessionError(null);
     } catch (err) {
       if (err instanceof ApiHttpError && err.status === 401) {
+        track("session_expired", { reason: "session_expired" });
         setUser(null);
+        setTelemetryUserId(null);
         clearAccessToken();
         setSessionError(null);
       } else {
@@ -61,9 +65,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void refresh();
   }, [refresh, pathname]);
 
+  useEffect(() => {
+    if (!user) return;
+    track("page_viewed", { route: pathname || "/" });
+  }, [pathname, user]);
+
   const logout = useCallback(() => {
     clearAccessToken();
     setUser(null);
+    setTelemetryUserId(null);
     setSessionError(null);
     router.replace("/login");
   }, [router]);

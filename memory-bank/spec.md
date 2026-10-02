@@ -17,6 +17,7 @@
 13. Web Vitals is archived — do not load [`archive/2026-09-23-web-vitals/`](archive/2026-09-23-web-vitals/) unless asked. Durable notes: [`implementation-memory/web-vitals.md`](implementation-memory/web-vitals.md). Evidence remains in root `AUDIT.md`, `REPORT.md`, and `audit/`.
 14. Backend serialization is archived — do not load [`archive/2026-09-24-serialization/`](archive/2026-09-24-serialization/) unless asked. Durable notes: [`implementation-memory/serialization-audit.md`](implementation-memory/serialization-audit.md). Trail remains in [`docs/serialization-audit.md`](../docs/serialization-audit.md).
 15. Caching optimisation is archived — do not load [`archive/2026-09-30-caching-optimisation/`](archive/2026-09-30-caching-optimisation/) unless asked. Durable notes: [`implementation-memory/caching.md`](implementation-memory/caching.md). Trail remains in [`CACHING_REPORT.md`](../CACHING_REPORT.md).
+16. **Telemetry capture:** stub `POST /telemetry/events`; `uis/web` `track()` queue; HealthCore event names from [`docs/telemetry/event-schemas.json`](../docs/telemetry/event-schemas.json). Stay on `telemetry-capture` until committed.
 
 ## Acceptance criteria
 
@@ -31,6 +32,8 @@
 - [x] Web Vitals audit: production Lighthouse loop on both Next apps; phase guide in `archive/2026-09-23-web-vitals/`.
 - [x] Serialization audit: explicit FastAPI contracts; phase guide in `archive/2026-09-24-serialization/`; trail in [`docs/serialization-audit.md`](../docs/serialization-audit.md).
 - [x] Caching optimisation: staff lazy-loads + inventory TTL cache; phase guide in `archive/2026-09-30-caching-optimisation/`; trail in [`CACHING_REPORT.md`](../CACHING_REPORT.md).
+- [x] `Telemetry-Context.md` at repo root on branch `telemetry`.
+- [x] Capture: stub ingest, TelemetryService, mandatory + technical baseline events, no PII.
 
 ## Interfaces / expected behavior (standing)
 

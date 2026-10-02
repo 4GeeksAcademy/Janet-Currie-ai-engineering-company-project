@@ -13,9 +13,11 @@ import {
   getSupply,
   isClinicId,
   listSupplies,
+  stockStatus,
   type ConsumptionType,
   type MedicalSupply,
 } from "@/lib/inventory";
+import { inventoryProperties, track } from "@/lib/telemetry";
 
 export function SupplyConsumptionForm() {
   const searchParams = useSearchParams();
@@ -96,8 +98,20 @@ export function SupplyConsumptionForm() {
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!stock || overstock || stockLoading || stockError) return;
     const clinic = Number(clinicId);
+    if (stock && overstock) {
+      track("outbound_order_rejected", {
+        ...inventoryProperties({
+          clinic_id: isClinicId(clinic) ? clinic : 1,
+          country: stock.country,
+          product_id: stock.id,
+          category: stock.category,
+          quantity: qty,
+        }),
+        reason: "insufficient_stock",
+      });
+    }
+    if (!stock || overstock || stockLoading || stockError) return;
     if (!isClinicId(clinic)) {
       setFormError("Clinic must be between 1 and 12.");
       return;
@@ -113,6 +127,40 @@ export function SupplyConsumptionForm() {
         consumption_type: consumptionType,
         clinic_id: clinic,
       });
+      const remaining = stock.current_stock - qty;
+      const base = inventoryProperties({
+        clinic_id: clinic,
+        country: stock.country,
+        product_id: stock.id,
+        category: stock.category,
+        quantity: qty,
+        department: consumptionType === "clinical_use" ? "general_consultation" : undefined,
+      });
+      track("outbound_order_created", base);
+      if (consumptionType === "expiry_waste") {
+        track(
+          "supply_expiry_flagged",
+          inventoryProperties({
+            clinic_id: clinic,
+            country: stock.country,
+            product_id: stock.id,
+            category: stock.category,
+            quantity: qty,
+          }),
+        );
+      }
+      if (stockStatus(remaining) !== "healthy") {
+        track(
+          "stock_threshold_triggered",
+          inventoryProperties({
+            clinic_id: clinic,
+            country: stock.country,
+            product_id: stock.id,
+            category: stock.category,
+            quantity: remaining,
+          }),
+        );
+      }
       setSuccess("Consumption recorded.");
       setQuantity("");
       setConsumptionType("clinical_use");
@@ -121,6 +169,16 @@ export function SupplyConsumptionForm() {
       setStock(null);
     } catch (err) {
       if (err instanceof InsufficientStockError) {
+        track("outbound_order_rejected", {
+          ...inventoryProperties({
+            clinic_id: clinic,
+            country: stock.country,
+            product_id: stock.id,
+            category: stock.category,
+            quantity: qty,
+          }),
+          reason: "insufficient_stock",
+        });
         setStockConflict(err.message);
         void refreshStock(supplyId);
       } else {
