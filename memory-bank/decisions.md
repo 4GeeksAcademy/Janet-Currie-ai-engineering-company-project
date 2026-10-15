@@ -76,6 +76,9 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Reporting HTTP lives in `services/api` (`app/reporting` + `/reporting`) | One FastAPI app; ETL stays in `data/pipelines/` |
 | Manual pipeline POST is synchronous; 409 if a run is `running` | Matches existing request/response style; no worker in v1 |
 | Currency from `country` only; never convert USD/GBP | HealthCore v1; FX is v2 |
+| Prefect `>=3` via `uv` in `services/api` | Existing backend toolchain; Docker uses `requirements.txt` |
+| API/CLI run ETL through `execute_monthly_clinic_supply_performance` (task `.fn()`) | Avoids starting an ephemeral Prefect server on each HTTP POST or pytest |
+| Reporting warehouse is PostgREST `reporting` schema, not inventory SQLite | Same host as `telemetry_events`; tests use injectable fakes |
 
 ## Rejected (for now)
 

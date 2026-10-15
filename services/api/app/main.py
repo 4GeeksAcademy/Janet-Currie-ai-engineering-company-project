@@ -20,15 +20,18 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 logger = logging.getLogger(__name__)
 
 # Make scripts/ package importable as `src.*` (Phase 1 shared library)
+# `data/` is on the path so `pipelines.pipeline` (ETL) can be imported from routers.
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _SCRIPTS = _REPO_ROOT / "scripts"
-if str(_SCRIPTS) not in sys.path:
-    sys.path.insert(0, str(_SCRIPTS))
+_DATA = _REPO_ROOT / "data"
+for _path in (str(_SCRIPTS), str(_DATA)):
+    if _path not in sys.path:
+        sys.path.insert(0, _path)
 
 from app.database import init_db
 from app.cache import report_cache, response_cache
 from app.middleware import RequestTimingMiddleware
-from app.routers import auth, incidents, inventory, profiles, suppliers, telemetry, users  # noqa: E402
+from app.routers import auth, incidents, inventory, profiles, reporting, suppliers, telemetry, users  # noqa: E402
 
 
 @asynccontextmanager
@@ -75,6 +78,7 @@ app.include_router(incidents.router)
 app.include_router(suppliers.router)
 app.include_router(inventory.router)
 app.include_router(telemetry.router)
+app.include_router(reporting.router)
 
 
 @app.exception_handler(RequestValidationError)

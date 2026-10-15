@@ -2,7 +2,7 @@
 
 ## Goal
 
-Pipeline work on branch `data-pipeline`. Phase guide: [`pipeline-context.md`](../pipeline-context.md). Approved Sprint 1 plan: [`docs/pipelines/sprint-1-implementation-plan.md`](../docs/pipelines/sprint-1-implementation-plan.md). Design: [`data/pipelines/PIPELINE_DESIGN.md`](../data/pipelines/PIPELINE_DESIGN.md). Telemetry is archived. Do not start Sprint 2 until asked.
+Pipeline work on branch `data-pipeline`. Phase guide: [`pipeline-context.md`](../pipeline-context.md). Design: [`data/pipelines/PIPELINE_DESIGN.md`](../data/pipelines/PIPELINE_DESIGN.md). Sprint 2 implemented: Prefect ETL + `/reporting` API. Do not start Sprint 3 (subflows/dashboard) until asked. Telemetry is archived.
 
 ## Scope (standing)
 
@@ -23,7 +23,7 @@ Pipeline work on branch `data-pipeline`. Phase guide: [`pipeline-context.md`](..
 - No commit/push/PR unless the user requests it.
 - Treat implementation and validation as one task (see spec). Do not rewrite `memory-bank/archive/`.
 - Do not rewrite error handlers, replace FastAPI/Pydantic/SQLModel/TinyDB, or create a new backend.
-- Stay on `data-pipeline`. Preserve leftover `uv.lock` / `.coverage`.
+- Stay on `data-pipeline`. Do not mix leftover telemetry archive / `.coverage` into pipeline commits.
 
 ## Essential background
 
@@ -39,6 +39,8 @@ Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai
 |------|------|
 | `pipeline-context.md` | Pipeline phase guide |
 | `docs/pipelines/sprint-1-implementation-plan.md` | Approved Sprint 1 plan |
+| `docs/pipelines/sprint-2-implementation-plan.md` | Approved Sprint 2 plan |
+| `data/pipelines/pipeline.py` | Clinic supply ETL (Prefect 3) |
 | `data/pipelines/PIPELINE_DESIGN.md` | Monthly clinic supply performance design |
 | `docs/telemetry/` | Shipped telemetry plans, schemas, SQL |
 | `CACHING_REPORT.md` | Caching investigation trail (keep at repo root) |

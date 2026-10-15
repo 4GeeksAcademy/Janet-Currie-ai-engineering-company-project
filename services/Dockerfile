@@ -12,6 +12,7 @@ RUN uv pip install --system -r requirements.txt
 WORKDIR /app
 COPY services/api services/api
 COPY scripts scripts
+COPY data/pipelines data/pipelines
 
 WORKDIR /app/services/api
 

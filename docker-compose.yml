@@ -42,6 +42,7 @@ services:
     volumes:
       - ./services/api:/app/services/api
       - ./scripts:/app/scripts
+      - ./data/pipelines:/app/data/pipelines
       - backend_venv:/app/services/api/.venv
     networks:
       - healthcore_dev
