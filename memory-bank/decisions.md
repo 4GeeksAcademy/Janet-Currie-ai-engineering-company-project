@@ -1,13 +1,13 @@
 # Decisions — Active iteration
 
-Standing decisions that still constrain work. Completed-iteration snapshots: [`archive/2026-07-29-monorepo-ai-frontend/`](archive/2026-07-29-monorepo-ai-frontend/), [`archive/2026-08-28-supplier-directory/`](archive/2026-08-28-supplier-directory/), [`archive/2026-08-28-staff-auth/`](archive/2026-08-28-staff-auth/), [`archive/2026-08-31-error-handling/`](archive/2026-08-31-error-handling/), [`archive/2026-09-04-bullet-proof/`](archive/2026-09-04-bullet-proof/), [`archive/2026-09-18-inventory-api/`](archive/2026-09-18-inventory-api/), [`archive/2026-09-18-inventory-backoffice-ui/`](archive/2026-09-18-inventory-backoffice-ui/), [`archive/2026-09-23-docker-compose/`](archive/2026-09-23-docker-compose/), [`archive/2026-09-23-web-vitals/`](archive/2026-09-23-web-vitals/), [`archive/2026-09-24-serialization/`](archive/2026-09-24-serialization/), [`archive/2026-09-30-caching-optimisation/`](archive/2026-09-30-caching-optimisation/). Architecture rationale: [`docs/architecture_proposal.md`](../docs/architecture_proposal.md). Course/phase guides live in their archives (do not load unless asked).
+Standing decisions that still constrain work. Completed-iteration snapshots: [`archive/2026-07-29-monorepo-ai-frontend/`](archive/2026-07-29-monorepo-ai-frontend/), [`archive/2026-08-28-supplier-directory/`](archive/2026-08-28-supplier-directory/), [`archive/2026-08-28-staff-auth/`](archive/2026-08-28-staff-auth/), [`archive/2026-08-31-error-handling/`](archive/2026-08-31-error-handling/), [`archive/2026-09-04-bullet-proof/`](archive/2026-09-04-bullet-proof/), [`archive/2026-09-18-inventory-api/`](archive/2026-09-18-inventory-api/), [`archive/2026-09-18-inventory-backoffice-ui/`](archive/2026-09-18-inventory-backoffice-ui/), [`archive/2026-09-23-docker-compose/`](archive/2026-09-23-docker-compose/), [`archive/2026-09-23-web-vitals/`](archive/2026-09-23-web-vitals/), [`archive/2026-09-24-serialization/`](archive/2026-09-24-serialization/), [`archive/2026-09-30-caching-optimisation/`](archive/2026-09-30-caching-optimisation/), [`archive/2026-10-14-telemetry/`](archive/2026-10-14-telemetry/). Architecture rationale: [`docs/architecture_proposal.md`](../docs/architecture_proposal.md). Course/phase guides live in their archives (do not load unless asked).
 
 ## Adopted
 
 | Decision | Rationale |
 |----------|-----------|
 | Project memory bank uses global layout (`context`, `spec`, `progress`, `decisions`, `archive/YYYY-MM-DD-name/` with plan + tech-updates) | Aligns with global working rules; keeps active files concise |
-| Finished course contracts and phase guides live in `archive/`, not repo root or the four active files | AUTH, error-handling, bullet-proof, inventory API, inventory UI, Docker Compose, Web Vitals, serialization, and caching guides moved there after completion |
+| Finished course contracts and phase guides live in `archive/`, not repo root or the four active files | AUTH, error-handling, bullet-proof, inventory API, inventory UI, Docker Compose, Web Vitals, serialization, caching, and telemetry guides moved there after completion |
 | AUTH-088 uses pytest + pytest-cov via `uv` in `services/api`; coverage is measured on `app.auth` | Course requires `uv run pytest --cov`; existing unittest files still run under pytest |
 | AUTH-088 skips Jest for auth crypto; FE-019 adds Jest in `uis/web` for `apiClient` helpers | `authApi.ts` is fetch-only; token storage, `messageForStatus`, `toUserMessage`, and `parseError` are the testable utilities |
 | API-042 extends existing incident/supplier unittest files rather than rewriting them as pytest functions | Smallest change; pytest already collects unittest.TestCase |
@@ -71,6 +71,11 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Telemetry `event_type` values come from HealthCore plan/schemas, not README placeholders | Capture assignment forbids generic names |
 | Single public `track()`; ingest URL from `NEXT_PUBLIC_TELEMETRY_ENDPOINT` | Tech-lead: no scattered fetch; stub URL swappable later |
 | Stub `POST /telemetry/events` is unauthenticated | `sendBeacon` cannot attach JWT; payloads are allowlisted and non-PII |
+| Inbound `unit_cost` (`> 0`); `event_cost = unit_cost × quantity` | Capture had no cost; inventory has no price; do not add a new event type |
+| Reporting `clinic_id` is `"1"`…`"12"` | Existing inventory clinics; do not invent `austin-north` slugs |
+| Reporting HTTP lives in `services/api` (`app/reporting` + `/reporting`) | One FastAPI app; ETL stays in `data/pipelines/` |
+| Manual pipeline POST is synchronous; 409 if a run is `running` | Matches existing request/response style; no worker in v1 |
+| Currency from `country` only; never convert USD/GBP | HealthCore v1; FX is v2 |
 
 ## Rejected (for now)
 
@@ -94,6 +99,9 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Dual EN/ES markup hidden with CSS | Doubled HTML and delayed LCP | Cookie-selected single language |
 | Redis / HTTP cache headers / service workers | No multi-process proof locally; Compose has no Redis | Measured multi-worker stale reads |
 | Cache `GET /health` or `GET /auth/me` | Health is cheap; me is personalized | Never for `/auth/me` |
+| Separate `services/reporting` process | Would duplicate the FastAPI app; use `app/reporting` instead | If a second service is explicitly required |
+| Clinic slugs such as `austin-north` | Not in this repo; numeric clinic ids already exist | If clinics gain stable public slugs |
+| `total_cost` instead of `unit_cost` | Quantity would become unexplained; product is `unit_cost × quantity` | Never for v1 |
 
 ## Still provisional
 

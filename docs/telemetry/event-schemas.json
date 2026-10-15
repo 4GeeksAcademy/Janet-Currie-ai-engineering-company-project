@@ -19,7 +19,8 @@
         "country": { "type": "string", "enum": ["US", "UK"], "required": true },
         "product_id": { "type": "string", "required": true },
         "product_category": { "type": "string", "enum": ["medication", "ppe", "consumable", "equipment"], "required": true },
-        "quantity": { "type": "integer", "required": true }
+        "quantity": { "type": "integer", "required": true },
+        "unit_cost": { "type": "number", "required": true, "exclusiveMinimum": 0 }
       }
     },
     "outbound_order_created": {

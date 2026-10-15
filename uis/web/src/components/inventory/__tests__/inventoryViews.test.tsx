@@ -91,6 +91,7 @@ describe("SupplyDeliveryForm", () => {
     await screen.findByRole("option", { name: /Nitrile gloves/ });
     await user.selectOptions(screen.getByLabelText("Medical supply"), "1");
     await user.type(screen.getByLabelText("Quantity"), "3");
+    await user.type(screen.getByLabelText(/^Unit cost/), "4.5");
     await user.type(screen.getByLabelText("Vendor name"), "MedLine Industries");
     await user.click(screen.getByRole("button", { name: "Record delivery" }));
     expect(screen.getByRole("button", { name: "Recording…" })).toBeDisabled();
@@ -113,10 +114,26 @@ describe("SupplyDeliveryForm", () => {
     await screen.findByRole("option", { name: /Nitrile gloves/ });
     await user.selectOptions(screen.getByLabelText("Medical supply"), "1");
     await user.type(screen.getByLabelText("Quantity"), "3");
+    await user.type(screen.getByLabelText(/^Unit cost/), "4.5");
     await user.type(screen.getByLabelText("Vendor name"), "MedLine Industries");
     await user.click(screen.getByRole("button", { name: "Record delivery" }));
     expect(await screen.findByRole("alert")).toBeInTheDocument();
     expect(screen.getByLabelText("Vendor name")).toHaveValue("MedLine Industries");
+    expect(screen.getByLabelText(/^Unit cost/)).toHaveValue(4.5);
+  });
+
+  it("rejects a non-positive unit cost without calling the API", async () => {
+    const user = userEvent.setup();
+    inventory.listSupplies.mockResolvedValue([gloves]);
+    render(<SupplyDeliveryForm />);
+    await screen.findByRole("option", { name: /Nitrile gloves/ });
+    await user.selectOptions(screen.getByLabelText("Medical supply"), "1");
+    await user.type(screen.getByLabelText("Quantity"), "3");
+    await user.type(screen.getByLabelText(/^Unit cost/), "0");
+    await user.type(screen.getByLabelText("Vendor name"), "MedLine Industries");
+    await user.click(screen.getByRole("button", { name: "Record delivery" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Enter a unit cost greater than zero.");
+    expect(inventory.createDelivery).not.toHaveBeenCalled();
   });
 });
 
