@@ -2,7 +2,7 @@
 
 ## Goal
 
-Pipeline work on branch `data-pipeline`. Phase guide: [`pipeline-context.md`](../pipeline-context.md). Design: [`data/pipelines/PIPELINE_DESIGN.md`](../data/pipelines/PIPELINE_DESIGN.md). Sprint 2 implemented: Prefect ETL + `/reporting` API. Do not start Sprint 3 (subflows/dashboard) until asked. Telemetry is archived.
+Pipeline work on branch `data-pipeline`. Phase guide: [`pipeline-context.md`](../pipeline-context.md). Design: [`data/pipelines/PIPELINE_DESIGN.md`](../data/pipelines/PIPELINE_DESIGN.md). Sprints 1–3 implemented (design, ETL + `/reporting`, subflows + dashboard). Do not push or open a PR unless asked. Telemetry is archived.
 
 ## Scope (standing)
 
@@ -40,6 +40,8 @@ Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai
 | `pipeline-context.md` | Pipeline phase guide |
 | `docs/pipelines/sprint-1-implementation-plan.md` | Approved Sprint 1 plan |
 | `docs/pipelines/sprint-2-implementation-plan.md` | Approved Sprint 2 plan |
+| `docs/pipelines/sprint-3-implementation-plan.md` | Approved Sprint 3 plan |
+| `uis/web/.../monthly-clinic-supply-performance/` | Board clinic-supply dashboard |
 | `data/pipelines/pipeline.py` | Clinic supply ETL (Prefect 3) |
 | `data/pipelines/PIPELINE_DESIGN.md` | Monthly clinic supply performance design |
 | `docs/telemetry/` | Shipped telemetry plans, schemas, SQL |

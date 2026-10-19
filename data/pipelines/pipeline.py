@@ -447,8 +447,24 @@ def emit_clinic_supply_pipeline_heartbeat(run_id: str) -> None:
     _heartbeat(run_id)
 
 
-def execute_monthly_clinic_supply_performance(month_start: date | None = None) -> dict[str, Any]:
-    """Run extract/transform/load without starting a Prefect API server."""
+def _run_optional_heartbeat(heartbeat_stage: Callable[[str], Any], run_id: str) -> None:
+    try:
+        result = heartbeat_stage(run_id)
+    except Exception:
+        logger.warning("optional heartbeat failed run_id=%s", run_id)
+        return
+    is_failed = getattr(result, "is_failed", None)
+    if callable(is_failed) and is_failed():
+        logger.warning("optional heartbeat failed run_id=%s", run_id)
+
+
+def _coordinate_clinic_supply_run(
+    month_start: date | None,
+    extract_stage: ExtractFn,
+    transform_stage: Callable[[list[dict[str, Any]], dict[str, str]], dict[str, Any]],
+    load_stage: LoadFn,
+    heartbeat_stage: Callable[[str], Any],
+) -> dict[str, Any]:
     if not pipeline_lock.acquire(blocking=False):
         raise PipelineBusyError()
     run_id = str(uuid4())
@@ -470,13 +486,10 @@ def execute_monthly_clinic_supply_performance(month_start: date | None = None) -
     }
     try:
         _insert_run(record)
-        events = extract_clinic_supply_events.fn(window_start, window_end)
-        transformed = transform_clinic_month_kpis_task.fn(events, window)
-        stored = load_monthly_clinic_supply_performance.fn(transformed["rows"])
-        try:
-            emit_clinic_supply_pipeline_heartbeat.fn(run_id)
-        except Exception:
-            logger.warning("optional heartbeat failed run_id=%s", run_id)
+        events = extract_stage(window_start, window_end)
+        transformed = transform_stage(events, window)
+        stored = load_stage(transformed["rows"])
+        _run_optional_heartbeat(heartbeat_stage, run_id)
         finished = _utcnow()
         record.update(
             {
@@ -510,15 +523,56 @@ def execute_monthly_clinic_supply_performance(month_start: date | None = None) -
             pipeline_lock.release()
 
 
+def execute_monthly_clinic_supply_performance(month_start: date | None = None) -> dict[str, Any]:
+    """Run extract/transform/load without starting a Prefect API server."""
+    return _coordinate_clinic_supply_run(
+        month_start,
+        extract_clinic_supply_events.fn,
+        transform_clinic_month_kpis_task.fn,
+        load_monthly_clinic_supply_performance.fn,
+        emit_clinic_supply_pipeline_heartbeat.fn,
+    )
+
+
+@flow(name="extract_clinic_supply_events")
+def extract_clinic_supply_events_flow(
+    window_start: datetime, window_end: datetime
+) -> list[dict[str, Any]]:
+    return extract_clinic_supply_events(window_start, window_end)
+
+
+@flow(name="transform_clinic_month_kpis")
+def transform_clinic_month_kpis_flow(
+    events: list[dict[str, Any]],
+    window: dict[str, str],
+) -> dict[str, Any]:
+    return transform_clinic_month_kpis_task(events, window)
+
+
+@flow(name="load_monthly_clinic_supply_performance")
+def load_monthly_clinic_supply_performance_flow(rows: list[dict[str, Any]]) -> int:
+    return load_monthly_clinic_supply_performance(rows)
+
+
+@flow(name="emit_clinic_supply_pipeline_heartbeat")
+def emit_clinic_supply_pipeline_heartbeat_flow(run_id: str) -> None:
+    emit_clinic_supply_pipeline_heartbeat(run_id)
+
+
+def _heartbeat_subflow_state(run_id: str) -> Any:
+    return emit_clinic_supply_pipeline_heartbeat_flow(run_id, return_state=True)
+
+
 @flow(name="monthly_clinic_supply_performance")
 def monthly_clinic_supply_performance(month_start: date | None = None) -> dict[str, Any]:
-    result = execute_monthly_clinic_supply_performance(month_start)
-    heartbeat_state = emit_clinic_supply_pipeline_heartbeat(
-        result["run_id"], return_state=True
+    """Prefect coordinator: three ETL subflows plus optional heartbeat. HTTP/CLI use execute_."""
+    return _coordinate_clinic_supply_run(
+        month_start,
+        extract_clinic_supply_events_flow,
+        transform_clinic_month_kpis_flow,
+        load_monthly_clinic_supply_performance_flow,
+        _heartbeat_subflow_state,
     )
-    if heartbeat_state is not None and heartbeat_state.is_failed():
-        logger.warning("optional heartbeat failed run_id=%s", result["run_id"])
-    return result
 
 
 if __name__ == "__main__":

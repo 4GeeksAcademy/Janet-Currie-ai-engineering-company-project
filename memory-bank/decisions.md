@@ -79,6 +79,10 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Prefect `>=3` via `uv` in `services/api` | Existing backend toolchain; Docker uses `requirements.txt` |
 | API/CLI run ETL through `execute_monthly_clinic_supply_performance` (task `.fn()`) | Avoids starting an ephemeral Prefect server on each HTTP POST or pytest |
 | Reporting warehouse is PostgREST `reporting` schema, not inventory SQLite | Same host as `telemetry_events`; tests use injectable fakes |
+| Sprint 3 subflows wrap existing `@task`s; HTTP/CLI stay on `execute_…` | Avoids Prefect ephemeral-server hang in pytest and FastAPI |
+| Isolated pipeline tests live at repo-root `tests/pipelines/` | Assignment path; no DB/API; run via `uv --directory services/api run pytest ../../tests/pipelines/test_pipeline.py` |
+| Clinic-supply dashboard is `uis/web` `/backoffice/reporting/...` | No `uis/backoffice` app; same pattern as inventory |
+| USD and GBP rendered in separate dashboard sections | Never show a cross-currency total |
 
 ## Rejected (for now)
 

@@ -10,4 +10,4 @@
 | Serialization audit | Explicit FastAPI `response_model` contracts; no email on public register | [serialization-audit.md](serialization-audit.md) | UserRegisteredResponse, HealthResponse, IncidentAnalysisResponse, response_model |
 | Caching optimisation | Staff `next/dynamic` islands + in-process TTL on inventory GETs | [caching.md](caching.md) | TtlCache, REQUEST_TIMING, deriveMovementRows, INVENTORY_LOAD_EXTRA |
 | Telemetry | Capture queue, Supabase bulk insert, operational report | [telemetry.md](telemetry.md) | track, TelemetryEvent, telemetry_events, GET /telemetry/report |
-| Clinic supply pipeline | Prefect monthly clinic KPIs + JWT `/reporting` | [clinic-supply-pipeline.md](clinic-supply-pipeline.md) | unit_cost, clinic_month_kpis, execute_monthly_clinic_supply_performance |
+| Clinic supply pipeline | Prefect subflows, JWT `/reporting`, staff dashboard | [clinic-supply-pipeline.md](clinic-supply-pipeline.md) | unit_cost, monthly_clinic_supply_performance, execute_monthly_clinic_supply_performance |

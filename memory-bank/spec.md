@@ -19,7 +19,8 @@
 15. Caching optimisation is archived — do not load [`archive/2026-09-30-caching-optimisation/`](archive/2026-09-30-caching-optimisation/) unless asked. Durable notes: [`implementation-memory/caching.md`](implementation-memory/caching.md). Trail remains in [`CACHING_REPORT.md`](../CACHING_REPORT.md).
 16. Telemetry is archived — do not load [`archive/2026-10-14-telemetry/`](archive/2026-10-14-telemetry/) unless asked. Durable notes: [`implementation-memory/telemetry.md`](implementation-memory/telemetry.md). Plans remain in [`docs/telemetry/`](../docs/telemetry/).
 17. **Data pipeline Sprint 1:** design in [`data/pipelines/PIPELINE_DESIGN.md`](../data/pipelines/PIPELINE_DESIGN.md). Additive `unit_cost` on `inbound_order_created`.
-18. **Data pipeline Sprint 2:** Prefect ETL in `data/pipelines/pipeline.py`; JWT `/reporting` routes; no dashboard or subflows until Sprint 3.
+18. **Data pipeline Sprint 2:** Prefect ETL in `data/pipelines/pipeline.py`; JWT `/reporting` routes.
+19. **Data pipeline Sprint 3:** Prefect subflows; isolated tests in `tests/pipelines/test_pipeline.py`; JWT dashboard at `/backoffice/reporting/monthly-clinic-supply-performance`.
 
 ## Acceptance criteria
 
@@ -37,13 +38,14 @@
 - [x] Telemetry sprint: capture, storage, report; phase guide in `archive/2026-10-14-telemetry/`; durable notes in [`implementation-memory/telemetry.md`](implementation-memory/telemetry.md).
 - [x] Sprint 1: `data/pipelines/PIPELINE_DESIGN.md`; inbound `unit_cost` capture.
 - [x] Sprint 2: Prefect clinic-supply pipeline + three `/reporting` endpoints.
+- [x] Sprint 3: subflows, isolated pipeline tests, and clinic-supply dashboard.
 
 ## Interfaces / expected behavior (standing)
 
 | Surface | Expected behavior |
 |---------|-------------------|
 | `uis/website` | Public corporate site; EN/ES via `hc_lang` cookie; enquiry form; brand blues; no auth |
-| `uis/web` | Public `/login`, `/register`, `/forgot-password`, `/reset-password`; protected welcome, `/operations`, `/incidents`, `/suppliers`, `/backoffice/inventory/{products,orders,orders/inbound,orders/outbound}`, `/account/profile`, `/account/change-password` |
+| `uis/web` | Public `/login`, `/register`, `/forgot-password`, `/reset-password`; protected welcome, `/operations`, `/incidents`, `/suppliers`, `/backoffice/inventory/{products,orders,orders/inbound,orders/outbound}`, `/backoffice/reporting/monthly-clinic-supply-performance`, `/account/profile`, `/account/change-password` |
 | `scripts/` | Phase 1 `analyze.py` + `incidents-healthcore.csv` |
 | `services/api` | Incidents + suppliers (TinyDB) + staff auth + inventory (SQLModel) + telemetry + reporting. Login is `POST /auth/login`. `GET /health` public. Sensitive routes require bearer JWT. CORS from `CORS_ORIGINS` (default `http://localhost:3001`, `http://127.0.0.1:3001`). Public `POST /users` does not return email. Inventory catalogue GETs may be served from in-process TTL cache. Public `POST /telemetry/events`; `GET /telemetry/report` (60s cache). JWT `GET/POST /reporting/...` for clinic-month KPIs and pipeline runs. |
 | Compose | `docker compose up` from repo root: website 3000, staff UI 3001, API 8000 on network `healthcore_dev` |

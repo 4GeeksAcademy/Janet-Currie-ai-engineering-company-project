@@ -1,6 +1,6 @@
 # HealthCore Monthly Clinic Supply Performance — pipeline design
 
-Sprint 1 design for branch `data-pipeline`. Implementation of Prefect, reporting tables, and HTTP routes waits for Sprint 2. The staff dashboard waits for Sprint 3.
+Sprint 1 design for branch `data-pipeline`. Prefect ETL and `/reporting` HTTP shipped in Sprint 2. Subflows, isolated tests, and the staff dashboard shipped in Sprint 3.
 
 Authority: [`pipeline-context.md`](../../pipeline-context.md) and the HealthCore business-performance pipeline context. Approved Sprint 1 plan: [`docs/pipelines/sprint-1-implementation-plan.md`](../../docs/pipelines/sprint-1-implementation-plan.md).
 
@@ -205,22 +205,27 @@ Checkpoints: the control row is inserted as `running` at start and updated at en
 
 Resume: retry the same window; upsert makes resume safe.
 
-## 9. Prefect mapping (Sprint 2)
+## 9. Prefect mapping (Sprint 2 tasks; Sprint 3 subflows)
 
 | Kind | HealthCore name |
 | --- | --- |
 | Main flow | `monthly_clinic_supply_performance` |
+| Extract subflow | `extract_clinic_supply_events_flow` |
+| Transform subflow | `transform_clinic_month_kpis_flow` |
+| Load subflow | `load_monthly_clinic_supply_performance_flow` |
 | Extract task | `extract_clinic_supply_events` |
 | Transform task | `transform_clinic_month_kpis` |
 | Load task | `load_monthly_clinic_supply_performance` |
-| Optional non-critical | `emit_clinic_supply_pipeline_heartbeat` (`return_state=True`) |
+| Optional non-critical | `emit_clinic_supply_pipeline_heartbeat_flow` (`return_state=True`) |
 | Block | `healthcore-supabase` (URL + service role; never logged) |
+
+The main flow is the coordinator and invokes the three ETL subflows with explicit window/event/row contracts. Subflows wrap the existing `@task`s (retries and 1h transform cache stay on the tasks). HTTP, CLI, and pytest call `execute_monthly_clinic_supply_performance` (`task.fn()`) so they do not start Prefect’s ephemeral API server.
 
 States used: `Running`, `Completed`, `Failed`. External-service tasks (extract, load) get retries + `retry_delay_seconds` (Sprint 2). Transform caching: `cache_key_fn` over `(window_start, window_end, event fingerprint or count)` with ~1 hour expiration (Sprint 2).
 
 **Schedule:** cron `0 6 1 * *` (06:00 UTC on day 1). Operators POST if the 1st is a weekend and the pack must ship on the next working day.
 
-**CLI:** `python data/pipelines/pipeline.py` from the repo root runs the full flow (Sprint 2). Prefect `>=3` install path (`uv` in `services/api` vs a pipeline extra) is a Sprint 2 plan choice; not installed in Sprint 1.
+**CLI:** `python data/pipelines/pipeline.py` from the repo root still runs the complete ETL via `execute_monthly_clinic_supply_performance` (Sprint 2 entry point preserved). Prefect `>=3` is installed with `uv` in `services/api`.
 
 ## 10. Application integration design
 
@@ -228,11 +233,11 @@ States used: `Running`, `Completed`, `Failed`. External-service tasks (extract, 
 | --- | --- | --- |
 | `GET /reporting/monthly-clinic-supply-performance` | Read helper on `reporting.monthly_clinic_supply_performance` only (no ETL) | 400 bad `month_start`; 401; 200 empty list |
 | `GET /reporting/pipeline-runs/latest` | Read latest `reporting.pipeline_runs` | 404 none; 401 |
-| `POST /reporting/pipeline-runs` | `monthly_clinic_supply_performance` flow/function in `data/pipelines/` | 409 overlap; 401; 200 metadata |
+| `POST /reporting/pipeline-runs` | `execute_monthly_clinic_supply_performance` in `data/pipelines/` | 409 overlap; 401; 200 metadata |
 
 No KPI formulas in `services/`. `app/telemetry/analysis.py` and `GET /telemetry/report` stay untouched.
 
-Sprint 3 UI (not built now): `uis/web` route `/backoffice/reporting/monthly-clinic-supply-performance` fetching the GET KPI endpoint only. There is no separate `uis/backoffice` app.
+Sprint 3 UI: `uis/web` route `/backoffice/reporting/monthly-clinic-supply-performance` fetches the GET KPI endpoint only (plus latest-run status). There is no separate `uis/backoffice` app.
 
 ## 11. Resilience questions (Sprint 2 required vs Sprint 3 optional)
 
@@ -241,13 +246,13 @@ Sprint 3 UI (not built now): `uis/web` route `/backoffice/reporting/monthly-clin
 | Duplicate events | Dedupe `eventId` | — |
 | Rerun after partial load | Upsert clinic-month | — |
 | Late events | 7-day lookback + recompute | Longer lookback if needed |
-| Zero activity vs capture failure | `events_extracted` + status | Heartbeat subflow |
-| Traceability | `pipeline_runs` + `run_id` logs | Dashboard of latest run |
+| Zero activity vs capture failure | `events_extracted` + status | **Shipped:** heartbeat subflow with `return_state=True` |
+| Traceability | `pipeline_runs` + `run_id` logs | **Shipped:** latest-run status on the clinic supply dashboard |
 | Volume swings | Full-window recompute (12 clinics) | Transform cache already required in Sprint 2 |
 | Database outage | Task retries; `failed` row | — |
 | Offline browser buffering | Existing `track()` queue/beacon (already shipped) | — |
 | Transmission retry / idempotency keys | Existing ingest retries; `eventId` | Explicit idempotency-key header if ingest changes (out of scope unless designed) |
-| Concurrent runs | In-process lock + 409 | Advisory lock |
+| Concurrent runs | In-process lock + 409 | Advisory lock (not shipped; still one API process) |
 
 ## 12. Testing and validation strategy (later sprints)
 
