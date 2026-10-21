@@ -2,7 +2,7 @@
 
 ## Goal
 
-Pipeline work on branch `data-pipeline`. Phase guide: [`pipeline-context.md`](../pipeline-context.md). Design: [`data/pipelines/PIPELINE_DESIGN.md`](../data/pipelines/PIPELINE_DESIGN.md). Sprints 1–3 implemented (design, ETL + `/reporting`, subflows + dashboard). Do not push or open a PR unless asked. Telemetry is archived.
+Standing HealthCore Digital work. Data-pipeline sprints 1–3 are archived — do not load [`archive/2026-10-21-data-pipeline/`](archive/2026-10-21-data-pipeline/) unless asked. Durable notes: [`implementation-memory/clinic-supply-pipeline.md`](implementation-memory/clinic-supply-pipeline.md). Telemetry is archived.
 
 ## Scope (standing)
 
@@ -21,9 +21,9 @@ Pipeline work on branch `data-pipeline`. Phase guide: [`pipeline-context.md`](..
 - HIPAA (US) / UK GDPR apply to any patient-adjacent data handling.
 - User/Profile stay in TinyDB only (`services/api/data/auth.json`). Do not add User/Profile tables in Postgres/Supabase.
 - No commit/push/PR unless the user requests it.
-- Treat implementation and validation as one task (see spec). Do not rewrite `memory-bank/archive/`.
+- Treat implementation and validation as one task (see spec).
 - Do not rewrite error handlers, replace FastAPI/Pydantic/SQLModel/TinyDB, or create a new backend.
-- Stay on `data-pipeline`. Do not mix leftover telemetry archive / `.coverage` into pipeline commits.
+- Do not rewrite `memory-bank/archive/`. Leave `services/api/.coverage` untracked.
 
 ## Essential background
 
@@ -31,19 +31,14 @@ HealthCore: 12 outpatient clinics (US + UK), ~200 staff, ~$28M revenue.
 
 Staff UI is `uis/web` (port 3001), not `uis/backoffice`. FastAPI lives at `services/api`. Browser API calls use `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`. The public website and `scripts/` do not call this HTTP API.
 
-Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai-frontend/`, `archive/2026-08-28-supplier-directory/`, `archive/2026-08-28-staff-auth/`, `archive/2026-08-31-error-handling/`, `archive/2026-09-04-bullet-proof/`, `archive/2026-09-18-inventory-api/`, `archive/2026-09-18-inventory-backoffice-ui/`, `archive/2026-09-23-docker-compose/`, `archive/2026-09-23-web-vitals/`, `archive/2026-09-24-serialization/`, `archive/2026-09-30-caching-optimisation/`, `archive/2026-10-14-telemetry/`.
+Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai-frontend/`, `archive/2026-08-28-supplier-directory/`, `archive/2026-08-28-staff-auth/`, `archive/2026-08-31-error-handling/`, `archive/2026-09-04-bullet-proof/`, `archive/2026-09-18-inventory-api/`, `archive/2026-09-18-inventory-backoffice-ui/`, `archive/2026-09-23-docker-compose/`, `archive/2026-09-23-web-vitals/`, `archive/2026-09-24-serialization/`, `archive/2026-09-30-caching-optimisation/`, `archive/2026-10-14-telemetry/`, `archive/2026-10-21-data-pipeline/`.
 
 ## Relevant files
 
 | Path | Role |
 |------|------|
-| `pipeline-context.md` | Pipeline phase guide |
-| `docs/pipelines/sprint-1-implementation-plan.md` | Approved Sprint 1 plan |
-| `docs/pipelines/sprint-2-implementation-plan.md` | Approved Sprint 2 plan |
-| `docs/pipelines/sprint-3-implementation-plan.md` | Approved Sprint 3 plan |
-| `uis/web/.../monthly-clinic-supply-performance/` | Board clinic-supply dashboard |
-| `data/pipelines/pipeline.py` | Clinic supply ETL (Prefect 3) |
 | `data/pipelines/PIPELINE_DESIGN.md` | Monthly clinic supply performance design |
+| `data/pipelines/pipeline.py` | Clinic supply ETL (Prefect 3) |
 | `docs/telemetry/` | Shipped telemetry plans, schemas, SQL |
 | `CACHING_REPORT.md` | Caching investigation trail (keep at repo root) |
 | `docs/serialization-audit.md` | FastAPI response contracts |

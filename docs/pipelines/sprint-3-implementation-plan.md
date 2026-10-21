@@ -2,7 +2,7 @@
 
 Refactor the committed Sprint 2 pipeline into subflows, add isolated unit tests, and ship the board dashboard. **Approved 2026-10-19.** Approval of Sprint 2 is not approval of this sprint.
 
-Branch: `data-pipeline` at `d4df11c`. Design: [`data/pipelines/PIPELINE_DESIGN.md`](../../data/pipelines/PIPELINE_DESIGN.md). Contract: [`pipeline-context.md`](../../pipeline-context.md).
+Branch: `data-pipeline` at `d4df11c`. Design: [`data/pipelines/PIPELINE_DESIGN.md`](../../data/pipelines/PIPELINE_DESIGN.md). Contract: [`pipeline-context.md`](../../memory-bank/archive/2026-10-21-data-pipeline/pipeline-context.md).
 
 Uncommitted leftovers (preserve; do not mix into the Sprint 3 commit): telemetry archive (`Telemetry-Context.md` delete + `memory-bank/archive/2026-10-14-telemetry/`), `docs/telemetry/capture-implementation-plan.md`, `memory-bank/implementation-memory/telemetry.md`, `services/api/.coverage`.
 

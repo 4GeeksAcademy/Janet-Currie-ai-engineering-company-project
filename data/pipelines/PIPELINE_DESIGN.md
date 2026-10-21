@@ -2,7 +2,7 @@
 
 Sprint 1 design for branch `data-pipeline`. Prefect ETL and `/reporting` HTTP shipped in Sprint 2. Subflows, isolated tests, and the staff dashboard shipped in Sprint 3.
 
-Authority: [`pipeline-context.md`](../../pipeline-context.md) and the HealthCore business-performance pipeline context. Approved Sprint 1 plan: [`docs/pipelines/sprint-1-implementation-plan.md`](../../docs/pipelines/sprint-1-implementation-plan.md).
+Authority: [`pipeline-context.md`](../../memory-bank/archive/2026-10-21-data-pipeline/pipeline-context.md) and the HealthCore business-performance pipeline context. Approved Sprint 1 plan: [`docs/pipelines/sprint-1-implementation-plan.md`](../../docs/pipelines/sprint-1-implementation-plan.md).
 
 ## 1. Current state and business gap
 

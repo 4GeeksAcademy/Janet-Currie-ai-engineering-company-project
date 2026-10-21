@@ -18,14 +18,12 @@
 14. Backend serialization is archived — do not load [`archive/2026-09-24-serialization/`](archive/2026-09-24-serialization/) unless asked. Durable notes: [`implementation-memory/serialization-audit.md`](implementation-memory/serialization-audit.md). Trail remains in [`docs/serialization-audit.md`](../docs/serialization-audit.md).
 15. Caching optimisation is archived — do not load [`archive/2026-09-30-caching-optimisation/`](archive/2026-09-30-caching-optimisation/) unless asked. Durable notes: [`implementation-memory/caching.md`](implementation-memory/caching.md). Trail remains in [`CACHING_REPORT.md`](../CACHING_REPORT.md).
 16. Telemetry is archived — do not load [`archive/2026-10-14-telemetry/`](archive/2026-10-14-telemetry/) unless asked. Durable notes: [`implementation-memory/telemetry.md`](implementation-memory/telemetry.md). Plans remain in [`docs/telemetry/`](../docs/telemetry/).
-17. **Data pipeline Sprint 1:** design in [`data/pipelines/PIPELINE_DESIGN.md`](../data/pipelines/PIPELINE_DESIGN.md). Additive `unit_cost` on `inbound_order_created`.
-18. **Data pipeline Sprint 2:** Prefect ETL in `data/pipelines/pipeline.py`; JWT `/reporting` routes.
-19. **Data pipeline Sprint 3:** Prefect subflows; isolated tests in `tests/pipelines/test_pipeline.py`; JWT dashboard at `/backoffice/reporting/monthly-clinic-supply-performance`.
+17. Data pipeline is archived — do not load [`archive/2026-10-21-data-pipeline/`](archive/2026-10-21-data-pipeline/) unless asked. Durable notes: [`implementation-memory/clinic-supply-pipeline.md`](implementation-memory/clinic-supply-pipeline.md). Design remains in [`data/pipelines/PIPELINE_DESIGN.md`](../data/pipelines/PIPELINE_DESIGN.md).
 
 ## Acceptance criteria
 
 - [x] Required memory-bank files exist at `memory-bank/` root.
-- [x] Completed iterations archived: `2026-07-29-monorepo-ai-frontend`, `2026-08-28-supplier-directory`, `2026-08-28-staff-auth`, `2026-08-31-error-handling`, `2026-09-04-bullet-proof`, `2026-09-18-inventory-api`, `2026-09-18-inventory-backoffice-ui`, `2026-09-23-docker-compose`, `2026-09-23-web-vitals`, `2026-09-24-serialization`, `2026-09-30-caching-optimisation`, `2026-10-14-telemetry`.
+- [x] Completed iterations archived: `2026-07-29-monorepo-ai-frontend`, `2026-08-28-supplier-directory`, `2026-08-28-staff-auth`, `2026-08-31-error-handling`, `2026-09-04-bullet-proof`, `2026-09-18-inventory-api`, `2026-09-18-inventory-backoffice-ui`, `2026-09-23-docker-compose`, `2026-09-23-web-vitals`, `2026-09-24-serialization`, `2026-09-30-caching-optimisation`, `2026-10-14-telemetry`, `2026-10-21-data-pipeline`.
 - [x] Project `AGENTS.md` points at the global memory-bank file names.
 - [x] AUTH-088 / API-042 / FE-019 implemented; results in [`TESTING.md`](../TESTING.md).
 - [x] `BulletProofApp-Context.md` moved to `memory-bank/archive/2026-09-04-bullet-proof/`.
@@ -36,9 +34,7 @@
 - [x] Serialization audit: explicit FastAPI contracts; phase guide in `archive/2026-09-24-serialization/`; trail in [`docs/serialization-audit.md`](../docs/serialization-audit.md).
 - [x] Caching optimisation: staff lazy-loads + inventory TTL cache; phase guide in `archive/2026-09-30-caching-optimisation/`; trail in [`CACHING_REPORT.md`](../CACHING_REPORT.md).
 - [x] Telemetry sprint: capture, storage, report; phase guide in `archive/2026-10-14-telemetry/`; durable notes in [`implementation-memory/telemetry.md`](implementation-memory/telemetry.md).
-- [x] Sprint 1: `data/pipelines/PIPELINE_DESIGN.md`; inbound `unit_cost` capture.
-- [x] Sprint 2: Prefect clinic-supply pipeline + three `/reporting` endpoints.
-- [x] Sprint 3: subflows, isolated pipeline tests, and clinic-supply dashboard.
+- [x] Data pipeline sprints 1–3: design, Prefect ETL + `/reporting`, subflows + dashboard; phase guide in `archive/2026-10-21-data-pipeline/`; durable notes in [`implementation-memory/clinic-supply-pipeline.md`](implementation-memory/clinic-supply-pipeline.md).
 
 ## Interfaces / expected behavior (standing)
 
