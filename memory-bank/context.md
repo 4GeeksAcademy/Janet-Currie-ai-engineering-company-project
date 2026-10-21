@@ -2,7 +2,7 @@
 
 ## Goal
 
-Nightly telemetry job (DEV-53) on branch `background-processes`. Execution plan: [`docs/pipelines/nightly-export-implementation-plan.md`](../docs/pipelines/nightly-export-implementation-plan.md). Phase guide: [`background-processes-context.md`](../background-processes-context.md). Do not implement until that plan is explicitly approved. Data-pipeline and telemetry are archived.
+Nightly telemetry job (DEV-53) on branch `background-processes`. Phase guide: [`background-processes-context.md`](../background-processes-context.md). Plan: [`docs/pipelines/nightly-export-implementation-plan.md`](../docs/pipelines/nightly-export-implementation-plan.md). Do not install crontab or apply `job_runs.sql` live unless asked. Data-pipeline and telemetry are archived.
 
 ## Scope (standing)
 
@@ -38,7 +38,10 @@ Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai
 | Path | Role |
 |------|------|
 | `background-processes-context.md` | DEV-53 phase guide |
-| `docs/pipelines/nightly-export-implementation-plan.md` | DEV-53 execution plan (awaiting approval) |
+| `docs/pipelines/nightly-export-implementation-plan.md` | DEV-53 execution plan |
+| `scripts/nightly_export.py` | Nightly CSV backup + pipeline subprocess |
+| `services/api/app/jobs/job_runner.py` | `job_runs` status machine |
+| `docs/pipelines/job_runs.sql` | `reporting.job_runs` DDL |
 | `data/pipelines/PIPELINE_DESIGN.md` | Monthly clinic supply performance design |
 | `data/pipelines/pipeline.py` | Clinic supply ETL (Prefect 3) |
 | `docs/telemetry/` | Shipped telemetry plans, schemas, SQL |

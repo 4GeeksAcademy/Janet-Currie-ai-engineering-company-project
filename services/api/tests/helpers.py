@@ -30,6 +30,11 @@ from fastapi.testclient import TestClient  # noqa: E402
 from app.auth.db import close_db  # noqa: E402
 from app.main import app  # noqa: E402
 
+# After app.database load_dotenv: unit tests must not call live PostgREST.
+os.environ.pop("SUPABASE_URL", None)
+os.environ.pop("SUPABASE_SERVICE_ROLE_KEY", None)
+os.environ.pop("SUPABASE_KEY", None)
+
 client = TestClient(app)
 
 
