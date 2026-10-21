@@ -2,13 +2,13 @@
 
 ## Goal
 
-Telemetry **capture** on branch `telemetry-capture`. Contract: [`Telemetry-Context.md`](../Telemetry-Context.md), [`docs/telemetry/telemetry-plan.md`](../docs/telemetry/telemetry-plan.md), [`docs/telemetry/event-schemas.json`](../docs/telemetry/event-schemas.json). Capture implementation: [`docs/telemetry/capture-implementation-plan.md`](../docs/telemetry/capture-implementation-plan.md).
+Pipeline work on branch `data-pipeline`. Phase guide: [`pipeline-context.md`](../pipeline-context.md). Design: [`data/pipelines/PIPELINE_DESIGN.md`](../data/pipelines/PIPELINE_DESIGN.md). Sprints 1–3 implemented (design, ETL + `/reporting`, subflows + dashboard). Do not push or open a PR unless asked. Telemetry is archived.
 
 ## Scope (standing)
 
 - Keep shipped UIs runnable: `uis/website` (public), `uis/web` (staff JWT, including inventory).
 - Phase 1 incident CLI: [`scripts/`](../scripts/).
-- Phase 2 API: incidents, suppliers, staff JWT auth, inventory.
+- Phase 2 API: incidents, suppliers, staff JWT auth, inventory, telemetry.
 - Local stack: `docker compose up` starts website (3000), staff UI (3001), and FastAPI (8000).
 - Treat [`docs/architecture_proposal.md`](../docs/architecture_proposal.md) as the blueprint before expanding beyond Phase 2.
 - Do **not** invent production PHI flows or EHR integrations without explicit instruction.
@@ -23,7 +23,7 @@ Telemetry **capture** on branch `telemetry-capture`. Contract: [`Telemetry-Conte
 - No commit/push/PR unless the user requests it.
 - Treat implementation and validation as one task (see spec). Do not rewrite `memory-bank/archive/`.
 - Do not rewrite error handlers, replace FastAPI/Pydantic/SQLModel/TinyDB, or create a new backend.
-- Stay on `telemetry-capture` until this phase is committed. Do not start storage/report on this branch. Preserve leftover `uv.lock` / `.coverage`.
+- Stay on `data-pipeline`. Do not mix leftover telemetry archive / `.coverage` into pipeline commits.
 
 ## Essential background
 
@@ -31,16 +31,20 @@ HealthCore: 12 outpatient clinics (US + UK), ~200 staff, ~$28M revenue.
 
 Staff UI is `uis/web` (port 3001), not `uis/backoffice`. FastAPI lives at `services/api`. Browser API calls use `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`. The public website and `scripts/` do not call this HTTP API.
 
-Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai-frontend/`, `archive/2026-08-28-supplier-directory/`, `archive/2026-08-28-staff-auth/`, `archive/2026-08-31-error-handling/`, `archive/2026-09-04-bullet-proof/`, `archive/2026-09-18-inventory-api/`, `archive/2026-09-18-inventory-backoffice-ui/`, `archive/2026-09-23-docker-compose/`, `archive/2026-09-23-web-vitals/`, `archive/2026-09-24-serialization/`, `archive/2026-09-30-caching-optimisation/`.
+Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai-frontend/`, `archive/2026-08-28-supplier-directory/`, `archive/2026-08-28-staff-auth/`, `archive/2026-08-31-error-handling/`, `archive/2026-09-04-bullet-proof/`, `archive/2026-09-18-inventory-api/`, `archive/2026-09-18-inventory-backoffice-ui/`, `archive/2026-09-23-docker-compose/`, `archive/2026-09-23-web-vitals/`, `archive/2026-09-24-serialization/`, `archive/2026-09-30-caching-optimisation/`, `archive/2026-10-14-telemetry/`.
 
 ## Relevant files
 
 | Path | Role |
 |------|------|
-| `Telemetry-Context.md` | HealthCore telemetry design handoff |
-| `docs/telemetry/` | Plan, JSON schemas, capture implementation plan |
-| `services/api/app/telemetry/` | Envelope models |
-| `uis/web/src/lib/telemetry.ts` | Single `track()` + queue |
+| `pipeline-context.md` | Pipeline phase guide |
+| `docs/pipelines/sprint-1-implementation-plan.md` | Approved Sprint 1 plan |
+| `docs/pipelines/sprint-2-implementation-plan.md` | Approved Sprint 2 plan |
+| `docs/pipelines/sprint-3-implementation-plan.md` | Approved Sprint 3 plan |
+| `uis/web/.../monthly-clinic-supply-performance/` | Board clinic-supply dashboard |
+| `data/pipelines/pipeline.py` | Clinic supply ETL (Prefect 3) |
+| `data/pipelines/PIPELINE_DESIGN.md` | Monthly clinic supply performance design |
+| `docs/telemetry/` | Shipped telemetry plans, schemas, SQL |
 | `CACHING_REPORT.md` | Caching investigation trail (keep at repo root) |
 | `docs/serialization-audit.md` | FastAPI response contracts |
 | `docs/architecture_proposal.md` | Future backend blueprint |

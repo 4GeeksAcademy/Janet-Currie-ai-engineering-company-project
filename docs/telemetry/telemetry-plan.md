@@ -44,7 +44,7 @@ Every row completes: we capture `[event_type]` because we need to know `[hypothe
 
 See [`event-schemas.json`](event-schemas.json). No event includes email, name, password, or PHI. Auth failure `reason` is `invalid_credentials` \| `session_expired` \| `network_error` only.
 
-Inventory required properties: `clinic_id`, `country` (`US`/`UK`), `product_id`, `product_category` (`medication` \| `ppe` \| `consumable` \| `equipment`), `quantity`. `department` only on clinical outbound (`general_consultation`). App categories map: `ppe`→`ppe`, `medications`→`medication`, `consumables`/`wound_care`/`diagnostics`→`consumable`.
+Inventory required properties: `clinic_id`, `country` (`US`/`UK`), `product_id`, `product_category` (`medication` \| `ppe` \| `consumable` \| `equipment`), `quantity`. `inbound_order_created` also requires `unit_cost` (number `> 0`); pipeline cost is `unit_cost × quantity`. `department` only on clinical outbound (`general_consultation`). App categories map: `ppe`→`ppe`, `medications`→`medication`, `consumables`/`wound_care`/`diagnostics`→`consumable`.
 
 Stock threshold uses remaining `quantity` after outbound and the staff low band (≤24).
 

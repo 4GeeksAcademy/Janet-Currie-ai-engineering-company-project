@@ -21,7 +21,7 @@ os.environ["DATABASE_URL"] = f"sqlite:///{INV_DB}"
 os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
 os.environ["REQUEST_TIMING"] = "0"
 
-for path in (str(API_ROOT), str(SCRIPTS)):
+for path in (str(API_ROOT), str(SCRIPTS), str(REPO_ROOT / "data")):
     if path not in sys.path:
         sys.path.insert(0, path)
 

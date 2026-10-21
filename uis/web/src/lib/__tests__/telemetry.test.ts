@@ -1,6 +1,7 @@
 import {
   EVENT_ALLOWLISTS,
   countryCode,
+  inventoryProperties,
   mapProductCategory,
   resetTelemetryForTests,
   sanitizeProperties,
@@ -17,6 +18,7 @@ describe("telemetry sanitizeProperties", () => {
       product_id: "9",
       product_category: "ppe",
       quantity: 2,
+      unit_cost: 4.5,
       email: "nurse@healthcore.example",
       extra: "nope",
     });
@@ -26,8 +28,29 @@ describe("telemetry sanitizeProperties", () => {
       product_id: "9",
       product_category: "ppe",
       quantity: 2,
+      unit_cost: 4.5,
     });
     expect(props).not.toHaveProperty("email");
+  });
+
+  it("keeps inbound unit_cost on the allowlist and strips unknown keys", () => {
+    expect(EVENT_ALLOWLISTS.inbound_order_created).toContain("unit_cost");
+    expect(
+      sanitizeProperties("inbound_order_created", { unit_cost: 1.25, total_cost: 99 }),
+    ).toEqual({ unit_cost: 1.25 });
+  });
+
+  it("passes inbound unit_cost through inventoryProperties", () => {
+    expect(
+      inventoryProperties({
+        clinic_id: 1,
+        country: "US",
+        product_id: 9,
+        category: "ppe",
+        quantity: 2,
+        unit_cost: 4.5,
+      }),
+    ).toMatchObject({ quantity: 2, unit_cost: 4.5, clinic_id: 1 });
   });
 
   it("maps inventory categories to HealthCore allowlist values", () => {

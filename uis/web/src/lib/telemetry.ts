@@ -19,6 +19,7 @@ export const EVENT_ALLOWLISTS: Record<string, readonly string[]> = {
     "product_id",
     "product_category",
     "quantity",
+    "unit_cost",
   ],
   outbound_order_created: [
     "clinic_id",
@@ -160,6 +161,7 @@ export function inventoryProperties(input: {
   category: string;
   quantity: number;
   department?: string;
+  unit_cost?: number;
 }): Record<string, unknown> {
   const props: Record<string, unknown> = {
     clinic_id: input.clinic_id,
@@ -169,6 +171,7 @@ export function inventoryProperties(input: {
     quantity: input.quantity,
   };
   if (input.department) props.department = input.department;
+  if (input.unit_cost !== undefined) props.unit_cost = input.unit_cost;
   return props;
 }
 
