@@ -20,6 +20,7 @@ Telemetry events (PostgREST `telemetry_events`) → extract → transform → lo
 
 ## Important Files
 
+- `memory-bank/archive/2026-10-21-data-pipeline/pipeline-context.md`
 - `data/pipelines/pipeline.py`
 - `docs/pipelines/reporting.sql`
 - `tests/pipelines/test_pipeline.py`
@@ -38,4 +39,4 @@ Telemetry events (PostgREST `telemetry_events`) → extract → transform → lo
 
 ## Validation
 
-Isolated `tests/pipelines/test_pipeline.py` **7 passed**. Focused API pytest **21 passed**. Full `uv run pytest` **138 passed**. Jest reporting **10 passed**. `npm run typecheck -w uis/web` pass. CLI completed with `events_extracted=0` when `SUPABASE_URL` is unset. Live `reporting` schema not applied. Headed dashboard smoke not run (staff UI and API were not listening locally); Jest covered loading/empty/error/populated.
+Isolated `tests/pipelines/test_pipeline.py` **7 passed**. Focused API pytest **21 passed**. Full `uv run pytest` **138 passed**. Jest reporting **10 passed**. `npm run typecheck -w uis/web` pass. Live CLI (2026-10-21) completed with `events_extracted=0`; dashboard showed that run. Populated US/UK rows need source events in the extract window.

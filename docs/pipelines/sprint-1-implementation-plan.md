@@ -2,7 +2,7 @@
 
 Design-only sprint. **Approved 2026-10-14.** Approval of this plan is not approval of Sprint 2 or Sprint 3.
 
-Branch: `data-pipeline`. Contract: [`pipeline-context.md`](../../pipeline-context.md). Authority: HealthCore pipeline context, then the three 4Geeks sprint READMEs. Existing monorepo conventions win where those sources leave a choice open.
+Branch: `data-pipeline`. Contract: [`pipeline-context.md`](../../memory-bank/archive/2026-10-21-data-pipeline/pipeline-context.md). Authority: HealthCore pipeline context, then the three 4Geeks sprint READMEs. Existing monorepo conventions win where those sources leave a choice open.
 
 ## Current committed state (inspected)
 

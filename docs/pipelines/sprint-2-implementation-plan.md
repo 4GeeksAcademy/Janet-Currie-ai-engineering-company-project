@@ -2,7 +2,7 @@
 
 Build the resilient pipeline from the **committed** design. **Approved 2026-10-14.** Approval is not Sprint 3.
 
-Branch: `data-pipeline` at `92618e8`. Design: [`data/pipelines/PIPELINE_DESIGN.md`](../../data/pipelines/PIPELINE_DESIGN.md). Contract: [`pipeline-context.md`](../../pipeline-context.md).
+Branch: `data-pipeline` at `92618e8`. Design: [`data/pipelines/PIPELINE_DESIGN.md`](../../data/pipelines/PIPELINE_DESIGN.md). Contract: [`pipeline-context.md`](../../memory-bank/archive/2026-10-21-data-pipeline/pipeline-context.md).
 
 Uncommitted leftovers (preserve; do not mix into the Sprint 2 commit): telemetry archive, `services/api/.coverage`, unstaged `progress.md` / capture-plan / `implementation-memory/telemetry.md`.
 

@@ -1,6 +1,6 @@
 # Capture implementation plan (telemetry-capture)
 
-Contract source: [`Telemetry-Context.md`](../../Telemetry-Context.md) plus this file and [`event-schemas.json`](event-schemas.json). There is no prior approved plan in-repo; HealthCore names below are the catalogue (not README placeholders).
+Contract source: [`Telemetry-Context.md`](../../memory-bank/archive/2026-10-14-telemetry/Telemetry-Context.md) plus this file and [`event-schemas.json`](event-schemas.json). There is no prior approved plan in-repo; HealthCore names below are the catalogue (not README placeholders).
 
 Staff UI is `uis/web`. APIs stay in `services/api`. Stub does **not** write a database.
 
