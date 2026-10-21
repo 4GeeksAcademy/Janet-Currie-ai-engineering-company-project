@@ -12,6 +12,7 @@ Capture staff-app usage as HealthCore-named events, persist valid batches, and s
 
 ## Important Files
 
+- `memory-bank/archive/2026-10-14-telemetry/Telemetry-Context.md`
 - `docs/telemetry/telemetry-plan.md`, `event-schemas.json`
 - `uis/web/src/lib/telemetry.ts`
 - `services/api/app/telemetry/schemas.py`, `store.py`, `analysis.py`
