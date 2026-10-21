@@ -17,9 +17,8 @@ On `data-pipeline`. Sprint 3 implemented (subflows, isolated tests, clinic-suppl
 - Full `uv run pytest` in `services/api`: **138 passed**.
 - Jest reporting suite: **10 passed**.
 - `npm run typecheck -w uis/web`: pass.
-- CLI `python3 data/pipelines/pipeline.py`: **completed** with `events_extracted=0` (no `SUPABASE_URL`; safe substitute).
-- Live `reporting` schema not applied to Supabase.
-- Headed dashboard smoke not run (ports 3001/8000 were not listening). Jest covered loading, empty, error, and populated US/UK states.
+- Live CLI (2026-10-21): credentials matched; granted `USAGE` on schema `reporting`; run **completed** `events_extracted=0` / `records_processed=0` (empty `telemetry_events` in Sep window). `pipeline_runs` row persisted (`b0a933e5-…`).
+- Headed dashboard: empty KPI copy plus “Latest run completed: 0 clinic-month rows, 0 events extracted”. Populated US/UK not shown (no source events).
 
 ## Blockers
 
@@ -39,4 +38,4 @@ npm run typecheck -w uis/web
 python3 data/pipelines/pipeline.py
 ```
 
-Last updated: 2026-10-19
+Last updated: 2026-10-21
