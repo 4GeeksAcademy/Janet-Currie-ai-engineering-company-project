@@ -2,7 +2,7 @@
 
 ## Goal
 
-Standing HealthCore Digital work. Data-pipeline sprints 1–3 are archived — do not load [`archive/2026-10-21-data-pipeline/`](archive/2026-10-21-data-pipeline/) unless asked. Durable notes: [`implementation-memory/clinic-supply-pipeline.md`](implementation-memory/clinic-supply-pipeline.md). Telemetry is archived.
+Nightly telemetry job (DEV-53) on branch `background-processes`. Execution plan: [`docs/pipelines/nightly-export-implementation-plan.md`](../docs/pipelines/nightly-export-implementation-plan.md). Phase guide: [`background-processes-context.md`](../background-processes-context.md). Do not implement until that plan is explicitly approved. Data-pipeline and telemetry are archived.
 
 ## Scope (standing)
 
@@ -37,6 +37,8 @@ Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai
 
 | Path | Role |
 |------|------|
+| `background-processes-context.md` | DEV-53 phase guide |
+| `docs/pipelines/nightly-export-implementation-plan.md` | DEV-53 execution plan (awaiting approval) |
 | `data/pipelines/PIPELINE_DESIGN.md` | Monthly clinic supply performance design |
 | `data/pipelines/pipeline.py` | Clinic supply ETL (Prefect 3) |
 | `docs/telemetry/` | Shipped telemetry plans, schemas, SQL |

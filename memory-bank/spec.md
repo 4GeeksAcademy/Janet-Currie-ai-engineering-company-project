@@ -19,6 +19,7 @@
 15. Caching optimisation is archived — do not load [`archive/2026-09-30-caching-optimisation/`](archive/2026-09-30-caching-optimisation/) unless asked. Durable notes: [`implementation-memory/caching.md`](implementation-memory/caching.md). Trail remains in [`CACHING_REPORT.md`](../CACHING_REPORT.md).
 16. Telemetry is archived — do not load [`archive/2026-10-14-telemetry/`](archive/2026-10-14-telemetry/) unless asked. Durable notes: [`implementation-memory/telemetry.md`](implementation-memory/telemetry.md). Plans remain in [`docs/telemetry/`](../docs/telemetry/).
 17. Data pipeline is archived — do not load [`archive/2026-10-21-data-pipeline/`](archive/2026-10-21-data-pipeline/) unless asked. Durable notes: [`implementation-memory/clinic-supply-pipeline.md`](implementation-memory/clinic-supply-pipeline.md). Design remains in [`data/pipelines/PIPELINE_DESIGN.md`](../data/pipelines/PIPELINE_DESIGN.md).
+18. **DEV-53 nightly export (planned):** independent OS process backs up previous-UTC-day `telemetry_events` to CSV, subprocess-invokes the existing pipeline, records `reporting.job_runs`. Do not implement until [`docs/pipelines/nightly-export-implementation-plan.md`](../docs/pipelines/nightly-export-implementation-plan.md) is approved.
 
 ## Acceptance criteria
 
@@ -35,6 +36,7 @@
 - [x] Caching optimisation: staff lazy-loads + inventory TTL cache; phase guide in `archive/2026-09-30-caching-optimisation/`; trail in [`CACHING_REPORT.md`](../CACHING_REPORT.md).
 - [x] Telemetry sprint: capture, storage, report; phase guide in `archive/2026-10-14-telemetry/`; durable notes in [`implementation-memory/telemetry.md`](implementation-memory/telemetry.md).
 - [x] Data pipeline sprints 1–3: design, Prefect ETL + `/reporting`, subflows + dashboard; phase guide in `archive/2026-10-21-data-pipeline/`; durable notes in [`implementation-memory/clinic-supply-pipeline.md`](implementation-memory/clinic-supply-pipeline.md).
+- [ ] DEV-53 nightly export: execution plan written; implementation blocked on explicit approval.
 
 ## Interfaces / expected behavior (standing)
 
@@ -42,7 +44,7 @@
 |---------|-------------------|
 | `uis/website` | Public corporate site; EN/ES via `hc_lang` cookie; enquiry form; brand blues; no auth |
 | `uis/web` | Public `/login`, `/register`, `/forgot-password`, `/reset-password`; protected welcome, `/operations`, `/incidents`, `/suppliers`, `/backoffice/inventory/{products,orders,orders/inbound,orders/outbound}`, `/backoffice/reporting/monthly-clinic-supply-performance`, `/account/profile`, `/account/change-password` |
-| `scripts/` | Phase 1 `analyze.py` + `incidents-healthcore.csv` |
+| `scripts/` | Phase 1 `analyze.py` + `incidents-healthcore.csv`; planned `nightly_export.py` after DEV-53 approval |
 | `services/api` | Incidents + suppliers (TinyDB) + staff auth + inventory (SQLModel) + telemetry + reporting. Login is `POST /auth/login`. `GET /health` public. Sensitive routes require bearer JWT. CORS from `CORS_ORIGINS` (default `http://localhost:3001`, `http://127.0.0.1:3001`). Public `POST /users` does not return email. Inventory catalogue GETs may be served from in-process TTL cache. Public `POST /telemetry/events`; `GET /telemetry/report` (60s cache). JWT `GET/POST /reporting/...` for clinic-month KPIs and pipeline runs. |
 | Compose | `docker compose up` from repo root: website 3000, staff UI 3001, API 8000 on network `healthcore_dev` |
 | Future `services/healthcore-api` | FastAPI `/api/v1` domains; OpenAPI contract for frontends |

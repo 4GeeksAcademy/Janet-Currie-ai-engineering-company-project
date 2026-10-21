@@ -83,6 +83,11 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Isolated pipeline tests live at repo-root `tests/pipelines/` | Assignment path; no DB/API; run via `uv --directory services/api run pytest ../../tests/pipelines/test_pipeline.py` |
 | Clinic-supply dashboard is `uis/web` `/backoffice/reporting/...` | No `uis/backoffice` app; same pattern as inventory |
 | USD and GBP rendered in separate dashboard sections | Never show a cross-currency total |
+| DEV-53 `job_runs` lives in PostgREST `reporting`, not inventory SQLModel | Same host as `telemetry_events` / `pipeline_runs`; tests use injectable fakes |
+| DEV-53 trigger is a version-controlled host crontab example, not a Compose worker | infra-40 stays two services; do not install cron until authorized |
+| Nightly job invokes `data/pipelines/pipeline.py` with no date flag | Handoff forbids inventing CLI semantics; CSV day ≠ pipeline month window |
+| Nightly lock is a partial unique index on `status = 'processing'` | Assignment lock is the processing row; no advisory/Redis/in-process mutex |
+| Documented cron is `0 2 * * *` in UTC | Proposed low-traffic default; documentation only until install is authorized |
 
 ## Rejected (for now)
 
@@ -109,6 +114,9 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Separate `services/reporting` process | Would duplicate the FastAPI app; use `app/reporting` instead | If a second service is explicitly required |
 | Clinic slugs such as `austin-north` | Not in this repo; numeric clinic ids already exist | If clinics gain stable public slugs |
 | `total_cost` instead of `unit_cost` | Quantity would become unexplained; product is `unit_cost × quantity` | Never for v1 |
+| SQLModel/SQLite `job_runs` | Lock would not sit with telemetry or `pipeline_runs` | Never for DEV-53 |
+| Compose scheduler container for nightly export | infra-40 is two services; `data/raw` is not mounted | If a worker is explicitly required |
+| Daily `--target-date` on the clinic-supply CLI | Handoff forbids inventing pipeline CLI semantics | If a later ticket owns pipeline windows |
 
 ## Still provisional
 
