@@ -1,20 +1,22 @@
-"""Authenticated reporting API. ETL is invoked from data/pipelines only."""
+"""Authenticated reporting API. ETL is invoked from the Celery worker, not this process."""
 
 from __future__ import annotations
 
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 
 from app.auth.security import get_current_user
+from app.celery_app import BrokerUnavailableError
 from app.reporting.queries import clinic_month_report, latest_run
 from app.reporting.schemas import (
     ClinicSupplyKpi,
     MonthlyClinicSupplyPerformanceResponse,
     PipelineRunRequest,
     PipelineRunResponse,
+    TaskAcceptedResponse,
 )
-from pipelines.pipeline import PipelineBusyError, execute_monthly_clinic_supply_performance
+from app.tasks.pipeline_run import enqueue_pipeline_run
 
 router = APIRouter(
     prefix="/reporting",
@@ -77,19 +79,28 @@ def pipeline_runs_latest() -> PipelineRunResponse:
     return _run_response(row)
 
 
-@router.post("/pipeline-runs", response_model=PipelineRunResponse)
-def trigger_pipeline_run(body: PipelineRunRequest = PipelineRunRequest()) -> PipelineRunResponse:
+@router.post(
+    "/pipeline-runs",
+    response_model=TaskAcceptedResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def trigger_pipeline_run(
+    response: Response,
+    body: PipelineRunRequest = PipelineRunRequest(),
+) -> TaskAcceptedResponse:
     requested = body.month_start
     if requested is not None and requested.day != 1:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="month_start must be the first day of a month",
         )
+    month_text = requested.isoformat() if requested is not None else None
     try:
-        record = execute_monthly_clinic_supply_performance(requested)
-    except PipelineBusyError:
+        task_id = enqueue_pipeline_run(month_text)
+    except BrokerUnavailableError:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="A pipeline run is already in progress",
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Task queue is unavailable. Please try again.",
         ) from None
-    return _run_response(record)
+    response.headers["Location"] = f"/tasks/{task_id}"
+    return TaskAcceptedResponse(task_id=task_id)

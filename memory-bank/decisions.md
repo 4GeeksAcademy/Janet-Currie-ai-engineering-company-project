@@ -1,13 +1,13 @@
 # Decisions — Active iteration
 
-Standing decisions that still constrain work. Completed-iteration snapshots: [`archive/2026-07-29-monorepo-ai-frontend/`](archive/2026-07-29-monorepo-ai-frontend/), [`archive/2026-08-28-supplier-directory/`](archive/2026-08-28-supplier-directory/), [`archive/2026-08-28-staff-auth/`](archive/2026-08-28-staff-auth/), [`archive/2026-08-31-error-handling/`](archive/2026-08-31-error-handling/), [`archive/2026-09-04-bullet-proof/`](archive/2026-09-04-bullet-proof/), [`archive/2026-09-18-inventory-api/`](archive/2026-09-18-inventory-api/), [`archive/2026-09-18-inventory-backoffice-ui/`](archive/2026-09-18-inventory-backoffice-ui/), [`archive/2026-09-23-docker-compose/`](archive/2026-09-23-docker-compose/), [`archive/2026-09-23-web-vitals/`](archive/2026-09-23-web-vitals/), [`archive/2026-09-24-serialization/`](archive/2026-09-24-serialization/), [`archive/2026-09-30-caching-optimisation/`](archive/2026-09-30-caching-optimisation/), [`archive/2026-10-14-telemetry/`](archive/2026-10-14-telemetry/), [`archive/2026-10-21-data-pipeline/`](archive/2026-10-21-data-pipeline/). Architecture rationale: [`docs/architecture_proposal.md`](../docs/architecture_proposal.md). Course/phase guides live in their archives (do not load unless asked).
+Standing decisions that still constrain work. Completed-iteration snapshots: [`archive/2026-07-29-monorepo-ai-frontend/`](archive/2026-07-29-monorepo-ai-frontend/), [`archive/2026-08-28-supplier-directory/`](archive/2026-08-28-supplier-directory/), [`archive/2026-08-28-staff-auth/`](archive/2026-08-28-staff-auth/), [`archive/2026-08-31-error-handling/`](archive/2026-08-31-error-handling/), [`archive/2026-09-04-bullet-proof/`](archive/2026-09-04-bullet-proof/), [`archive/2026-09-18-inventory-api/`](archive/2026-09-18-inventory-api/), [`archive/2026-09-18-inventory-backoffice-ui/`](archive/2026-09-18-inventory-backoffice-ui/), [`archive/2026-09-23-docker-compose/`](archive/2026-09-23-docker-compose/), [`archive/2026-09-23-web-vitals/`](archive/2026-09-23-web-vitals/), [`archive/2026-09-24-serialization/`](archive/2026-09-24-serialization/), [`archive/2026-09-30-caching-optimisation/`](archive/2026-09-30-caching-optimisation/), [`archive/2026-10-14-telemetry/`](archive/2026-10-14-telemetry/), [`archive/2026-10-21-data-pipeline/`](archive/2026-10-21-data-pipeline/), [`archive/2026-11-04-background-processes/`](archive/2026-11-04-background-processes/). Architecture rationale: [`docs/architecture_proposal.md`](../docs/architecture_proposal.md). Course/phase guides live in their archives (do not load unless asked).
 
 ## Adopted
 
 | Decision | Rationale |
 |----------|-----------|
 | Project memory bank uses global layout (`context`, `spec`, `progress`, `decisions`, `archive/YYYY-MM-DD-name/` with plan + tech-updates) | Aligns with global working rules; keeps active files concise |
-| Finished course contracts and phase guides live in `archive/`, not repo root or the four active files | AUTH, error-handling, bullet-proof, inventory API, inventory UI, Docker Compose, Web Vitals, serialization, caching, telemetry, and data-pipeline guides moved there after completion |
+| Finished course contracts and phase guides live in `archive/`, not repo root or the four active files | AUTH, error-handling, bullet-proof, inventory API, inventory UI, Docker Compose, Web Vitals, serialization, caching, telemetry, data-pipeline, and background-processes guides moved there after completion |
 | AUTH-088 uses pytest + pytest-cov via `uv` in `services/api`; coverage is measured on `app.auth` | Course requires `uv run pytest --cov`; existing unittest files still run under pytest |
 | AUTH-088 skips Jest for auth crypto; FE-019 adds Jest in `uis/web` for `apiClient` helpers | `authApi.ts` is fetch-only; token storage, `messageForStatus`, `toUserMessage`, and `parseError` are the testable utilities |
 | API-042 extends existing incident/supplier unittest files rather than rewriting them as pytest functions | Smallest change; pytest already collects unittest.TestCase |
@@ -39,7 +39,7 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | `apiFetch` rethrows caller-aborted signals and maps timeout abort to `ApiTimeoutError` | Consumption form must ignore stale `getSupply` without treating it as a timeout |
 | Stock bands 0 / 1–24 / 25+ are presentation-only | Official stock is API `current_stock`; seed gloves (105) stay healthy |
 | Inventory UI lives in `uis/web`, not `uis/backoffice` | Internal app is already the Next.js backoffice |
-| Compose services are `ui` + `backend` on named network `healthcore_dev` | infra-40 contract; `backend` is the DNS name other containers use |
+| Compose application DNS names stay `ui` and `backend` | infra-40; DEV-55 extra services do not rename them |
 | Compose `build.context` is repo root even though Dockerfiles live under `uis/` and `services/` | Root npm lockfile and `scripts/` (`parents[3]` from `app/main.py`) are outside those folders |
 | Browser `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000` | All `uis/web` API calls are client-side `fetch`; Docker DNS `http://backend:8000` would break the host browser |
 | CORS origins from `CORS_ORIGINS` (comma-separated), defaulting to the two localhost:3001 values | Brief requires config; no wildcard-with-credentials |
@@ -59,7 +59,8 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Public register returns `UserRegisteredResponse` (`id`, `role`, `is_active`) | Drop email on unauthenticated `POST /users`; `registerRequest` ignores the body |
 | Incident analyze uses `IncidentAnalysisResponse`; export is documented `text/csv` | Untyped `dict` leaked in OpenAPI as `object` / fake JSON |
 | FastAPI 0.141 route audit walks `_IncludedRouter.original_router` | `app.routes` no longer flattens included `APIRoute`s |
-| Caching uses in-process TTL, not Redis | Compose has no Redis; brief forbids adding infrastructure without measured need |
+| Caching uses in-process TTL, not Redis | Cache decision stands; DEV-55 Redis is broker/result only (`db 0`), never the inventory cache |
+| Compose services are `ui` + `backend` on named network `healthcore_dev` | infra-40 contract; `backend` is the DNS name other containers use. DEV-55 **adds** `redis`, `worker`, `flower` without replacing these |
 | Do not cache `/health`, writes, auth/me, profiles, or incident CSV | Personalized, mutating, or upload/export payloads are unsafe or not reusable |
 | Do not recount website `AppointmentModal` as a new lazy-load | Already `next/dynamic`; homepage below-fold dynamic imports delayed LCP |
 | Cache `GET /inventory/products` and `GET /inventory/orders` (plus product-by-id) | Profiled: products miss ~106 ms from 1+2N stock queries; orders join/serialize |
@@ -74,7 +75,11 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Inbound `unit_cost` (`> 0`); `event_cost = unit_cost × quantity` | Capture had no cost; inventory has no price; do not add a new event type |
 | Reporting `clinic_id` is `"1"`…`"12"` | Existing inventory clinics; do not invent `austin-north` slugs |
 | Reporting HTTP lives in `services/api` (`app/reporting` + `/reporting`) | One FastAPI app; ETL stays in `data/pipelines/` |
-| Manual pipeline POST is synchronous; 409 if a run is `running` | Matches existing request/response style; no worker in v1 |
+| Manual pipeline POST is a Celery producer (`202` + `task_id`) | DEV-55; ETL runs in the worker via `execute_monthly_clinic_supply_performance`; HTTP 409 from in-process lock dropped |
+| Celery app is `app.celery_app` under `services/api` | Image WORKDIR and mounts do not include a top-level `services.celery_app` |
+| DEV-55 DLQ is SQLModel `dead_letter_tasks` on `DATABASE_URL` | No Alembic; same engine as inventory; tests use temp SQLite |
+| Celery `max_retries=3` means four executions | Assignment wording vs Celery retries; attempt_number = retries + 1 |
+| `GET /tasks/{task_id}` is JWT like reporting; unknown IDs are `pending` | No per-user task registry; reporting is already any-staff |
 | Currency from `country` only; never convert USD/GBP | HealthCore v1; FX is v2 |
 | Prefect `>=3` via `uv` in `services/api` | Existing backend toolchain; Docker uses `requirements.txt` |
 | API/CLI run ETL through `execute_monthly_clinic_supply_performance` (task `.fn()`) | Avoids starting an ephemeral Prefect server on each HTTP POST or pytest |
@@ -109,13 +114,14 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Dockerfiles under `infra/` | Placeholder only; brief pins `uis/Dockerfile` and `services/Dockerfile` | Never for infra-40 |
 | `next/dynamic` for website below-fold sections | Delayed LCP; mobile Performance did not rise | Keep Header/Hero eager; ship sections as server children |
 | Dual EN/ES markup hidden with CSS | Doubled HTML and delayed LCP | Cookie-selected single language |
-| Redis / HTTP cache headers / service workers | No multi-process proof locally; Compose has no Redis | Measured multi-worker stale reads |
+| Redis as inventory/HTTP cache | Cache stays in-process TTL; DEV-55 Redis is broker-only | Measured multi-worker stale catalogue reads |
+| `services/celery_app.py` as suggested by the assignment sample | Package and Docker WORKDIR are `app` under `services/api` | Never unless the image layout changes |
 | Cache `GET /health` or `GET /auth/me` | Health is cheap; me is personalized | Never for `/auth/me` |
 | Separate `services/reporting` process | Would duplicate the FastAPI app; use `app/reporting` instead | If a second service is explicitly required |
 | Clinic slugs such as `austin-north` | Not in this repo; numeric clinic ids already exist | If clinics gain stable public slugs |
 | `total_cost` instead of `unit_cost` | Quantity would become unexplained; product is `unit_cost × quantity` | Never for v1 |
 | SQLModel/SQLite `job_runs` | Lock would not sit with telemetry or `pipeline_runs` | Never for DEV-53 |
-| Compose scheduler container for nightly export | infra-40 is two services; `data/raw` is not mounted | If a worker is explicitly required |
+| Compose scheduler / Celery Beat for nightly export | Nightly stays a host crontab example; DEV-55 worker is for the API producer only | If a later ticket owns scheduling |
 | Daily `--target-date` on the clinic-supply CLI | Handoff forbids inventing pipeline CLI semantics | If a later ticket owns pipeline windows |
 
 ## Still provisional

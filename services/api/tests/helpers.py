@@ -20,6 +20,7 @@ os.environ["AUTH_DB_PATH"] = AUTH_DB
 os.environ["DATABASE_URL"] = f"sqlite:///{INV_DB}"
 os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
 os.environ["REQUEST_TIMING"] = "0"
+os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 
 for path in (str(API_ROOT), str(SCRIPTS), str(REPO_ROOT / "data")):
     if path not in sys.path:

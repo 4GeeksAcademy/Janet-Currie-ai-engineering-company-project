@@ -39,11 +39,84 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS}
       TELEMETRY_ENDPOINT: ${TELEMETRY_ENDPOINT:-http://localhost:8000/telemetry/events}
       WATCHFILES_FORCE_POLLING: "true"
+      REDIS_URL: redis://redis:6379/0
     volumes:
       - ./services/api:/app/services/api
       - ./scripts:/app/scripts
       - ./data/pipelines:/app/data/pipelines
       - backend_venv:/app/services/api/.venv
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - healthcore_dev
+
+  redis:
+    image: redis:7.4.2-alpine
+    command: redis-server --maxmemory 256mb --maxmemory-policy noeviction --appendonly yes --appendfsync everysec
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - healthcore_dev
+
+  worker:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+    env_file:
+      - .env
+    environment:
+      SECRET_KEY: ${SECRET_KEY}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES}
+      RESET_TOKEN_EXPIRE_MINUTES: ${RESET_TOKEN_EXPIRE_MINUTES}
+      FRONTEND_BASE_URL: ${FRONTEND_BASE_URL}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL}
+      DATABASE_URL: ${DATABASE_URL}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      TELEMETRY_ENDPOINT: ${TELEMETRY_ENDPOINT:-http://localhost:8000/telemetry/events}
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./services/api:/app/services/api
+      - ./scripts:/app/scripts
+      - ./data/pipelines:/app/data/pipelines
+      - backend_venv:/app/services/api/.venv
+    command: celery -A app.celery_app worker --loglevel=info --concurrency=1
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - healthcore_dev
+
+  flower:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env
+    environment:
+      SECRET_KEY: ${SECRET_KEY}
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: redis://redis:6379/0
+      FLOWER_UNAUTHENTICATED_API: "true"
+    volumes:
+      - ./services/api:/app/services/api
+      - ./scripts:/app/scripts
+      - ./data/pipelines:/app/data/pipelines
+      - backend_venv:/app/services/api/.venv
+    command: celery -A app.celery_app flower --port=5555
+    depends_on:
+      redis:
+        condition: service_healthy
     networks:
       - healthcore_dev
 
@@ -52,6 +125,7 @@ volumes:
   ui_website_node_modules:
   ui_web_node_modules:
   backend_venv:
+  redis_data:
 
 networks:
   healthcore_dev:
