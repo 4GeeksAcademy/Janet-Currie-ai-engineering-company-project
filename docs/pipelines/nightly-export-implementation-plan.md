@@ -1,6 +1,6 @@
 # DEV-53 implementation plan — nightly telemetry export
 
-Ticket **#DEV-53**. Branch: `background-processes`. Contract: [`background-processes-context.md`](../../background-processes-context.md). Approved design choices (2026-10-21): `job_runs` in Supabase `reporting`; host crontab example; pipeline CLI unchanged.
+Ticket **#DEV-53**. Branch: `background-processes`. Contract: [`background-processes-context.md`](../../memory-bank/archive/2026-11-04-background-processes/background-processes-context.md). Approved design choices (2026-10-21): `job_runs` in Supabase `reporting`; host crontab example; pipeline CLI unchanged.
 
 **This file is the execution plan. Implementation starts only after explicit approval.** Approval of the design-choice plan is not approval to write code.
 

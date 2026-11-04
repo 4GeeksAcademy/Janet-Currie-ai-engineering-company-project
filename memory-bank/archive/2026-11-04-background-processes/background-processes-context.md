@@ -1,10 +1,5 @@
 # HealthCore Background Processes Branch — Implementation Handoff
 
-## Purpose
-
-This document is the execution context for the **background-processes branch** of the existing HealthCore company-project monorepo. The implementation agent must add one independently scheduled nightly process that backs up the previous UTC day's telemetry to CSV, triggers the already-built data pipeline, and records the orchestration outcome in the database.
-
-This handoff is documentation only. No branch, migration, script, service, cron entry, scheduler container, dependency, test, commit, push, pull request, or deployment was created while preparing it.
 
 ## Authoritative source
 
