@@ -1,6 +1,6 @@
 # DEV-55 — Redis / Celery operator notes
 
-Contract: [`../../message-queue-context.md`](../../message-queue-context.md). Plan: [`message-queue-implementation-plan.md`](message-queue-implementation-plan.md).
+Contract: [`../../memory-bank/archive/2026-11-04-message-queue/message-queue-context.md`](../../memory-bank/archive/2026-11-04-message-queue/message-queue-context.md). Plan: [`message-queue-implementation-plan.md`](message-queue-implementation-plan.md).
 
 ## Topology
 

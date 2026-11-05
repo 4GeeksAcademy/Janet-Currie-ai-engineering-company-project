@@ -1,0 +1,119 @@
+{
+  "business_question": "Can HealthCore's historical monthly revenue predict next month well enough to support investing in an executive dashboard?",
+  "horizon": "rolling_one_month_ahead",
+  "target": "revenue_usd",
+  "source": "data/raw/healthcore_sales.csv",
+  "n_source_rows": 120,
+  "n_feature_rows": 108,
+  "rows_dropped_for_lag12": 12,
+  "train_years": [
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023
+  ],
+  "test_years": [
+    2024,
+    2025
+  ],
+  "n_train_feature_rows": 84,
+  "n_selection_rows": 60,
+  "n_calibration_rows": 24,
+  "n_test_rows": 24,
+  "model_class": "RandomForestRegressor",
+  "random_state": 42,
+  "hyperparameters": {
+    "n_estimators": 100,
+    "max_depth": 5,
+    "min_samples_leaf": 2
+  },
+  "selection_mae": 142903.66556901298,
+  "feature_columns": [
+    "month_num",
+    "month_sin",
+    "month_cos",
+    "time_index",
+    "revenue_lag_1",
+    "revenue_lag_12",
+    "revenue_roll_mean_3",
+    "revenue_roll_mean_12",
+    "visits_lag_1"
+  ],
+  "excluded_same_month_columns": [
+    "visits_count",
+    "avg_revenue_per_visit_usd",
+    "region"
+  ],
+  "scaling": "not_applied_tree_splits_do_not_need_scaling",
+  "interval": {
+    "method": "split_conformal_absolute_residual_quantile",
+    "nominal_coverage": 0.8,
+    "quantile_usd": 305027.8666823809,
+    "coverage": 0.7916666666666666,
+    "mean_width": 610055.7333647618,
+    "point_model": "refit_on_all_training_feature_rows",
+    "calibration": "last_24_training_months_after_hyperparameter_lock"
+  },
+  "metrics": {
+    "model_mse": 41466655005.23974,
+    "model_mae": 163235.3579544518,
+    "model_rmse": 203633.62935733315,
+    "model_rmse_pct_of_mean": 6.048538494636957,
+    "model_r2": 0.6723228785555225,
+    "model_mean_actual": 3366658.4008333334,
+    "model_gini": 0.9176348305379671,
+    "model_k2": 0.0443214527557558,
+    "model_k2_pvalue": 0.9780830186762836,
+    "baseline_mse": 34606414260.68214,
+    "baseline_mae": 161557.5045833333,
+    "baseline_rmse": 186027.9932179083,
+    "baseline_rmse_pct_of_mean": 5.525597523403671,
+    "baseline_r2": 0.7265337605113664,
+    "baseline_mean_actual": 3366658.4008333334,
+    "baseline_gini": 0.9138171296845181,
+    "baseline_k2": 0.44997686233284406,
+    "baseline_k2_pvalue": 0.7985254567140574,
+    "psi_visits_count": 3.3897190169623412,
+    "psi_note": "PSI compares train vs test visits_count. US/UK mix PSI is not computable because the source file has only consolidated rows."
+  },
+  "diagnostics": {
+    "mean_signed_error_usd": 13655.957314783125,
+    "jul_aug_mae_usd": 70494.68028968829,
+    "oct_dec_mae_usd": 247392.52969198386,
+    "year_2024_mae_usd": 135945.7745436376,
+    "year_2025_mae_usd": 190524.94136526602
+  },
+  "metric_definitions": {
+    "mse": "sklearn.metrics.mean_squared_error, USD^2",
+    "mae": "sklearn.metrics.mean_absolute_error, USD",
+    "rmse": "sqrt(MSE), USD",
+    "rmse_pct_of_mean": "RMSE / mean(test revenue) * 100",
+    "r2": "sklearn.metrics.r2_score (supporting; not K2)",
+    "gini": "normalized ranking Gini of predicted vs actual revenue",
+    "k2": "scipy.stats.normaltest D'Agostino-Pearson K2 on residuals; closer to 0 is better",
+    "psi": "population stability index of visits_count, bins from train only, empty bins clipped to 1e-4"
+  },
+  "report_card": {
+    "decision": "unsupported",
+    "reason": "Random Forest MAE does not beat the seasonal-naive baseline (same month last year), so the holdout does not support a dashboard.",
+    "beat_seasonal_naive_mae": false,
+    "gini_better_than_random": true,
+    "interval_usually_covers": true,
+    "rules": {
+      "unsupported_if": "model MAE >= seasonal-naive MAE",
+      "supported_if": "model MAE < baseline MAE AND Gini > 0 AND coverage >= 60%",
+      "otherwise": "uncertain"
+    }
+  },
+  "artifacts": {
+    "features": "data/process/sales_forecast/features.csv",
+    "predictions": "data/eval/sales_forecast/test_predictions.csv",
+    "plot": "data/eval/sales_forecast/forecast_2024_2025.png",
+    "metrics": "data/eval/sales_forecast/metrics.json"
+  },
+  "caveat": "Performance on one two-year historical holdout is retrospective next-month skill under these conditions; it does not guarantee future performance under drift, policy changes, or shocks."
+}
