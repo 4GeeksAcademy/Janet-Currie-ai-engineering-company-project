@@ -1,13 +1,16 @@
-"""Reporting HTTP contract: auth, empty, 400, 404, 409, populated."""
+"""Reporting HTTP contract: auth, empty, 400, 404, 202 enqueue."""
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 
 import pytest
 
+from app.celery_app import BrokerUnavailableError
 from pipelines import pipeline as clinic_pipeline
 from tests.helpers import auth_header, client
+
+QUEUED_ID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
 
 
 class _Store:
@@ -61,6 +64,19 @@ def reporting_store() -> _Store:
     clinic_pipeline.reset_pipeline_hooks()
 
 
+@pytest.fixture
+def queued(monkeypatch: pytest.MonkeyPatch) -> dict:
+    captured: dict = {"calls": 0, "month_start": "unset"}
+
+    def fake_enqueue(month_start: str | None) -> str:
+        captured["calls"] += 1
+        captured["month_start"] = month_start
+        return QUEUED_ID
+
+    monkeypatch.setattr("app.routers.reporting.enqueue_pipeline_run", fake_enqueue)
+    return captured
+
+
 def test_reporting_requires_auth() -> None:
     assert client.get("/reporting/monthly-clinic-supply-performance").status_code == 401
     assert client.get("/reporting/pipeline-runs/latest").status_code == 401
@@ -74,7 +90,7 @@ def test_empty_kpi_get_is_200(reporting_store: _Store) -> None:
     assert response.json() == {"month_start": None, "clinics": []}
 
 
-def test_bad_month_start_is_400(reporting_store: _Store) -> None:
+def test_bad_month_start_is_400(reporting_store: _Store, queued: dict) -> None:
     headers = auth_header(email="rep-bad@healthcore.example")
     response = client.get(
         "/reporting/monthly-clinic-supply-performance",
@@ -82,9 +98,18 @@ def test_bad_month_start_is_400(reporting_store: _Store) -> None:
         params={"month_start": "2026-07-15"},
     )
     assert response.status_code == 400
+    posted = client.post(
+        "/reporting/pipeline-runs",
+        headers=headers,
+        json={"month_start": "2026-07-15"},
+    )
+    assert posted.status_code == 400
+    assert queued["calls"] == 0
 
 
-def test_latest_run_404_then_post_and_get(reporting_store: _Store) -> None:
+def test_post_enqueues_202_without_running_etl(
+    reporting_store: _Store, queued: dict
+) -> None:
     headers = auth_header(email="rep-run@healthcore.example")
     missing = client.get("/reporting/pipeline-runs/latest", headers=headers)
     assert missing.status_code == 404
@@ -93,13 +118,19 @@ def test_latest_run_404_then_post_and_get(reporting_store: _Store) -> None:
         headers=headers,
         json={"month_start": "2026-07-01"},
     )
-    assert created.status_code == 200
-    body = created.json()
-    assert body["status"] == "completed"
-    assert body["records_processed"] == 1
+    assert created.status_code == 202
+    assert created.json() == {"task_id": QUEUED_ID}
+    assert created.headers.get("location") == f"/tasks/{QUEUED_ID}"
+    assert queued["calls"] == 1
+    assert queued["month_start"] == "2026-07-01"
+    assert reporting_store.runs == []
+    still_missing = client.get("/reporting/pipeline-runs/latest", headers=headers)
+    assert still_missing.status_code == 404
+
+    record = clinic_pipeline.execute_monthly_clinic_supply_performance(date(2026, 7, 1))
     latest = client.get("/reporting/pipeline-runs/latest", headers=headers)
     assert latest.status_code == 200
-    assert latest.json()["run_id"] == body["run_id"]
+    assert latest.json()["run_id"] == record["run_id"]
     kpis = client.get(
         "/reporting/monthly-clinic-supply-performance",
         headers=headers,
@@ -113,7 +144,7 @@ def test_latest_run_404_then_post_and_get(reporting_store: _Store) -> None:
     assert payload["clinics"][0]["currency"] == "USD"
 
 
-def test_overlapping_post_is_409(reporting_store: _Store) -> None:
+def test_lock_held_still_enqueues_202(reporting_store: _Store, queued: dict) -> None:
     headers = auth_header(email="rep-lock@healthcore.example")
     assert clinic_pipeline.pipeline_lock.acquire(blocking=False)
     try:
@@ -122,6 +153,25 @@ def test_overlapping_post_is_409(reporting_store: _Store) -> None:
             headers=headers,
             json={"month_start": "2026-07-01"},
         )
-        assert response.status_code == 409
+        assert response.status_code == 202
+        assert queued["calls"] == 1
     finally:
         clinic_pipeline.pipeline_lock.release()
+
+
+def test_broker_failure_is_503_not_202(
+    reporting_store: _Store, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        "app.routers.reporting.enqueue_pipeline_run",
+        lambda _month: (_ for _ in ()).throw(BrokerUnavailableError("down")),
+    )
+    headers = auth_header(email="rep-503@healthcore.example")
+    response = client.post(
+        "/reporting/pipeline-runs",
+        headers=headers,
+        json={"month_start": "2026-07-01"},
+    )
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Task queue is unavailable. Please try again."
+    assert reporting_store.runs == []

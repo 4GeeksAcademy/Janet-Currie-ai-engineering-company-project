@@ -118,7 +118,33 @@ uvicorn app.main:app --reload --port 8000
 
 Optional: copy [`uis/web/.env.example`](./uis/web/.env.example) to `.env.local` if you need a non-default API URL. See [`services/api/README.md`](./services/api/README.md) for auth routes and env vars.
 
-7. **Continue milestones** in `uis/` and `services/`, reusing `packages/shared/` and `data/` as needed. Broader backend work should follow [`docs/architecture_proposal.md`](./docs/architecture_proposal.md).
+7. **Async pipeline queue (DEV-55):** Redis, a Celery worker, and Flower are separate Compose processes. The API only publishes identifiers; the worker runs `execute_monthly_clinic_supply_performance`. Host `REDIS_URL` is `redis://localhost:6379/0`; containers use `redis://redis:6379/0`. Operator notes: [`docs/queues/message-queue.md`](./docs/queues/message-queue.md).
+
+```bash
+cp .env.example .env    # then set SECRET_KEY; REDIS_URL for host processes
+docker compose up --build
+# Redis :6379  API :8000  Flower :5555  worker has no published port
+
+docker compose up redis backend worker flower
+
+docker compose up -d redis
+docker compose up -d backend
+docker compose up -d worker
+docker compose up -d flower
+
+docker compose exec worker celery -A app.celery_app inspect ping
+# Host: cd services/api && REDIS_URL=redis://localhost:6379/0 celery -A app.celery_app worker --loglevel=info --concurrency=1
+
+# Flower: http://localhost:5555  (local demo only; unauthenticated)
+
+# Graceful stop — do not kill -9
+docker compose stop worker
+docker compose down
+```
+
+JWT `POST /reporting/pipeline-runs` returns `202 {"task_id"}` and `Location: /tasks/{task_id}`. Poll `GET /tasks/{task_id}` for `pending | started | success | failure`. `max_retries=3` means **four executions** (attempt 1 plus retries at 5s, 10s, 20s). Exhausted failures are in `dead_letter_tasks` on `DATABASE_URL` (local sqlite `services/api/data/inventory.sqlite` when unset). Results expire after 24 hours (IDs then look `pending`). Redis AOF is `everysec` plus volume `redis_data`. Troubleshoot: `-A app.celery_app` not `services.celery_app`; never use container `localhost` for Redis.
+
+8. **Continue milestones** in `uis/` and `services/`, reusing `packages/shared/` and `data/` as needed. Broader backend work should follow [`docs/architecture_proposal.md`](./docs/architecture_proposal.md).
 
 ---
 

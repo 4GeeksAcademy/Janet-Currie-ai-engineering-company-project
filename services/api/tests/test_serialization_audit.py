@@ -51,7 +51,8 @@ JSON_ROUTES: dict[tuple[str, str], str] = {
     ("GET", "/telemetry/report"): "TelemetryReportResponse",
     ("GET", "/reporting/monthly-clinic-supply-performance"): "MonthlyClinicSupplyPerformanceResponse",
     ("GET", "/reporting/pipeline-runs/latest"): "PipelineRunResponse",
-    ("POST", "/reporting/pipeline-runs"): "PipelineRunResponse",
+    ("POST", "/reporting/pipeline-runs"): "TaskAcceptedResponse",
+    ("GET", "/tasks/{task_id}"): "TaskStatusResponse",
 }
 
 SPECIAL_ROUTES: dict[tuple[str, str], str] = {
@@ -150,6 +151,15 @@ def test_openapi_documents_special_and_json_contracts() -> None:
         "content"
     ]
     assert "text/csv" in export_content
+    accepted = paths["/reporting/pipeline-runs"]["post"]["responses"]
+    assert "202" in accepted
+    assert accepted["202"]["content"]["application/json"]["schema"]["$ref"].endswith(
+        "TaskAcceptedResponse"
+    )
+    task_ref = paths["/tasks/{task_id}"]["get"]["responses"]["200"]["content"][
+        "application/json"
+    ]["schema"]["$ref"]
+    assert task_ref.endswith("TaskStatusResponse")
     assert client.get("/docs").status_code == 200
 
 

@@ -256,4 +256,14 @@ uv run pytest
 
 Evaluator-critical cases covered: over-consumption 400 with no write; invalid `consumption_type` 422; computed stock including seed (`HCR-PPE-001` = 105); `country` on model and response; `clinic_id` on both movement types. Live Supabase seed ran 2026-09-18 (`uv run seed-inventory`: 6/4/3 rows, gloves stock 105).
 
+## DEV-55 — message queue
+
+```bash
+cd services/api
+uv run pytest tests/test_celery_app.py tests/test_dead_letter.py tests/test_pipeline_task.py tests/test_tasks_status.py tests/test_reporting.py
+uv run pytest
+```
+
+Observed 2026-11-04: focused modules **40 passed, 1 skipped** (Redis ping skip when no broker); full `uv run pytest` **195 passed, 1 skipped**. After Compose Redis was up, `tests/test_celery_app.py::test_real_redis_accepts_apply_async` **passed**. `docker compose config` resolves `redis`, `worker`, and `flower`. Live Compose evidence is in [`docs/queues/message-queue.md`](docs/queues/message-queue.md).
+
 Live `/docs` + HTTP smoke (2026-09-18, `uvicorn` on port 8000): OpenAPI lists the six inventory routes; `GET /docs` 200; unauthenticated products `401`; login then `GET /inventory/products` returns 6 rows with `HCR-PPE-001` stock 105 and `country=US`; outbound quantity 9999 returns `400` with the exact insufficient-stock message and stock stays 105; `consumption_type=theft` returns `422`; `GET /inventory/orders` includes inbound and outbound with `clinic_id`. `python -m compileall -q app` succeeded (no ruff/mypy configured).

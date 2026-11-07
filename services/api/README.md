@@ -30,6 +30,7 @@ Set a real `SECRET_KEY` in `.env`. Never commit `.env` or API keys.
 | `AUTH_SEED_ADMIN_PASSWORD` | Local admin password for `seed-auth` |
 | `DATABASE_URL` | Inventory SQLModel engine. Use `postgresql+psycopg://...` for Supabase. If unset, local SQLite at `data/inventory.sqlite`. Tests force a temp SQLite file. |
 | `CORS_ORIGINS` | Comma-separated browser origins (default `http://localhost:3001,http://127.0.0.1:3001`) |
+| `REDIS_URL` | Celery broker and result backend. Host: `redis://localhost:6379/0`. Compose: `redis://redis:6379/0`. Not used as an application cache. |
 
 `cryptography` is pinned to `>=42,<45` so `pip`/`uv` can use a prebuilt wheel. `cryptography` 45+ may try to compile from source and fail without OpenSSL/pkg-config.
 
@@ -132,6 +133,19 @@ Incident analyze/export require a bearer token. `GET /health` stays public.
 | `GET` | `/api/incidents/results/export` | Download last analysis as metrics CSV |
 | `GET` | `/health` | Liveness check |
 
+## Reporting and tasks (DEV-55)
+
+JWT required. The staff dashboard GETs KPIs and latest `pipeline_runs`; it does not POST the pipeline.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/reporting/monthly-clinic-supply-performance` | Clinic-month KPIs |
+| `GET` | `/reporting/pipeline-runs/latest` | Latest domain `pipeline_runs` row |
+| `POST` | `/reporting/pipeline-runs` | Enqueue Celery task; `202 {"task_id"}` |
+| `GET` | `/tasks/{task_id}` | Normalized Celery state (`pending`, `started`, `success`, `failure`) |
+
+Worker command (Compose): `celery -A app.celery_app worker --loglevel=info --concurrency=1`. DLQ table: [`app/tasks/schema.sql`](app/tasks/schema.sql).
+
 ## Run API
 
 ```bash
@@ -162,6 +176,7 @@ CORS allows the internal UI at http://localhost:3001.
 cd services/api
 uv run pytest
 uv run pytest tests/test_inventory_products.py tests/test_inventory_orders.py tests/test_inventory_seed.py
+uv run pytest tests/test_celery_app.py tests/test_dead_letter.py tests/test_pipeline_task.py tests/test_tasks_status.py tests/test_reporting.py
 ```
 
-Auth tests isolate TinyDB with a temp file and mock Resend. Inventory tests isolate SQLModel on a temp SQLite file. They do not send real email or touch Supabase.
+Auth tests isolate TinyDB with a temp file and mock Resend. Inventory tests isolate SQLModel on a temp SQLite file. They do not send real email or touch Supabase. Queue tests mock broker publish unless a real Redis answers `PING` (`test_real_redis_accepts_apply_async` skips otherwise).

@@ -33,3 +33,8 @@ venv/
 
 # Generated incident analysis exports (keep sample fixture)
 scripts/incident_metrics_export.csv
+
+# Nightly telemetry backups and cron log
+data/raw/telemetry_*.csv
+data/raw/nightly_export.log
+data/raw/*.tmp.*

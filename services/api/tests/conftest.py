@@ -8,6 +8,8 @@ import pytest
 
 from tests.helpers import reset_auth_db
 from app.cache import report_cache, response_cache
+from app.tasks.pipeline_run import reset_execute
+from app.tasks.store import reset_store
 
 
 @pytest.fixture(autouse=True)
@@ -15,6 +17,10 @@ def _isolated_auth_db() -> Iterator[None]:
     reset_auth_db()
     response_cache.clear()
     report_cache.clear()
+    reset_execute()
+    reset_store()
     yield
+    reset_execute()
+    reset_store()
     response_cache.clear()
     report_cache.clear()

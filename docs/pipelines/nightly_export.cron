@@ -1,0 +1,5 @@
+# Example host crontab for DEV-53. Do not install until authorized.
+# Times are UTC. Replace /ABS/REPO/ROOT with the real repository path.
+
+CRON_TZ=UTC
+0 2 * * * cd /ABS/REPO/ROOT && /ABS/REPO/ROOT/services/api/.venv/bin/python /ABS/REPO/ROOT/scripts/nightly_export.py >> /ABS/REPO/ROOT/data/raw/nightly_export.log 2>&1

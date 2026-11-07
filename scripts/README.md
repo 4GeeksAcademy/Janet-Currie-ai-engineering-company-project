@@ -28,6 +28,16 @@ More detail: [INCIDENT-ANALYZER.md](INCIDENT-ANALYZER.md).
 1. Terminal/console output of analyzing the 100-row CSV with `analyze.py`.
 2. Web UI (`uis/web` `/incidents`) with a loaded analysis visible (API must be running).
 
+## Nightly telemetry export (DEV-53)
+
+```bash
+# from repo root, API venv
+./services/api/.venv/bin/python scripts/nightly_export.py
+TARGET_DATE=2026-10-20 ./services/api/.venv/bin/python scripts/nightly_export.py
+```
+
+Operator notes: [`docs/pipelines/nightly-export.md`](../docs/pipelines/nightly-export.md).
+
 ## Other
 
 [`PlayGroundAPISchema.ts`](PlayGroundAPISchema.ts) — unrelated playground schema (pre-existing).

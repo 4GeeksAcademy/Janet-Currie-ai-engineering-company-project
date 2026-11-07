@@ -45,6 +45,7 @@ def reset_engine() -> None:
 
 def init_db() -> None:
     from app.inventory import models as _models  # noqa: F401
+    from app.tasks import models as _task_models  # noqa: F401
 
     SQLModel.metadata.create_all(get_engine())
 

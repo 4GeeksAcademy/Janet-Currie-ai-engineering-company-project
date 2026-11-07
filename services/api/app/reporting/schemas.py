@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -39,3 +40,22 @@ class PipelineRunRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     month_start: date | None = Field(default=None)
+
+
+class TaskAcceptedResponse(BaseModel):
+    task_id: str
+
+
+class PipelineTaskResult(BaseModel):
+    run_id: str
+    status: str
+    month_start: str | None
+    records_processed: int
+    events_extracted: int
+    events_quarantined: int
+
+
+class TaskStatusResponse(BaseModel):
+    task_id: str
+    status: Literal["pending", "started", "success", "failure"]
+    result: PipelineTaskResult | None = None
