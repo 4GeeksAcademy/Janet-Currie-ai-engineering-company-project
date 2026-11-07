@@ -2,7 +2,7 @@
 
 ## Goal
 
-No active implementation ticket. Last completed work: sales-forecast feasibility ([`archive/2026-11-05-sales-forecast-model/`](archive/2026-11-05-sales-forecast-model/)) and DEV-55 message queue ([`archive/2026-11-04-message-queue/`](archive/2026-11-04-message-queue/)). Wait for the next requested iteration.
+No active implementation ticket. Last completed work: regression-model evaluation ([`archive/2026-11-07-regression-model-eval/`](archive/2026-11-07-regression-model-eval/)). Wait for the next requested iteration.
 
 ## Scope (this iteration)
 
@@ -13,7 +13,7 @@ None. Do not start new work until asked.
 - Keep shipped UIs runnable: `uis/website` (public), `uis/web` (staff JWT, including inventory).
 - Phase 1 incident CLI: [`scripts/`](../scripts/).
 - Phase 2 API: incidents, suppliers, staff JWT auth, inventory, telemetry, reporting, Celery queue.
-- Sales forecast CLI: [`scripts/train_sales_forecast.py`](../scripts/train_sales_forecast.py) (isolated `scripts/sales_forecast` uv env).
+- Sales forecast CLI: [`scripts/train_sales_forecast.py`](../scripts/train_sales_forecast.py) and [`scripts/eval_sales_forecast.py`](../scripts/eval_sales_forecast.py) (isolated `scripts/sales_forecast` uv env).
 - Local stack: `docker compose up` starts website (3000), staff UI (3001), FastAPI (8000), Redis (6379), worker, Flower (5555).
 - Treat [`docs/architecture_proposal.md`](../docs/architecture_proposal.md) as the blueprint before expanding beyond Phase 2.
 - Do **not** invent production PHI flows or EHR integrations without explicit instruction.
@@ -37,7 +37,7 @@ HealthCore: 12 outpatient clinics (US + UK), ~200 staff, ~$28M revenue.
 
 Staff UI is `uis/web` (port 3001), not `uis/backoffice`. FastAPI lives at `services/api`. Browser API calls use `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`.
 
-Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai-frontend/` through `archive/2026-11-05-sales-forecast-model/`.
+Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai-frontend/` through `archive/2026-11-07-regression-model-eval/`.
 
 ## Relevant files
 

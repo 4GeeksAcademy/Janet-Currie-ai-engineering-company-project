@@ -27,6 +27,7 @@ testpaths = [
   "../../tests/pipelines/test_sales_forecast_split.py",
   "../../tests/pipelines/test_sales_forecast_features.py",
   "../../tests/pipelines/test_sales_forecast_metrics.py",
+  "../../tests/pipelines/test_sales_forecast_evaluation.py",
 ]
 python_files = ["test_sales_forecast_*.py"]
 pythonpath = ["."]

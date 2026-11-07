@@ -1,6 +1,6 @@
 # Decisions — Active iteration
 
-Standing decisions that still constrain work. Completed-iteration snapshots: [`archive/2026-07-29-monorepo-ai-frontend/`](archive/2026-07-29-monorepo-ai-frontend/), [`archive/2026-08-28-supplier-directory/`](archive/2026-08-28-supplier-directory/), [`archive/2026-08-28-staff-auth/`](archive/2026-08-28-staff-auth/), [`archive/2026-08-31-error-handling/`](archive/2026-08-31-error-handling/), [`archive/2026-09-04-bullet-proof/`](archive/2026-09-04-bullet-proof/), [`archive/2026-09-18-inventory-api/`](archive/2026-09-18-inventory-api/), [`archive/2026-09-18-inventory-backoffice-ui/`](archive/2026-09-18-inventory-backoffice-ui/), [`archive/2026-09-23-docker-compose/`](archive/2026-09-23-docker-compose/), [`archive/2026-09-23-web-vitals/`](archive/2026-09-23-web-vitals/), [`archive/2026-09-24-serialization/`](archive/2026-09-24-serialization/), [`archive/2026-09-30-caching-optimisation/`](archive/2026-09-30-caching-optimisation/), [`archive/2026-10-14-telemetry/`](archive/2026-10-14-telemetry/), [`archive/2026-10-21-data-pipeline/`](archive/2026-10-21-data-pipeline/), [`archive/2026-11-04-background-processes/`](archive/2026-11-04-background-processes/), [`archive/2026-11-04-message-queue/`](archive/2026-11-04-message-queue/), [`archive/2026-11-05-sales-forecast-model/`](archive/2026-11-05-sales-forecast-model/). Architecture rationale: [`docs/architecture_proposal.md`](../docs/architecture_proposal.md). Course/phase guides live in their archives (do not load unless asked).
+Standing decisions that still constrain work. Completed-iteration snapshots: [`archive/2026-07-29-monorepo-ai-frontend/`](archive/2026-07-29-monorepo-ai-frontend/), [`archive/2026-08-28-supplier-directory/`](archive/2026-08-28-supplier-directory/), [`archive/2026-08-28-staff-auth/`](archive/2026-08-28-staff-auth/), [`archive/2026-08-31-error-handling/`](archive/2026-08-31-error-handling/), [`archive/2026-09-04-bullet-proof/`](archive/2026-09-04-bullet-proof/), [`archive/2026-09-18-inventory-api/`](archive/2026-09-18-inventory-api/), [`archive/2026-09-18-inventory-backoffice-ui/`](archive/2026-09-18-inventory-backoffice-ui/), [`archive/2026-09-23-docker-compose/`](archive/2026-09-23-docker-compose/), [`archive/2026-09-23-web-vitals/`](archive/2026-09-23-web-vitals/), [`archive/2026-09-24-serialization/`](archive/2026-09-24-serialization/), [`archive/2026-09-30-caching-optimisation/`](archive/2026-09-30-caching-optimisation/), [`archive/2026-10-14-telemetry/`](archive/2026-10-14-telemetry/), [`archive/2026-10-21-data-pipeline/`](archive/2026-10-21-data-pipeline/), [`archive/2026-11-04-background-processes/`](archive/2026-11-04-background-processes/), [`archive/2026-11-04-message-queue/`](archive/2026-11-04-message-queue/), [`archive/2026-11-05-sales-forecast-model/`](archive/2026-11-05-sales-forecast-model/), [`archive/2026-11-07-regression-model-eval/`](archive/2026-11-07-regression-model-eval/). Architecture rationale: [`docs/architecture_proposal.md`](../docs/architecture_proposal.md). Course/phase guides live in their archives (do not load unless asked).
 
 ## Adopted
 
@@ -100,6 +100,13 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Final estimator is `RandomForestRegressor` with seed 42 | Small n, Finance explainability, no extra XGBoost dependency |
 | Isolated `uv` project under `scripts/sales_forecast/` | Do not pollute API pyproject or stdlib incident-analyzer requirements |
 | Same-month `visits_count` and `avg_revenue_per_visit_usd` are not features | Near-identity leakage with the revenue target |
+| Regression evaluation uses MAE as the primary metric | `CONTEXT.md` does not rank over-prediction against under-prediction; the forest was already selected with MAE |
+| Fit diagnosis uses five expanding validation years, 2019–2023 | Matches the existing year-fold helper and keeps each check inside one calendar year |
+| Overfitting when the 2022–2023 gap ratio is at least 0.50 | The gap has to remain large after more history; in-sample forest error is not enough by itself |
+| Evaluation reads frozen settings from `metrics.json` and does not search | 100 / depth 5 / `min_samples_leaf` 2 / seed 42; a mismatch stops the run |
+| 2024–2025 stay out of the fit verdict | The holdout remains isolated; the 2022–2023 side score is only a limitation |
+| Learning curve is two MAE lines under `data/eval/sales_forecast/` | No shaded band on a single chronological series; fold spread stays in the table |
+| Sample standard deviation divides by n − 1 | Five fold scores are a sample; the report names that choice |
 
 ## Rejected (for now)
 
@@ -134,6 +141,9 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Synthetic 75/25 US/UK rows to compute mix PSI | Would fabricate source data and make PSI circular | If a regional series is actually supplied |
 | Numeric MAE/RMSE dollar cap for dashboard go/no-go | Briefing has no threshold; user chose the report card | User supplies a cutoff |
 | Adding sklearn/xgboost to `services/api/pyproject.toml` | Would couple ML deps to FastAPI | Never for this feasibility script |
+| Retuning the forest during the learning curve | Evaluation must score the frozen settings | If a later ticket owns a new search |
+| Scoring 2024–2025 inside the fit diagnosis | The holdout has to stay unused | If a later ticket is explicitly a final test review |
+| A shaded band on the learning curve | Each point is one chronological prefix, not a repeated sample | If a later design repeats each prefix |
 
 ## Still provisional
 

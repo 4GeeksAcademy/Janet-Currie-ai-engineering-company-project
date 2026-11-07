@@ -2,24 +2,19 @@
 
 ## Current state
 
-No active implementation ticket. Phase guides archived:
-
-- DEV-55 message queue → [`archive/2026-11-04-message-queue/`](archive/2026-11-04-message-queue/)
-- Sales forecast → [`archive/2026-11-05-sales-forecast-model/`](archive/2026-11-05-sales-forecast-model/)
-
-Root `message-queue-context.md`, `sales-forecast-model-context.md`, and `healthcore-BRIEFING.en.md` were removed after the copies were archived.
+No active implementation ticket. Regression-model evaluation is archived at [`archive/2026-11-07-regression-model-eval/`](archive/2026-11-07-regression-model-eval/). Root `regression-model-eval-context.md` was moved there. The fit report remains `data/eval/evaluation_report.md`.
 
 ## Completed (standing)
 
-- Public site, staff UI, incident CLI, supplier directory, staff JWT auth, error handling, bullet-proof tests, inventory API, inventory backoffice UI, Docker Compose, Web Vitals, serialization, caching, telemetry, clinic-supply pipeline, nightly telemetry export, Redis/Celery message queue, sales-forecast feasibility (unsupported vs seasonal-naive).
+- Public site, staff UI, incident CLI, supplier directory, staff JWT auth, error handling, bullet-proof tests, inventory API, inventory backoffice UI, Docker Compose, Web Vitals, serialization, caching, telemetry, clinic-supply pipeline, nightly telemetry export, Redis/Celery message queue, sales-forecast feasibility (unsupported vs seasonal-naive), regression-model evaluation (overfitting; do not stage).
 
 ## Completed (this iteration)
 
-- Archived the message-queue, sales-forecast, and HealthCore briefing phase documents.
+- Archived the regression-model evaluation handoff and the closing memory snapshot under `archive/2026-11-07-regression-model-eval/`.
 
 ## Validation results
 
-Archival only (docs/memory). No runtime tests required.
+Archive only. The evaluation checks from 2026-11-06 stay recorded in the archive `progress.md`. No new runtime tests were required to move the handoff.
 
 ## Blockers
 
@@ -35,10 +30,11 @@ None.
 uv sync --directory scripts/sales_forecast --group dev
 uv --directory scripts/sales_forecast run pytest
 uv --directory scripts/sales_forecast run python ../train_sales_forecast.py
+uv --directory scripts/sales_forecast run python ../eval_sales_forecast.py
 cd services/api && uv run pytest
 python3 data/pipelines/pipeline.py
 ./services/api/.venv/bin/python scripts/nightly_export.py
 docker compose up --build
 ```
 
-Last updated: 2026-11-05
+Last updated: 2026-11-07
