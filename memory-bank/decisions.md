@@ -1,13 +1,13 @@
 # Decisions — Active iteration
 
-Standing decisions that still constrain work. Completed-iteration snapshots: [`archive/2026-07-29-monorepo-ai-frontend/`](archive/2026-07-29-monorepo-ai-frontend/), [`archive/2026-08-28-supplier-directory/`](archive/2026-08-28-supplier-directory/), [`archive/2026-08-28-staff-auth/`](archive/2026-08-28-staff-auth/), [`archive/2026-08-31-error-handling/`](archive/2026-08-31-error-handling/), [`archive/2026-09-04-bullet-proof/`](archive/2026-09-04-bullet-proof/), [`archive/2026-09-18-inventory-api/`](archive/2026-09-18-inventory-api/), [`archive/2026-09-18-inventory-backoffice-ui/`](archive/2026-09-18-inventory-backoffice-ui/), [`archive/2026-09-23-docker-compose/`](archive/2026-09-23-docker-compose/), [`archive/2026-09-23-web-vitals/`](archive/2026-09-23-web-vitals/), [`archive/2026-09-24-serialization/`](archive/2026-09-24-serialization/), [`archive/2026-09-30-caching-optimisation/`](archive/2026-09-30-caching-optimisation/), [`archive/2026-10-14-telemetry/`](archive/2026-10-14-telemetry/), [`archive/2026-10-21-data-pipeline/`](archive/2026-10-21-data-pipeline/), [`archive/2026-11-04-background-processes/`](archive/2026-11-04-background-processes/). Architecture rationale: [`docs/architecture_proposal.md`](../docs/architecture_proposal.md). Course/phase guides live in their archives (do not load unless asked).
+Standing decisions that still constrain work. Completed-iteration snapshots: [`archive/2026-07-29-monorepo-ai-frontend/`](archive/2026-07-29-monorepo-ai-frontend/), [`archive/2026-08-28-supplier-directory/`](archive/2026-08-28-supplier-directory/), [`archive/2026-08-28-staff-auth/`](archive/2026-08-28-staff-auth/), [`archive/2026-08-31-error-handling/`](archive/2026-08-31-error-handling/), [`archive/2026-09-04-bullet-proof/`](archive/2026-09-04-bullet-proof/), [`archive/2026-09-18-inventory-api/`](archive/2026-09-18-inventory-api/), [`archive/2026-09-18-inventory-backoffice-ui/`](archive/2026-09-18-inventory-backoffice-ui/), [`archive/2026-09-23-docker-compose/`](archive/2026-09-23-docker-compose/), [`archive/2026-09-23-web-vitals/`](archive/2026-09-23-web-vitals/), [`archive/2026-09-24-serialization/`](archive/2026-09-24-serialization/), [`archive/2026-09-30-caching-optimisation/`](archive/2026-09-30-caching-optimisation/), [`archive/2026-10-14-telemetry/`](archive/2026-10-14-telemetry/), [`archive/2026-10-21-data-pipeline/`](archive/2026-10-21-data-pipeline/), [`archive/2026-11-04-background-processes/`](archive/2026-11-04-background-processes/), [`archive/2026-11-04-message-queue/`](archive/2026-11-04-message-queue/), [`archive/2026-11-05-sales-forecast-model/`](archive/2026-11-05-sales-forecast-model/). Architecture rationale: [`docs/architecture_proposal.md`](../docs/architecture_proposal.md). Course/phase guides live in their archives (do not load unless asked).
 
 ## Adopted
 
 | Decision | Rationale |
 |----------|-----------|
 | Project memory bank uses global layout (`context`, `spec`, `progress`, `decisions`, `archive/YYYY-MM-DD-name/` with plan + tech-updates) | Aligns with global working rules; keeps active files concise |
-| Finished course contracts and phase guides live in `archive/`, not repo root or the four active files | AUTH, error-handling, bullet-proof, inventory API, inventory UI, Docker Compose, Web Vitals, serialization, caching, telemetry, data-pipeline, and background-processes guides moved there after completion |
+| Finished course contracts and phase guides live in `archive/`, not repo root or the four active files | AUTH, error-handling, bullet-proof, inventory API, inventory UI, Docker Compose, Web Vitals, serialization, caching, telemetry, data-pipeline, background-processes, message-queue, and sales-forecast guides moved there after completion |
 | AUTH-088 uses pytest + pytest-cov via `uv` in `services/api`; coverage is measured on `app.auth` | Course requires `uv run pytest --cov`; existing unittest files still run under pytest |
 | AUTH-088 skips Jest for auth crypto; FE-019 adds Jest in `uis/web` for `apiClient` helpers | `authApi.ts` is fetch-only; token storage, `messageForStatus`, `toUserMessage`, and `parseError` are the testable utilities |
 | API-042 extends existing incident/supplier unittest files rather than rewriting them as pytest functions | Smallest change; pytest already collects unittest.TestCase |
@@ -93,6 +93,13 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Nightly job invokes `data/pipelines/pipeline.py` with no date flag | Handoff forbids inventing CLI semantics; CSV day ≠ pipeline month window |
 | Nightly lock is a partial unique index on `status = 'processing'` | Assignment lock is the processing row; no advisory/Redis/in-process mutex |
 | Documented cron is `0 2 * * *` in UTC | Proposed low-traffic default; documentation only until install is authorized |
+| Sales forecast uses rolling one-month-ahead (Game A) | Briefing asks for coming months and lag features; not a frozen 24-month origin |
+| Sales-forecast go/no-go is a report card, not a dollar cutoff | Briefing has no numeric threshold; lose-to-baseline MAE means no |
+| Ranking Gini on continuous `revenue_usd`; K2 is D’Agostino–Pearson on residuals | User-supplied metric definitions; K2 is not R² |
+| PSI is on `visits_count` train vs test | File has only `consolidated` rows; do not invent US/UK mix |
+| Final estimator is `RandomForestRegressor` with seed 42 | Small n, Finance explainability, no extra XGBoost dependency |
+| Isolated `uv` project under `scripts/sales_forecast/` | Do not pollute API pyproject or stdlib incident-analyzer requirements |
+| Same-month `visits_count` and `avg_revenue_per_visit_usd` are not features | Near-identity leakage with the revenue target |
 
 ## Rejected (for now)
 
@@ -123,6 +130,10 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | SQLModel/SQLite `job_runs` | Lock would not sit with telemetry or `pipeline_runs` | Never for DEV-53 |
 | Compose scheduler / Celery Beat for nightly export | Nightly stays a host crontab example; DEV-55 worker is for the API producer only | If a later ticket owns scheduling |
 | Daily `--target-date` on the clinic-supply CLI | Handoff forbids inventing pipeline CLI semantics | If a later ticket owns pipeline windows |
+| XGBoost as the sales-forecast estimator | Extra dependency; RF is enough for 96 monthly rows | Later ticket asks to compare |
+| Synthetic 75/25 US/UK rows to compute mix PSI | Would fabricate source data and make PSI circular | If a regional series is actually supplied |
+| Numeric MAE/RMSE dollar cap for dashboard go/no-go | Briefing has no threshold; user chose the report card | User supplies a cutoff |
+| Adding sklearn/xgboost to `services/api/pyproject.toml` | Would couple ML deps to FastAPI | Never for this feasibility script |
 
 ## Still provisional
 

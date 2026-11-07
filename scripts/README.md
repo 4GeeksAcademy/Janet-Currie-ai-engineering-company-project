@@ -28,6 +28,18 @@ More detail: [INCIDENT-ANALYZER.md](INCIDENT-ANALYZER.md).
 1. Terminal/console output of analyzing the 100-row CSV with `analyze.py`.
 2. Web UI (`uis/web` `/incidents`) with a loaded analysis visible (API must be running).
 
+## Sales forecast (feasibility)
+
+Monthly revenue forecast on `data/raw/healthcore_sales.csv`. Isolated `uv` project — do not add these deps to the API or the incident analyzer.
+
+```bash
+uv sync --directory scripts/sales_forecast --group dev
+uv --directory scripts/sales_forecast run pytest
+uv --directory scripts/sales_forecast run python ../train_sales_forecast.py
+```
+
+Results and the go/no-go: [`docs/sales-forecast/sales-forecast.md`](../docs/sales-forecast/sales-forecast.md).
+
 ## Nightly telemetry export (DEV-53)
 
 ```bash

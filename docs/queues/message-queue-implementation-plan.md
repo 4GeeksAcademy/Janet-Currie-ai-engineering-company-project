@@ -1,6 +1,6 @@
 # DEV-55 implementation plan — async task queue
 
-Ticket **#DEV-55**. Branch target: `message-queue` (from the DEV-53 tip). Contract: [`message-queue-context.md`](../../message-queue-context.md).
+Ticket **#DEV-55**. Branch target: `message-queue` (from the DEV-53 tip). Contract: [`message-queue-context.md`](../../memory-bank/archive/2026-11-04-message-queue/message-queue-context.md).
 
 Approved 2026-11-04: Redis as Celery broker/result only; Celery module `app.celery_app`; convert JWT `POST /reporting/pipeline-runs`; SQLModel `dead_letter_tasks` on existing `DATABASE_URL`; additive Compose `redis` / `worker` / `flower`; in-process inventory cache unchanged; nightly/`job_runs`/`pipeline_runs` unchanged.
 

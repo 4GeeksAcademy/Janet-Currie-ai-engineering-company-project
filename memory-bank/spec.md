@@ -20,12 +20,13 @@
 16. Telemetry is archived — do not load [`archive/2026-10-14-telemetry/`](archive/2026-10-14-telemetry/) unless asked. Durable notes: [`implementation-memory/telemetry.md`](implementation-memory/telemetry.md). Plans remain in [`docs/telemetry/`](../docs/telemetry/).
 17. Data pipeline is archived — do not load [`archive/2026-10-21-data-pipeline/`](archive/2026-10-21-data-pipeline/) unless asked. Durable notes: [`implementation-memory/clinic-supply-pipeline.md`](implementation-memory/clinic-supply-pipeline.md). Design remains in [`data/pipelines/PIPELINE_DESIGN.md`](../data/pipelines/PIPELINE_DESIGN.md).
 18. Background-processes (DEV-53) is archived — do not load [`archive/2026-11-04-background-processes/`](archive/2026-11-04-background-processes/) unless asked. Durable notes: [`implementation-memory/nightly-export.md`](implementation-memory/nightly-export.md). Plans remain in [`docs/pipelines/`](../docs/pipelines/). Do not replace the nightly scheduler with Celery Beat.
-19. **DEV-55 message queue:** Redis + Celery + Flower; convert `POST /reporting/pipeline-runs` to 202/`task_id`; `GET /tasks/{task_id}`; retries `max_retries=3` (4 executions); durable `dead_letter_tasks`; independent worker. Plan: [`docs/queues/message-queue-implementation-plan.md`](../docs/queues/message-queue-implementation-plan.md).
+19. DEV-55 message queue is archived — do not load [`archive/2026-11-04-message-queue/`](archive/2026-11-04-message-queue/) unless asked. Durable notes: [`implementation-memory/message-queue.md`](implementation-memory/message-queue.md). Plan remains in [`docs/queues/`](../docs/queues/).
+20. Sales forecast is archived — do not load [`archive/2026-11-05-sales-forecast-model/`](archive/2026-11-05-sales-forecast-model/) unless asked. Durable notes: [`implementation-memory/sales-forecast.md`](implementation-memory/sales-forecast.md). Results remain in [`docs/sales-forecast/`](../docs/sales-forecast/). Do not add ML deps to the API or incident-analyzer requirements.
 
 ## Acceptance criteria
 
 - [x] Required memory-bank files exist at `memory-bank/` root.
-- [x] Completed iterations archived: `2026-07-29-monorepo-ai-frontend`, `2026-08-28-supplier-directory`, `2026-08-28-staff-auth`, `2026-08-31-error-handling`, `2026-09-04-bullet-proof`, `2026-09-18-inventory-api`, `2026-09-18-inventory-backoffice-ui`, `2026-09-23-docker-compose`, `2026-09-23-web-vitals`, `2026-09-24-serialization`, `2026-09-30-caching-optimisation`, `2026-10-14-telemetry`, `2026-10-21-data-pipeline`, `2026-11-04-background-processes`.
+- [x] Completed iterations archived: `2026-07-29-monorepo-ai-frontend`, `2026-08-28-supplier-directory`, `2026-08-28-staff-auth`, `2026-08-31-error-handling`, `2026-09-04-bullet-proof`, `2026-09-18-inventory-api`, `2026-09-18-inventory-backoffice-ui`, `2026-09-23-docker-compose`, `2026-09-23-web-vitals`, `2026-09-24-serialization`, `2026-09-30-caching-optimisation`, `2026-10-14-telemetry`, `2026-10-21-data-pipeline`, `2026-11-04-background-processes`, `2026-11-04-message-queue`, `2026-11-05-sales-forecast-model`.
 - [x] Project `AGENTS.md` points at the global memory-bank file names.
 - [x] AUTH-088 / API-042 / FE-019 implemented; results in [`TESTING.md`](../TESTING.md).
 - [x] `BulletProofApp-Context.md` moved to `memory-bank/archive/2026-09-04-bullet-proof/`.
@@ -42,6 +43,11 @@
 - [x] DEV-55: `POST /reporting/pipeline-runs` returns `202` + `task_id` without executing ETL in the API process; warmed healthy-broker latency observed under 200 ms (37–67 ms; first cold POST 1402 ms).
 - [x] DEV-55: independent worker; `GET /tasks/{task_id}` public states; retries with backoff; one durable DLQ row after exhaustion.
 - [x] DEV-55: Flower on 5555; README start/stop; focused tests + live Redis/worker evidence (live SUCCESS vs warehouse unverified).
+- [x] Sales forecast: `scripts/train_sales_forecast.py` loads the raw CSV, splits 2016–2023 / 2024–2025, trains RF, writes eval artifacts.
+- [x] Sales forecast: lag/rolling features are causal; same-month visits and avg revenue per visit are not predictors.
+- [x] Sales forecast: test metrics include MSE, MAE, RMSE, RMSE%, R², ranking Gini, residual K2, visits_count PSI; 80% interval; 2024–2025 plot.
+- [x] Sales forecast: `tests/pipelines/` split unit test passes; focused feature/metric tests pass; training script run recorded.
+- [x] Sales forecast: documentation states Game A, metric formulas, leakage rules, actual numbers, and a report-card conclusion.
 
 ## Interfaces / expected behavior (standing)
 
@@ -49,7 +55,7 @@
 |---------|-------------------|
 | `uis/website` | Public corporate site; EN/ES via `hc_lang` cookie; enquiry form; brand blues; no auth |
 | `uis/web` | Public `/login`, `/register`, `/forgot-password`, `/reset-password`; protected welcome, `/operations`, `/incidents`, `/suppliers`, `/backoffice/inventory/{products,orders,orders/inbound,orders/outbound}`, `/backoffice/reporting/monthly-clinic-supply-performance`, `/account/profile`, `/account/change-password` |
-| `scripts/` | Phase 1 `analyze.py` + `incidents-healthcore.csv`; `nightly_export.py` (DEV-53) |
+| `scripts/` | Phase 1 `analyze.py` + `incidents-healthcore.csv`; `nightly_export.py` (DEV-53); `train_sales_forecast.py` (isolated `scripts/sales_forecast` uv env) |
 | `services/api` | Incidents + suppliers (TinyDB) + staff auth + inventory (SQLModel) + telemetry + reporting + JWT task status. Login is `POST /auth/login`. `GET /health` public. Sensitive routes require bearer JWT. CORS from `CORS_ORIGINS` (default `http://localhost:3001`, `http://127.0.0.1:3001`). Public `POST /users` does not return email. Inventory catalogue GETs may be served from in-process TTL cache. Public `POST /telemetry/events`; `GET /telemetry/report` (60s cache). JWT `GET /reporting/...` for clinic-month KPIs and latest pipeline run. JWT `POST /reporting/pipeline-runs` enqueues Celery and returns `202 {"task_id"}`. JWT `GET /tasks/{task_id}` returns normalized Celery state. |
 | Compose | `docker compose up` from repo root: website 3000, staff UI 3001, API 8000, Redis 6379, Flower 5555 on network `healthcore_dev`. Worker is a separate process using `-A app.celery_app`. |
 | Future `services/healthcore-api` | FastAPI `/api/v1` domains; OpenAPI contract for frontends |
@@ -59,6 +65,7 @@
 
 - Code changes: follow requirement 6; report tests added/updated, commands run, results, and unverified risks.
 - API: `uv run pytest` from `services/api`. Auth coverage: `uv run pytest --cov=app.auth`. Backoffice coverage: `--cov=app.routers.incidents --cov=app.routers.suppliers --cov=app.suppliers`. Inventory: `uv run pytest tests/test_inventory_products.py tests/test_inventory_orders.py tests/test_inventory_seed.py`. CORS: `uv run pytest tests/test_cors.py`. Cache: `uv run pytest tests/test_cache_inventory.py`. Queue: `uv run pytest tests/test_celery_app.py tests/test_dead_letter.py tests/test_pipeline_task.py tests/test_tasks_status.py tests/test_reporting.py`.
+- Sales forecast: `uv --directory scripts/sales_forecast run pytest` (package tests + `tests/pipelines/test_sales_forecast_*.py`); then `uv --directory scripts/sales_forecast run python ../train_sales_forecast.py` from repo conventions documented in `docs/sales-forecast/sales-forecast.md`.
 - UI: `npm run typecheck`. Frontend helpers: `npm test -w uis/web`.
 - Compose: `docker compose config`; `docker compose up --build`; host curls on 3000/3001/8000; Flower `http://localhost:5555`; `docker compose exec ui wget -qO- http://backend:8000/health`.
 - Docs-only: confirm memory files present and `AGENTS.md` links resolve. No runtime test required.

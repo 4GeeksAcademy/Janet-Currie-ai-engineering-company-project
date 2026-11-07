@@ -12,6 +12,7 @@ This folder holds **cross-cutting documentation** for the monorepo: architecture
 | Document | Purpose |
 |----------|---------|
 | [architecture_proposal.md](architecture_proposal.md) | Backend architecture proposal for HealthCore Digital — modular monolith on FastAPI, domain layout, technical decisions, compliance/residency, risks, and deliberately deferred choices. **No code;** read before implementing `services/`. |
+| [sales-forecast/sales-forecast.md](sales-forecast/sales-forecast.md) | Monthly revenue forecast feasibility: commands, metrics, and the dashboard go/no-go |
 | [HealthCore-Landing-Page.md](HealthCore-Landing-Page.md) | Milestone 1 landing-page content and form specification |
 | [Healthcore-web-development-CONTEXT.md](Healthcore-web-development-CONTEXT.md) | Milestone 1 web-development context and acceptance notes |
 
