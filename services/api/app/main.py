@@ -31,7 +31,7 @@ for _path in (str(_SCRIPTS), str(_DATA)):
 from app.database import init_db
 from app.cache import report_cache, response_cache
 from app.middleware import RequestTimingMiddleware
-from app.routers import auth, incidents, inventory, profiles, reporting, suppliers, tasks, telemetry, users  # noqa: E402
+from app.routers import auth, incidents, inventory, knowledge, profiles, reporting, suppliers, tasks, telemetry, users  # noqa: E402
 
 
 @asynccontextmanager
@@ -80,6 +80,7 @@ app.include_router(inventory.router)
 app.include_router(telemetry.router)
 app.include_router(reporting.router)
 app.include_router(tasks.router)
+app.include_router(knowledge.router)
 
 
 @app.exception_handler(RequestValidationError)
