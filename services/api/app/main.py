@@ -28,18 +28,40 @@ for _path in (str(_SCRIPTS), str(_DATA)):
     if _path not in sys.path:
         sys.path.insert(0, _path)
 
+from langgraph.checkpoint.sqlite import SqliteSaver
+
+from app.agent.graph import compile_agent
+from app.agent.trace import SqliteTraceStore, store_paths
 from app.database import init_db
 from app.cache import report_cache, response_cache
 from app.middleware import RequestTimingMiddleware
-from app.routers import auth, incidents, inventory, knowledge, profiles, reporting, suppliers, tasks, telemetry, users  # noqa: E402
+from app.routers import (  # noqa: E402
+    agent,
+    auth,
+    incidents,
+    inventory,
+    knowledge,
+    profiles,
+    reporting,
+    suppliers,
+    tasks,
+    telemetry,
+    users,
+)
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     init_db()
-    yield
-    response_cache.clear()
-    report_cache.clear()
+    checkpoint_path, trace_path = store_paths()
+    _app.state.agent_traces = SqliteTraceStore(trace_path)
+    with SqliteSaver.from_conn_string(checkpoint_path) as checkpointer:
+        _app.state.agent_graph = compile_agent(checkpointer)
+        try:
+            yield
+        finally:
+            response_cache.clear()
+            report_cache.clear()
 
 
 app = FastAPI(
@@ -81,6 +103,7 @@ app.include_router(telemetry.router)
 app.include_router(reporting.router)
 app.include_router(tasks.router)
 app.include_router(knowledge.router)
+app.include_router(agent.router)
 
 
 @app.exception_handler(RequestValidationError)

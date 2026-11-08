@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import atexit
 import os
 import sys
 import tempfile
@@ -21,6 +22,12 @@ os.environ["DATABASE_URL"] = f"sqlite:///{INV_DB}"
 os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
 os.environ["REQUEST_TIMING"] = "0"
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
+_ckpt_fd, AGENT_CHECKPOINT = tempfile.mkstemp(suffix="-agent-checkpoints.sqlite")
+os.close(_ckpt_fd)
+_trace_fd, AGENT_TRACE = tempfile.mkstemp(suffix="-agent-traces.sqlite")
+os.close(_trace_fd)
+os.environ["AGENT_CHECKPOINT_PATH"] = AGENT_CHECKPOINT
+os.environ["AGENT_TRACE_PATH"] = AGENT_TRACE
 
 for path in (str(API_ROOT), str(SCRIPTS), str(REPO_ROOT / "data")):
     if path not in sys.path:
@@ -37,6 +44,8 @@ os.environ.pop("SUPABASE_SERVICE_ROLE_KEY", None)
 os.environ.pop("SUPABASE_KEY", None)
 
 client = TestClient(app)
+client.__enter__()
+atexit.register(client.__exit__, None, None, None)
 
 
 def reset_auth_db() -> None:

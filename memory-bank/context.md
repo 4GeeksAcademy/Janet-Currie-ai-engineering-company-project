@@ -2,17 +2,16 @@
 
 ## Goal
 
-Build an internal knowledge helper for HealthCore patient coordinators. A signed-in coordinator asks one policy question in the staff app and receives a short, kind answer written only from four approved documents. The handoff is [`rag-knowledge-base-context.md`](../rag-knowledge-base-context.md).
+Wrap the existing knowledge helper in a LangGraph map so a signed-in coordinator's question shows which step ran. The handoff is [`langgraph-agent-base-context.md`](../langgraph-agent-base-context.md). The knowledge helper stays at [`archive/2026-11-07-rag-knowledge-base/rag-knowledge-base-context.md`](archive/2026-11-07-rag-knowledge-base/rag-knowledge-base-context.md).
 
 ## Scope (this iteration)
 
-- Copy the four English policy documents into `docs/company-knowledge-base/`.
-- Index them in a local Qdrant collection named `healthcore_knowledge` through an explicit `setup()` command. Starting the API does not rebuild the collection.
-- Keep `setup` and `embed` in `data/process/rag.py`. Keep `retrieve`, `generate_answer`, and `query` in `data/pipelines/rag.py`.
-- Add signed-in `POST /knowledge/query` on the existing API. The body is `{ "question": "..." }`. The response is `{ "answer": "..." }`.
-- Add a protected staff page at `/knowledge` in `uis/web`.
-- Measure retrieval with `data/eval/test-queries.json` once a real embedding model is configured. Do not invent model ids.
-- Write `docs/rag/rag-design.md` with the values that were actually verified.
+- Keep `retrieve()` and `generate_answer()` in [`data/pipelines/rag.py`](../data/pipelines/rag.py). The map calls those functions. It does not call `query()`.
+- Leave `POST /knowledge/query` unchanged. That door still asks the writing model when the search finds nothing.
+- Add a compiled graph in `services/api/app/agent/` and signed-in `POST /agent/query`.
+- A blank question never searches. A search with no passages returns one fixed honest sentence and does not call the writing model. A search with passages calls `generate_answer()` once.
+- Save checkpoints and traces in local SQLite for a normal run. Tests use an in-memory saver.
+- Do not re-cut the documents, add a staff page, or guess model names or the match score.
 
 ## Scope (standing)
 
@@ -35,7 +34,7 @@ Build an internal knowledge helper for HealthCore patient coordinators. A signed
 - Treat implementation and validation as one task (see spec).
 - Do not rewrite `memory-bank/archive/`. Leave `services/api/.coverage` untracked.
 - Celery module is `app.celery_app`. Do not `load_dotenv` at Celery import time.
-- Do not add sales-forecast training libraries (`scikit-learn`, `scipy`, `matplotlib`) to `services/api/pyproject.toml` or `scripts/requirements.txt`. The knowledge helper may add the Qdrant client to the API project and to `services/api/requirements.txt`. Model calls use the `httpx` package already in the API. Do not add those client libraries to `scripts/requirements.txt`.
+- Do not add sales-forecast training libraries (`scikit-learn`, `scipy`, `matplotlib`) to `services/api/pyproject.toml` or `scripts/requirements.txt`. The API project may include the Qdrant client, LangGraph, and the SQLite checkpoint package, mirrored in `services/api/requirements.txt`. Do not add those libraries to `scripts/requirements.txt`.
 
 ## Essential background
 
