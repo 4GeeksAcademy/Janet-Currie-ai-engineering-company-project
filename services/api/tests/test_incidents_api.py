@@ -66,6 +66,11 @@ class IncidentsApiTest(unittest.TestCase):
         self.assertEqual(body["satisfaction"]["histogram"]["4"], 23)
         blob = response.text
         self.assertNotIn("PAT-", blob)
+        saved = store.get_incident("HC-000006")
+        self.assertIsNotNone(saved)
+        self.assertEqual(saved["status"], "CLOSED")
+        self.assertNotIn("patient_id", saved)
+        self.assertNotIn("PAT-", str(saved))
 
     def test_export_after_analyze(self) -> None:
         data = FIXTURE.read_bytes()

@@ -1,0 +1,53 @@
+{
+  "run_id": "policy-rule",
+  "events": [
+    {
+      "run_id": "policy-rule",
+      "node": "validate",
+      "status": "checked",
+      "passage_count": 0,
+      "source_documents": [],
+      "answer": "",
+      "route": "",
+      "tool_outcome": "",
+      "incident_id": ""
+    },
+    {
+      "run_id": "policy-rule",
+      "node": "route",
+      "status": "routed",
+      "passage_count": 0,
+      "source_documents": [],
+      "answer": "",
+      "route": "rag",
+      "tool_outcome": "",
+      "incident_id": ""
+    },
+    {
+      "run_id": "policy-rule",
+      "node": "retrieve",
+      "status": "retrieved",
+      "passage_count": 1,
+      "source_documents": [
+        "healthcore-referral-process.en.md"
+      ],
+      "answer": "",
+      "route": "rag",
+      "tool_outcome": "",
+      "incident_id": ""
+    },
+    {
+      "run_id": "policy-rule",
+      "node": "generate",
+      "status": "grounded",
+      "passage_count": 1,
+      "source_documents": [
+        "healthcore-referral-process.en.md"
+      ],
+      "answer": "Escalate a stalled referral to Marcus Reid after five business days.",
+      "route": "rag",
+      "tool_outcome": "",
+      "incident_id": ""
+    }
+  ]
+}

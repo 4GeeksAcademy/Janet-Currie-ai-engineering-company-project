@@ -10,3 +10,8 @@ class AgentState(TypedDict, total=False):
     retrieved_context: list[dict]
     answer: str
     status: str
+    route: str
+    incident_id: str
+    incident_result: dict | None
+    tool_outcome: str
+    sources_used: list[str]

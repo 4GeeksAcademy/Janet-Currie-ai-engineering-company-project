@@ -122,6 +122,11 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | LangGraph may be added to the API dependency files | Sales-forecast training libraries stay out of the API and `scripts/requirements.txt` |
 | Locked LangGraph is 1.2.20 with langgraph-checkpoint 4.3.1 | `uv add langgraph` resolved that pair. That package documents `InMemorySaver` and does not include a SQLite saver |
 | API checkpoints use `with SqliteSaver.from_conn_string(path) as checkpointer` | `langgraph-checkpoint-sqlite` 3.1.3 is the saver built for checkpoint 4.3.1. The compiled map is created inside that `with`. Tests call `InMemorySaver()` |
+| Incident rows stay in the existing in-memory store | The upload already holds the latest summary there. `patient_id` is dropped before the row is saved |
+| The agent reads incidents in-process | The agent and the incident upload live in the same API. No second web call or service key |
+| Incident lookup waits at most 3 seconds | A stuck read stops and the answer says the status could not be confirmed |
+| Source choice is a fixed id-and-word check | An `HC-######` id selects the incident path. A clinic-rule word plus that id selects both. The writing model is not asked to choose |
+| Stock lookup stays out of this job | The required incident path comes first |
 
 ## Rejected (for now)
 

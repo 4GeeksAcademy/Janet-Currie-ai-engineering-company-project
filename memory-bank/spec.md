@@ -24,7 +24,8 @@
 20. Sales forecast is archived — do not load [`archive/2026-11-05-sales-forecast-model/`](archive/2026-11-05-sales-forecast-model/) unless asked. Durable notes: [`implementation-memory/sales-forecast.md`](implementation-memory/sales-forecast.md). Results remain in [`docs/sales-forecast/`](../docs/sales-forecast/). Do not add ML deps to the API or incident-analyzer requirements.
 21. Regression-model evaluation is archived — do not load [`archive/2026-11-07-regression-model-eval/`](archive/2026-11-07-regression-model-eval/) unless asked. The handoff is `regression-model-eval-context.md` in that folder. Durable notes stay in [`implementation-memory/sales-forecast.md`](implementation-memory/sales-forecast.md). The fit report remains [`data/eval/evaluation_report.md`](../data/eval/evaluation_report.md).
 22. Knowledge helper is built. Signed-in `POST /knowledge/query` returns `{ "answer": "..." }` and still asks the writing model when the search finds nothing. Do not re-cut the corpus or overwrite `data/eval/evaluation_report.md` or `data/eval/sales_forecast/`.
-23. Support-agent map (this iteration): a compiled LangGraph in `services/api` calls `retrieve()` once and `generate_answer()` only when passages exist. `POST /agent/query` is signed in and returns `{ "answer", "run_id" }`. An empty search uses a fixed honest sentence. Checkpoints and traces stay in local SQLite. No new website, no Part 2 tools, no LangSmith.
+23. Support-agent map is built. `POST /agent/query` is signed in and returns `{ "answer", "run_id" }`. An empty policy search uses a fixed honest sentence. Checkpoints and traces stay in local SQLite.
+24. Incident lookup (this iteration): the latest upload keeps safe incident rows in the existing store, without `patient_id`. The same agent map chooses policy search, one incident read, or both. Stock lookup stays out.
 
 ## Acceptance criteria
 
@@ -55,6 +56,7 @@
 - [x] Knowledge helper code: four documents, separate `setup` / `embed` / `retrieve` / `generate_answer` / `query`, signed-in `POST /knowledge/query`, protected `/knowledge` page, mocked tests, and `docs/rag/rag-design.md`.
 - [ ] Knowledge helper live score: model ids, vector size, minimum score, and Recall@3 of at least 80% after a real embedding model is configured.
 - [x] Support-agent map: compiled graph, signed-in `POST /agent/query`, three pipeline evals, a checkpoint for the run id, and `data/eval/agent-trace-example.json`. Live model answers stay unverified until the 4Geeks settings exist.
+- [x] Incident lookup: safe rows saved from the upload, a 3-second read, automatic routing, honest fallbacks, and routing evals. Live model answers stay unverified.
 
 ## Interfaces / expected behavior (standing)
 

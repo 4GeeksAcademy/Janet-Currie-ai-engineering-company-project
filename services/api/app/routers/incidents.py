@@ -96,7 +96,7 @@ async def analyze_incidents(file: UploadFile = File(...)) -> IncidentAnalysisRes
 
     result = validate_records(records)
     summary = summarize(result, source_file=filename)
-    store.save_analysis(summary)
+    store.save_analysis(summary, records)
     return IncidentAnalysisResponse.model_validate(summary_to_json(summary))
 
 
