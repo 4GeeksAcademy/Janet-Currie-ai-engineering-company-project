@@ -126,7 +126,15 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | The agent reads incidents in-process | The agent and the incident upload live in the same API. No second web call or service key |
 | Incident lookup waits at most 3 seconds | A stuck read stops and the answer says the status could not be confirmed |
 | Source choice is a fixed id-and-word check | An `HC-######` id selects the incident path. A clinic-rule word plus that id selects both. The writing model is not asked to choose |
-| Stock lookup stays out of this job | The required incident path comes first |
+| Stock lookup stays out of the incident-lookup job | That job only added the incident read |
+| The tool door lives under `mcps/healthcore-company-tools` | The `mcps/` folder already asks for one server per folder. The API stays the business app |
+| The door reads one incident and reads stock | This app cannot create an incident or change a status. Stock writes stay on the existing API |
+| The door checks the existing staff token | No second login site. The token gains `iss`, `aud`, and the two read scopes |
+| The agent incident step calls the door | The upload still fills the store. The graph no longer calls `get_incident()` itself |
+| Locked door libraries are FastMCP 4.1.6, mcpauth 0.1.1, and langchain-mcp-adapters 0.3.2 | `uv add` resolved those versions. Cryptography stays at 44.0.3 because 50.0.2 has no installable wheel on this Mac |
+| The door checks the staff token with `bearer_auth_middleware(verify_staff_token, audience=...)` | mcpauth 0.1.1's built-in `"jwt"` mode needs a JWKS URI and does not accept HS256. The documented custom function checks the shared-secret signature and the expiry. The middleware then checks issuer and audience |
+| The token issuer is `https://healthcore-api` | That middleware requires the issuer to be a URL. The audience stays `healthcore-company-tools`. No second login site was added |
+| Streamable HTTP is served at `/mcp` on port 8001 | That is the path FastMCP 4.1.6 uses for Streamable HTTP |
 
 ## Rejected (for now)
 

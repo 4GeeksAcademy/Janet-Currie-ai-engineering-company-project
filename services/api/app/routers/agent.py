@@ -16,7 +16,7 @@ from app.agent.graph import (
     SEARCH_UNAVAILABLE,
     run_agent,
 )
-from app.auth.security import get_current_user
+from app.auth.security import get_current_user, oauth2_scheme
 from process.rag import QUESTION_MAX_CHARS
 
 logger = logging.getLogger("healthcore.agent")
@@ -48,7 +48,11 @@ class AgentAnswer(BaseModel):
 
 
 @router.post("/query", response_model=AgentAnswer)
-def ask_agent(request: Request, body: AgentQuery) -> AgentAnswer:
+def ask_agent(
+    request: Request,
+    body: AgentQuery,
+    token: str = Depends(oauth2_scheme),
+) -> AgentAnswer:
     run_id = uuid.uuid4().hex
     started = time.perf_counter()
     graph = getattr(request.app.state, "agent_graph", None)
@@ -59,7 +63,13 @@ def ask_agent(request: Request, body: AgentQuery) -> AgentAnswer:
             detail=NOT_CONFIGURED,
         )
     try:
-        result = run_agent(graph, body.question, run_id=run_id, trace_store=trace_store)
+        result = run_agent(
+            graph,
+            body.question,
+            run_id=run_id,
+            trace_store=trace_store,
+            staff_token=token,
+        )
     except Exception:
         logger.info("agent_http run_id=%s error_category=unhandled", run_id)
         raise HTTPException(

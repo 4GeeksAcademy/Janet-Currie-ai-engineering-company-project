@@ -1,0 +1,23 @@
+[project]
+name = "healthcore-company-tools"
+version = "0.1.0"
+description = "Read-only HealthCore incident and inventory tools behind the staff login token."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "cryptography==44.0.3",
+    "fastmcp>=4.1.6",
+    "mcpauth>=0.1.1",
+]
+
+[project.scripts]
+healthcore-company-tools = "healthcore_company_tools:main"
+
+[build-system]
+requires = ["uv_build>=0.12.7,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]

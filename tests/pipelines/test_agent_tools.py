@@ -30,6 +30,8 @@ CLOSED_ROW = {
     "description": "Closed without a satisfaction score recorded.",
 }
 POLICY_ANSWER = "Escalate a stalled referral to Marcus Reid after five business days."
+STAFF_TOKEN = "staff-test-token"
+SAFE_ROW = {key: value for key, value in CLOSED_ROW.items() if key in {"incident_id", "date", "clinic_id", "country", "category", "status"}}
 
 
 def _summary() -> SimpleNamespace:
@@ -40,10 +42,43 @@ def _ready_settings(**_kwargs):
     return SimpleNamespace(k=5, min_score=0.4)
 
 
+class _IncidentTool:
+    def __init__(self, handler):
+        self.name = "get_incident_status"
+        self.handler = handler
+
+    async def ainvoke(self, args):
+        return self.handler(args)
+
+
+class DoorClient:
+    def __init__(self, connections):
+        self.connections = connections
+        DoorClient.calls.append(connections)
+
+    calls: list = []
+    handler = staticmethod(lambda _args: {"outcome": "not_found", "status": None})
+
+    async def get_tools(self, server_name=None):
+        return [_IncidentTool(DoorClient.handler)]
+
+
+def _use_door(monkeypatch: pytest.MonkeyPatch, handler) -> None:
+    DoorClient.calls = []
+    DoorClient.handler = staticmethod(handler)
+    monkeypatch.setattr("app.agent.incidents.MultiServerMCPClient", DoorClient)
+
+
 def _run(question: str, run_id: str):
     trace = MemoryTraceStore()
     graph = compile_agent(InMemorySaver())
-    result = run_agent(graph, question, run_id=run_id, trace_store=trace)
+    result = run_agent(
+        graph,
+        question,
+        run_id=run_id,
+        trace_store=trace,
+        staff_token=STAFF_TOKEN,
+    )
     return result, trace
 
 
@@ -65,16 +100,13 @@ def test_saved_rows_drop_patient_id() -> None:
     assert "description" not in saved
 
 
-def test_incident_question_reads_the_store_once(monkeypatch: pytest.MonkeyPatch) -> None:
-    calls = {"lookup": 0}
+def test_incident_question_reads_the_door_once(monkeypatch: pytest.MonkeyPatch) -> None:
     store.save_analysis(_summary(), [CLOSED_ROW])
-    real_get = store.get_incident
 
-    def counted(incident_id: str):
-        calls["lookup"] += 1
-        return real_get(incident_id)
+    def found(_args):
+        return {"outcome": "found", **SAFE_ROW}
 
-    monkeypatch.setattr("app.agent.incidents.get_incident", counted)
+    _use_door(monkeypatch, found)
 
     def forbidden(*_args, **_kwargs):
         raise AssertionError("an incident question must not search the papers")
@@ -83,7 +115,8 @@ def test_incident_question_reads_the_store_once(monkeypatch: pytest.MonkeyPatch)
     monkeypatch.setattr(agent_graph, "generate_answer", forbidden)
     result, trace = _run("What is the status of incident HC-000006?", "incident-status")
     events = trace.list("incident-status")
-    assert calls["lookup"] == 1
+    assert len(DoorClient.calls) == 1
+    assert DoorClient.calls[0]["healthcore"]["headers"]["Authorization"] == f"Bearer {STAFF_TOKEN}"
     assert result["status"] == "grounded"
     assert "HC-000006" in result["answer"]
     assert "CLOSED" in result["answer"]
@@ -92,6 +125,8 @@ def test_incident_question_reads_the_store_once(monkeypatch: pytest.MonkeyPatch)
     assert events[-1]["tool_outcome"] == "found"
     assert events[-1]["incident_id"] == "HC-000006"
     assert "PAT-" not in result["answer"]
+    assert STAFF_TOKEN not in json.dumps(events)
+    assert STAFF_TOKEN not in result["answer"]
     INCIDENT_TRACE.write_text(
         json.dumps({"run_id": "incident-status", "events": events}, indent=2) + "\n"
     )
@@ -101,9 +136,9 @@ def test_policy_question_does_not_read_incidents(monkeypatch: pytest.MonkeyPatch
     monkeypatch.setattr(agent_graph, "load_settings", _ready_settings)
 
     def forbidden(*_args, **_kwargs):
-        raise AssertionError("a policy question must not read the incident store")
+        raise AssertionError("a policy question must not call the tool door")
 
-    monkeypatch.setattr("app.agent.incidents.get_incident", forbidden)
+    monkeypatch.setattr("app.agent.incidents.MultiServerMCPClient", forbidden)
     monkeypatch.setattr(
         agent_graph,
         "retrieve",
@@ -127,16 +162,17 @@ def test_missing_timeout_and_bad_id_stay_honest(monkeypatch: pytest.MonkeyPatch)
 
     monkeypatch.setattr(agent_graph, "retrieve", forbidden)
     monkeypatch.setattr(agent_graph, "generate_answer", forbidden)
+    _use_door(monkeypatch, lambda _args: {"outcome": "not_found", "status": None})
     missing, missing_trace = _run("What is the status of incident HC-999999?", "missing-incident")
     assert "could not be confirmed" in missing["answer"].lower()
     assert "CLOSED" not in missing["answer"]
     assert missing_trace.list("missing-incident")[-1]["tool_outcome"] == "not_found"
 
-    def slow(_incident_id: str):
+    def slow(_args):
         time.sleep(0.3)
-        return {"incident_id": "HC-000006", "status": "CLOSED"}
+        return {"outcome": "found", **SAFE_ROW}
 
-    monkeypatch.setattr("app.agent.incidents.get_incident", slow)
+    _use_door(monkeypatch, slow)
     monkeypatch.setattr("app.agent.incidents.INCIDENT_LOOKUP_TIMEOUT_SECONDS", 0.05)
     assert INCIDENT_LOOKUP_TIMEOUT_SECONDS == 3
     timed_out, _trace = _run("What is the status of incident HC-000006?", "slow-incident")
@@ -144,9 +180,9 @@ def test_missing_timeout_and_bad_id_stay_honest(monkeypatch: pytest.MonkeyPatch)
     assert "CLOSED" not in timed_out["answer"]
 
     def explode(*_args, **_kwargs):
-        raise AssertionError("ticket 482 must not touch the store")
+        raise AssertionError("ticket 482 must not call the tool door")
 
-    monkeypatch.setattr("app.agent.incidents.get_incident", explode)
+    monkeypatch.setattr("app.agent.incidents.MultiServerMCPClient", explode)
     bad, bad_trace = _run("What is the status of ticket 482?", "bad-ticket")
     assert bad["status"] == "invalid"
     assert "HC-000006" in bad["answer"]
@@ -167,13 +203,13 @@ def test_both_paths_keep_the_policy_half_when_the_incident_is_missing(
         order.append("generate")
         return POLICY_ANSWER
 
-    def missing(_incident_id: str):
+    def missing(_args):
         order.append("lookup")
-        return None
+        return {"outcome": "not_found", "status": None}
 
     monkeypatch.setattr(agent_graph, "retrieve", retrieve)
     monkeypatch.setattr(agent_graph, "generate_answer", generate)
-    monkeypatch.setattr("app.agent.incidents.get_incident", missing)
+    _use_door(monkeypatch, missing)
     result, trace = _run(
         "What is our referral escalation rule, and what is the status of HC-000006?",
         "both-partial",
@@ -188,13 +224,26 @@ def test_both_paths_keep_the_policy_half_when_the_incident_is_missing(
 
 def test_two_runs_do_not_share_incident_traces(monkeypatch: pytest.MonkeyPatch) -> None:
     store.save_analysis(_summary(), [CLOSED_ROW])
+    _use_door(monkeypatch, lambda _args: {"outcome": "found", **SAFE_ROW})
     monkeypatch.setattr(agent_graph, "load_settings", _ready_settings)
     monkeypatch.setattr(agent_graph, "retrieve", lambda *_args, **_kwargs: [])
     monkeypatch.setattr(agent_graph, "generate_answer", lambda *_args, **_kwargs: "unused")
     trace = MemoryTraceStore()
     graph = compile_agent(InMemorySaver())
-    run_agent(graph, "What is the status of incident HC-000006?", run_id="run-incident", trace_store=trace)
-    run_agent(graph, "What is our referral escalation rule?", run_id="run-policy", trace_store=trace)
+    run_agent(
+        graph,
+        "What is the status of incident HC-000006?",
+        run_id="run-incident",
+        trace_store=trace,
+        staff_token=STAFF_TOKEN,
+    )
+    run_agent(
+        graph,
+        "What is our referral escalation rule?",
+        run_id="run-policy",
+        trace_store=trace,
+        staff_token=STAFF_TOKEN,
+    )
     first = trace.list("run-incident")
     second = trace.list("run-policy")
     assert {event["run_id"] for event in first} == {"run-incident"}
@@ -202,3 +251,4 @@ def test_two_runs_do_not_share_incident_traces(monkeypatch: pytest.MonkeyPatch) 
     blob = json.dumps({"first": first, "second": second, "answer": graph.get_state({"configurable": {"thread_id": "run-incident"}}).values["answer"]})
     assert "patient_id" not in blob
     assert "PAT-" not in blob
+    assert STAFF_TOKEN not in blob

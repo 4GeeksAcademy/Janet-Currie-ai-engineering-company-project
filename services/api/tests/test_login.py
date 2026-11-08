@@ -7,7 +7,7 @@ from jose import jwt as jose_jwt
 from tests.helpers import login, register
 from app.auth import config
 from app.auth.models import Role
-from app.auth.security import ALGORITHM, hash_password
+from app.auth.security import ALGORITHM, TOKEN_AUDIENCE, TOKEN_ISSUER, TOKEN_SCOPE, hash_password
 from app.auth.service import create_user, get_user_by_email
 
 
@@ -20,8 +20,16 @@ def test_login_returns_jwt_with_user_sub() -> None:
     assert token
     assert body["token_type"] == "bearer"
     user = get_user_by_email("alice@healthcore.example")
-    claims = jose_jwt.decode(token, config.secret_key(), algorithms=[ALGORITHM])
+    claims = jose_jwt.decode(
+        token,
+        config.secret_key(),
+        algorithms=[ALGORITHM],
+        audience=TOKEN_AUDIENCE,
+    )
     assert claims["sub"] == str(user["id"])
+    assert claims["iss"] == TOKEN_ISSUER
+    assert claims["aud"] == TOKEN_AUDIENCE
+    assert claims["scope"] == TOKEN_SCOPE
     assert "exp" in claims
 
 

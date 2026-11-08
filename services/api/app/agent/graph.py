@@ -13,6 +13,7 @@ from app.agent.incidents import (
     INVALID_INCIDENT_ID,
     incident_answer,
     lookup_incident,
+    staff_token_var,
 )
 from app.agent.state import AgentState
 from pipelines.rag import (
@@ -309,11 +310,12 @@ def compile_agent(checkpointer):
     return builder.compile(checkpointer=checkpointer)
 
 
-def run_agent(graph, question: str, *, run_id: str, trace_store) -> dict:
-    """Run one question. The run id is the checkpoint thread id and the trace id."""
+def run_agent(graph, question: str, *, run_id: str, trace_store, staff_token: str | None = None) -> dict:
+    """Run one question. The staff token stays in a context value, not the checkpoint."""
 
     store_token = _trace_store.set(trace_store)
     run_token = _run_id.set(run_id)
+    auth_token = staff_token_var.set(staff_token)
     try:
         return graph.invoke(
             {
@@ -330,5 +332,6 @@ def run_agent(graph, question: str, *, run_id: str, trace_store) -> dict:
             {"configurable": {"thread_id": run_id}},
         )
     finally:
+        staff_token_var.reset(auth_token)
         _trace_store.reset(store_token)
         _run_id.reset(run_token)

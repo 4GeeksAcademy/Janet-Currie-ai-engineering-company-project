@@ -25,7 +25,8 @@
 21. Regression-model evaluation is archived — do not load [`archive/2026-11-07-regression-model-eval/`](archive/2026-11-07-regression-model-eval/) unless asked. The handoff is `regression-model-eval-context.md` in that folder. Durable notes stay in [`implementation-memory/sales-forecast.md`](implementation-memory/sales-forecast.md). The fit report remains [`data/eval/evaluation_report.md`](../data/eval/evaluation_report.md).
 22. Knowledge helper is built. Signed-in `POST /knowledge/query` returns `{ "answer": "..." }` and still asks the writing model when the search finds nothing. Do not re-cut the corpus or overwrite `data/eval/evaluation_report.md` or `data/eval/sales_forecast/`.
 23. Support-agent map is built. `POST /agent/query` is signed in and returns `{ "answer", "run_id" }`. An empty policy search uses a fixed honest sentence. Checkpoints and traces stay in local SQLite.
-24. Incident lookup (this iteration): the latest upload keeps safe incident rows in the existing store, without `patient_id`. The same agent map chooses policy search, one incident read, or both. Stock lookup stays out.
+24. Incident lookup is built. The latest upload keeps safe incident rows, without `patient_id`. The agent map chooses policy search, one incident read, or both.
+25. HealthCore tool door (this iteration): `mcps/healthcore-company-tools` exposes `get_incident_status` and `query_inventory`. Stock changes return `INVENTORY_READ_ONLY`. The agent incident step uses that door. No ticket create and no status change.
 
 ## Acceptance criteria
 
@@ -57,6 +58,7 @@
 - [ ] Knowledge helper live score: model ids, vector size, minimum score, and Recall@3 of at least 80% after a real embedding model is configured.
 - [x] Support-agent map: compiled graph, signed-in `POST /agent/query`, three pipeline evals, a checkpoint for the run id, and `data/eval/agent-trace-example.json`. Live model answers stay unverified until the 4Geeks settings exist.
 - [x] Incident lookup: safe rows saved from the upload, a 3-second read, automatic routing, honest fallbacks, and routing evals. Live model answers stay unverified.
+- [x] HealthCore tool door: incident read, stock read, read-only rejection, staff-token check, and the agent incident step uses the door. Playground and live model answers stay unverified.
 
 ## Interfaces / expected behavior (standing)
 
