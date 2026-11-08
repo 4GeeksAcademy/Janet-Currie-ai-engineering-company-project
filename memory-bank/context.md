@@ -2,7 +2,7 @@
 
 ## Goal
 
-Teach the support-agent map to look up one incident from the latest uploaded CSV. Policy questions still use the knowledge search. The handoff is [`langgraph-agent-base-context2.md`](../langgraph-agent-base-context2.md). Part 1 stays archived at [`archive/2026-11-07-langgraph-agent-base/langgraph-agent-base-context.md`](archive/2026-11-07-langgraph-agent-base/langgraph-agent-base-context.md).
+Teach the support-agent map to look up one incident from the latest uploaded CSV. Policy questions still use the knowledge search. The completed handoff is archived at [`archive/2026-11-07-langgraph-external-tools/langgraph-agent-base-context2.md`](archive/2026-11-07-langgraph-external-tools/langgraph-agent-base-context2.md). The next handoff is root [`mcp-oauth-tools-context.md`](../mcp-oauth-tools-context.md). Part 1 stays archived at [`archive/2026-11-07-langgraph-agent-base/langgraph-agent-base-context.md`](archive/2026-11-07-langgraph-agent-base/langgraph-agent-base-context.md).
 
 ## Scope (this iteration)
 

@@ -2,7 +2,7 @@
 
 ## Current state
 
-Active work is incident lookup on branch `feature/langgraph-external-tools`. The handoff is root `langgraph-agent-base-context2.md`. Part 1 stays at [`archive/2026-11-07-langgraph-agent-base/langgraph-agent-base-context.md`](archive/2026-11-07-langgraph-agent-base/langgraph-agent-base-context.md). `retrieve()` and `generate_answer()` stay in `data/pipelines/rag.py`.
+Active work is on branch `mcp-oauth-tools`. The incident-lookup handoff is archived at [`archive/2026-11-07-langgraph-external-tools/langgraph-agent-base-context2.md`](archive/2026-11-07-langgraph-external-tools/langgraph-agent-base-context2.md). The next handoff is root `mcp-oauth-tools-context.md`. Part 1 stays at [`archive/2026-11-07-langgraph-agent-base/langgraph-agent-base-context.md`](archive/2026-11-07-langgraph-agent-base/langgraph-agent-base-context.md). `retrieve()` and `generate_answer()` stay in `data/pipelines/rag.py`.
 
 ## Completed (standing)
 
