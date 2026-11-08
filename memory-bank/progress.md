@@ -2,7 +2,7 @@
 
 ## Current state
 
-Active work is the support-agent map on branch `langgraph-agent-base`. The handoff is root `langgraph-agent-base-context.md`. The knowledge helper handoff stays at [`archive/2026-11-07-rag-knowledge-base/rag-knowledge-base-context.md`](archive/2026-11-07-rag-knowledge-base/rag-knowledge-base-context.md). `retrieve()` and `generate_answer()` stay in `data/pipelines/rag.py`.
+Active work is the support-agent map on branch `langgraph-agent-base`. Its handoff is archived at [`archive/2026-11-07-langgraph-agent-base/langgraph-agent-base-context.md`](archive/2026-11-07-langgraph-agent-base/langgraph-agent-base-context.md). An empty `langgraph-agent-base-context2.md` is at the repo root. The knowledge helper handoff stays at [`archive/2026-11-07-rag-knowledge-base/rag-knowledge-base-context.md`](archive/2026-11-07-rag-knowledge-base/rag-knowledge-base-context.md). `retrieve()` and `generate_answer()` stay in `data/pipelines/rag.py`.
 
 ## Completed (standing)
 

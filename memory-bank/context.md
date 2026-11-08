@@ -2,7 +2,7 @@
 
 ## Goal
 
-Wrap the existing knowledge helper in a LangGraph map so a signed-in coordinator's question shows which step ran. The handoff is [`langgraph-agent-base-context.md`](../langgraph-agent-base-context.md). The knowledge helper stays at [`archive/2026-11-07-rag-knowledge-base/rag-knowledge-base-context.md`](archive/2026-11-07-rag-knowledge-base/rag-knowledge-base-context.md).
+Wrap the existing knowledge helper in a LangGraph map so a signed-in coordinator's question shows which step ran. The completed handoff is archived at [`archive/2026-11-07-langgraph-agent-base/langgraph-agent-base-context.md`](archive/2026-11-07-langgraph-agent-base/langgraph-agent-base-context.md). An empty `langgraph-agent-base-context2.md` is at the repo root. The knowledge helper stays at [`archive/2026-11-07-rag-knowledge-base/rag-knowledge-base-context.md`](archive/2026-11-07-rag-knowledge-base/rag-knowledge-base-context.md).
 
 ## Scope (this iteration)
 
