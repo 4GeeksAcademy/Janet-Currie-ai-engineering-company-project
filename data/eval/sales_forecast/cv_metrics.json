@@ -1,0 +1,180 @@
+{
+  "primary_metric": "mae_usd",
+  "primary_metric_reason": "CONTEXT.md does not rank over-prediction against under-prediction. MAE is primary because it measures the typical absolute miss in USD and because the frozen forest was selected with MAE.",
+  "source": "data/raw/healthcore_sales.csv",
+  "hyperparameters_source": "data/eval/sales_forecast/metrics.json",
+  "hyperparameters": {
+    "n_estimators": 100,
+    "max_depth": 5,
+    "min_samples_leaf": 2
+  },
+  "random_state": 42,
+  "model_class": "RandomForestRegressor",
+  "feature_columns": [
+    "month_num",
+    "month_sin",
+    "month_cos",
+    "time_index",
+    "revenue_lag_1",
+    "revenue_lag_12",
+    "revenue_roll_mean_3",
+    "revenue_roll_mean_12",
+    "visits_lag_1"
+  ],
+  "train_years": [
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023
+  ],
+  "held_out_test_years": [
+    2024,
+    2025
+  ],
+  "validation_years": [
+    2019,
+    2020,
+    2021,
+    2022,
+    2023
+  ],
+  "selection_overlap_years": [
+    2019,
+    2020,
+    2021
+  ],
+  "n_train_feature_rows": 84,
+  "feature_year_min": 2017,
+  "feature_year_max": 2023,
+  "folds": [
+    {
+      "validation_year": 2019,
+      "n_train_rows": 24,
+      "train_mae": 34953.054260971934,
+      "train_rmse": 42857.94866064381,
+      "validation_mae": 176919.68680852817,
+      "validation_rmse": 191342.29758691063,
+      "naive_validation_mae": 183511.8925,
+      "train_max_month": "2018-12-01",
+      "validation_min_month": "2019-01-01",
+      "validation_max_month": "2019-12-01"
+    },
+    {
+      "validation_year": 2020,
+      "n_train_rows": 36,
+      "train_mae": 36388.6194118146,
+      "train_rmse": 45594.70819710719,
+      "validation_mae": 125764.95560598203,
+      "validation_rmse": 143527.42354512098,
+      "naive_validation_mae": 105127.28916666673,
+      "train_max_month": "2019-12-01",
+      "validation_min_month": "2020-01-01",
+      "validation_max_month": "2020-12-01"
+    },
+    {
+      "validation_year": 2021,
+      "n_train_rows": 48,
+      "train_mae": 38594.006384269225,
+      "train_rmse": 47443.894329530805,
+      "validation_mae": 126026.35429252875,
+      "validation_rmse": 160900.4297215195,
+      "naive_validation_mae": 154965.0266666666,
+      "train_max_month": "2020-12-01",
+      "validation_min_month": "2021-01-01",
+      "validation_max_month": "2021-12-01"
+    },
+    {
+      "validation_year": 2022,
+      "n_train_rows": 60,
+      "train_mae": 40484.34361316305,
+      "train_rmse": 51475.57826440301,
+      "validation_mae": 164554.5084414694,
+      "validation_rmse": 200142.2131510446,
+      "naive_validation_mae": 83579.24999999988,
+      "train_max_month": "2021-12-01",
+      "validation_min_month": "2022-01-01",
+      "validation_max_month": "2022-12-01"
+    },
+    {
+      "validation_year": 2023,
+      "n_train_rows": 72,
+      "train_mae": 43933.13297698894,
+      "train_rmse": 55257.12483156917,
+      "validation_mae": 156784.22031098642,
+      "validation_rmse": 180591.9741340446,
+      "naive_validation_mae": 178189.37750000003,
+      "train_max_month": "2022-12-01",
+      "validation_min_month": "2023-01-01",
+      "validation_max_month": "2023-12-01"
+    }
+  ],
+  "summary": {
+    "train_mae": {
+      "mean": 38870.631329441545,
+      "sample_std": 3529.068746602512,
+      "n": 5,
+      "ddof": 1
+    },
+    "train_rmse": {
+      "mean": 48525.850856650795,
+      "sample_std": 4896.383451746115,
+      "n": 5,
+      "ddof": 1
+    },
+    "validation_mae": {
+      "mean": 150009.94509189896,
+      "sample_std": 23154.92102034232,
+      "n": 5,
+      "ddof": 1
+    },
+    "validation_rmse": {
+      "mean": 175300.86762772806,
+      "sample_std": 23018.14551265192,
+      "n": 5,
+      "ddof": 1
+    },
+    "naive_validation_mae": {
+      "mean": 141074.56716666665,
+      "sample_std": 44635.46483557808,
+      "n": 5,
+      "ddof": 1
+    },
+    "primary_metric": "mae_usd",
+    "std_method": "sample_ddof_1"
+  },
+  "side_score": {
+    "train_end_year": 2021,
+    "scored_years": [
+      2022,
+      2023
+    ],
+    "n_train_rows": 60,
+    "n_scored_rows": 24,
+    "mae": 174211.15405063058,
+    "rmse": 203415.64324870866,
+    "role": "limitation_check_not_a_fold"
+  },
+  "diagnosis": {
+    "label": "overfitting",
+    "display_label": "Overfitting",
+    "late_gap_ratio": 0.7368810465842663,
+    "late_gap_usd": 118460.62608115192,
+    "mean_validation_mae": 150009.94509189896,
+    "mean_naive_validation_mae": 141074.56716666665,
+    "validation_mae_sample_std": 23154.92102034232,
+    "rule": "Overfitting when the average 2022\u20132023 gap ratio (validation MAE - training MAE) / validation MAE is at least 0.50. Underfitting when that ratio is below 0.50 and mean validation MAE is at least the mean seasonal-naive validation MAE. Reasonably well fitted when that ratio is below 0.50 and mean validation MAE is below the seasonal-naive mean.",
+    "next_action": "Raise min_samples_leaf above 2 or lower max_depth below 5 on the frozen RandomForestRegressor (n_estimators=100, max_depth=5, min_samples_leaf=2, random_state=42). The 2022 and 2023 folds still show an average gap ratio of 0.74: validation MAE exceeds in-sample training MAE by $118,460.63 on average. Adding trees or depth would not be the next change.",
+    "staging_sentence": "Do not stage this model. The next change is stronger regularization."
+  },
+  "learning_curve_interpretation": "Each point is one validation year. Training history grows from 24 months (validation 2019) to 72 months (validation 2023). Validation MAE fell from $176,919.69 to $156,784.22. On the 2022 and 2023 folds, validation MAE exceeds in-sample training MAE by $118,460.63 on average. There is no shaded band, because each point is one chronological prefix rather than a repeated sample. The fold-to-fold spread is the sample standard deviation in the table.",
+  "learning_curve_relative_to_report": "sales_forecast/learning_curve.png",
+  "artifacts": {
+    "learning_curve": "data/eval/sales_forecast/learning_curve.png",
+    "cv_metrics": "data/eval/sales_forecast/cv_metrics.json",
+    "report": "data/eval/evaluation_report.md"
+  }
+}
