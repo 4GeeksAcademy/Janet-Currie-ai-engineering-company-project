@@ -116,6 +116,12 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Question length limit is 1000 characters | Fits one short question. Empty and too-long questions are rejected |
 | Exactly 24 hours is not given a fee rule | The appointment source says “more than 24 hours” is free and “less than 24 hours” is charged. It does not say what happens at exactly 24 hours, so the helper must not invent that case |
 | Embedding and generation model ids stay in the environment | No student model id was in the brief or the local env. The code refuses to guess. Live vector size, minimum score, and Recall@3 stay unmeasured until those settings exist |
+| Agent map wraps `retrieve()` and `generate_answer()` | `query()` would search again. The old `/knowledge/query` door still uses `query()` |
+| Empty agent search skips the writing model | The old door still asks the model for “I don’t know.” The new door returns one fixed sentence |
+| Agent checkpoints and traces use local SQLite | No new database server. Tests use an in-memory saver. Questions are not stored in the trace |
+| LangGraph may be added to the API dependency files | Sales-forecast training libraries stay out of the API and `scripts/requirements.txt` |
+| Locked LangGraph is 1.2.20 with langgraph-checkpoint 4.3.1 | `uv add langgraph` resolved that pair. That package documents `InMemorySaver` and does not include a SQLite saver |
+| API checkpoints use `with SqliteSaver.from_conn_string(path) as checkpointer` | `langgraph-checkpoint-sqlite` 3.1.3 is the saver built for checkpoint 4.3.1. The compiled map is created inside that `with`. Tests call `InMemorySaver()` |
 
 ## Rejected (for now)
 

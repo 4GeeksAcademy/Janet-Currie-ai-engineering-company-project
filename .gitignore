@@ -31,6 +31,10 @@ __pycache__/
 .venv/
 venv/
 
+# Local agent checkpoints and traces
+services/api/data/agent_checkpoints.sqlite*
+services/api/data/agent_traces.sqlite*
+
 # Generated incident analysis exports (keep sample fixture)
 scripts/incident_metrics_export.csv
 
