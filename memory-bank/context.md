@@ -2,15 +2,14 @@
 
 ## Goal
 
-Teach the support-agent map to look up one incident from the latest uploaded CSV. Policy questions still use the knowledge search. The handoff is [`langgraph-agent-base-context2.md`](../langgraph-agent-base-context2.md). Part 1 stays archived at [`archive/2026-11-07-langgraph-agent-base/langgraph-agent-base-context.md`](archive/2026-11-07-langgraph-agent-base/langgraph-agent-base-context.md).
+Add a locked HealthCore tool door under `mcps/` and send the support agent's incident step through that door. The handoff is [`mcp-oauth-tools-context.md`](../mcp-oauth-tools-context.md).
 
 ## Scope (this iteration)
 
-- Keep the safe fields from each uploaded incident row in the existing in-memory store. Drop `patient_id`.
-- The agent reads that store directly. The wait limit is 3 seconds. Routing is a fixed id-and-word check.
-- A policy question still calls `retrieve()` and `generate_answer()` in [`data/pipelines/rag.py`](../data/pipelines/rag.py). An incident status is written from the saved fields.
-- Leave `POST /knowledge/query` and `POST /agent/query` in place. The agent door still returns `{ "answer", "run_id" }`.
-- Do not add a stock lookup, a staff page, or a second incident database.
+- One MCP server at `mcps/healthcore-company-tools`. It reads one saved incident and reads stock. It does not create incidents or change stock.
+- The door checks the existing staff login token with MCP Auth. The token gains two labels: `incidents:read` and `inventory:read`.
+- The agent keeps the same policy-versus-incident choice. The incident step calls the door. The staff token stays out of the saved graph state.
+- Do not add a staff page, a second incident database, or a Docker service for the door.
 
 ## Scope (standing)
 

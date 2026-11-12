@@ -131,7 +131,7 @@ def test_writer_and_settings_failures_use_their_own_sentences(
     assert "RAG_MIN_SCORE" not in config_response.text
 
 
-def test_signed_in_incident_question_hides_private_fields() -> None:
+def test_signed_in_incident_question_hides_private_fields(monkeypatch) -> None:
     from app import store
     from src.summarize import AnalysisSummary
 
@@ -157,6 +157,29 @@ def test_signed_in_incident_question_hides_private_fields() -> None:
             }
         ],
     )
+
+    class _Tool:
+        name = "get_incident_status"
+
+        async def ainvoke(self, _args):
+            return {
+                "outcome": "found",
+                "incident_id": "HC-000006",
+                "date": "2026-01-15",
+                "clinic_id": "UK-MAN-01",
+                "country": "UK",
+                "category": "CLINICAL_CARE",
+                "status": "CLOSED",
+            }
+
+    class _Client:
+        def __init__(self, _connections):
+            return None
+
+        async def get_tools(self, server_name=None):
+            return [_Tool()]
+
+    monkeypatch.setattr("app.agent.incidents.MultiServerMCPClient", _Client)
     response = client.post(
         "/agent/query",
         json={"question": "What is the status of incident HC-000006?"},
@@ -173,7 +196,11 @@ def test_signed_in_incident_question_hides_private_fields() -> None:
     assert "traceback" not in response.text.lower()
 
 
-def test_bad_ticket_id_stays_honest() -> None:
+def test_bad_ticket_id_stays_honest(monkeypatch) -> None:
+    def explode(*_args, **_kwargs):
+        raise AssertionError("ticket 482 must not call the tool door")
+
+    monkeypatch.setattr("app.agent.incidents.MultiServerMCPClient", explode)
     response = client.post(
         "/agent/query",
         json={"question": "What is the status of ticket 482?"},

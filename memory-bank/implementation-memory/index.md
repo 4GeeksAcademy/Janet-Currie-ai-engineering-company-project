@@ -14,3 +14,4 @@
 | Nightly telemetry export | OS-process CSV backup + pipeline subprocess (`job_runs`) | [nightly-export.md](nightly-export.md) | nightly_export, TARGET_DATE, reporting.job_runs |
 | Async task queue | Redis + Celery worker for `POST /reporting/pipeline-runs` | [message-queue.md](message-queue.md) | REDIS_URL, Celery, Flower, dead_letter_tasks |
 | Sales forecast | Rolling one-month-ahead RF feasibility and training-period fit evaluation | [sales-forecast.md](sales-forecast.md) | revenue_usd, MAE, learning curve, overfitting, seasonal-naive |
+| HealthCore tool door | Read-only MCP incident and stock tools checked with the staff token | [healthcore-tool-door.md](healthcore-tool-door.md) | fastmcp, mcpauth, incidents:read, inventory:read, Streamable HTTP |

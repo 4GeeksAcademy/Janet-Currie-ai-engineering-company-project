@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
@@ -16,6 +17,9 @@ from app.auth.service import get_user_by_id
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 ALGORITHM = "HS256"
+TOKEN_ISSUER = "https://healthcore-api"
+TOKEN_AUDIENCE = "healthcore-company-tools"
+TOKEN_SCOPE = "incidents:read inventory:read"
 
 
 def hash_password(password: str) -> str:
@@ -33,7 +37,13 @@ def create_access_token(*, user_id: int, expires_minutes: Optional[int] = None) 
         else config.access_token_expire_minutes()
     )
     expire = datetime.now(timezone.utc) + timedelta(minutes=minutes)
-    payload = {"sub": str(user_id), "exp": expire}
+    payload = {
+        "sub": str(user_id),
+        "exp": expire,
+        "iss": os.getenv("HEALTHCORE_TOKEN_ISSUER", TOKEN_ISSUER),
+        "aud": os.getenv("HEALTHCORE_TOKEN_AUDIENCE", TOKEN_AUDIENCE),
+        "scope": TOKEN_SCOPE,
+    }
     return jwt.encode(payload, config.secret_key(), algorithm=ALGORITHM)
 
 
@@ -47,7 +57,12 @@ def create_reset_token(*, user_id: int, jti: str) -> str:
 
 def decode_token(token: str) -> dict[str, Any]:
     try:
-        return jwt.decode(token, config.secret_key(), algorithms=[ALGORITHM])
+        return jwt.decode(
+            token,
+            config.secret_key(),
+            algorithms=[ALGORITHM],
+            audience=os.getenv("HEALTHCORE_TOKEN_AUDIENCE", TOKEN_AUDIENCE),
+        )
     except JWTError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
