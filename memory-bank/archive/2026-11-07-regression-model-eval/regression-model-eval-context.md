@@ -2,7 +2,7 @@
 
 ## 1. Purpose of this document
 
-This document is the implementation handoff for Cursor. It defines the project’s purpose, scope, constraints, required outputs, validation expectations, and completion criteria. It does **not** contain an implementation and should not be treated as permission to redesign unrelated parts of the repository.
+This document defines the project’s purpose, scope, constraints, required outputs, validation expectations, and completion criteria. It does **not** contain an implementation and should not be treated as permission to redesign unrelated parts of the repository.
 
 The authoritative assignment is:
 

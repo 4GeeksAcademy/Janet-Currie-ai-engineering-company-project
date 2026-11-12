@@ -108,6 +108,15 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Learning curve is two MAE lines under `data/eval/sales_forecast/` | No shaded band on a single chronological series; fold spread stays in the table |
 | Sample standard deviation divides by n − 1 | Five fold scores are a sample; the report names that choice |
 
+| Knowledge helper reuses `services/api` and `uis/web` | The live API is already `services/api`. Do not create `services/healthcore-api` or a second frontend |
+| Knowledge helper may add the Qdrant client to the API | The older library ban blocks sales-forecast training packages only. Model HTTP stays on existing `httpx` |
+| Qdrant runs in the existing Compose file | One local service with its own volume. Redis, the worker, and Flower stay as they are |
+| Re-index deletes and reloads `healthcore_knowledge` | Four small files. The wipe runs only when `setup()` is started on purpose |
+| A match score equal to the minimum is kept | Higher Qdrant cosine score means closer. The cutoff is inclusive |
+| Question length limit is 1000 characters | Fits one short question. Empty and too-long questions are rejected |
+| Exactly 24 hours is not given a fee rule | The appointment source says “more than 24 hours” is free and “less than 24 hours” is charged. It does not say what happens at exactly 24 hours, so the helper must not invent that case |
+| Embedding and generation model ids stay in the environment | No student model id was in the brief or the local env. The code refuses to guess. Live vector size, minimum score, and Recall@3 stay unmeasured until those settings exist |
+
 ## Rejected (for now)
 
 | Alternative | Why rejected | Reopen when |

@@ -23,6 +23,7 @@
 19. DEV-55 message queue is archived — do not load [`archive/2026-11-04-message-queue/`](archive/2026-11-04-message-queue/) unless asked. Durable notes: [`implementation-memory/message-queue.md`](implementation-memory/message-queue.md). Plan remains in [`docs/queues/`](../docs/queues/).
 20. Sales forecast is archived — do not load [`archive/2026-11-05-sales-forecast-model/`](archive/2026-11-05-sales-forecast-model/) unless asked. Durable notes: [`implementation-memory/sales-forecast.md`](implementation-memory/sales-forecast.md). Results remain in [`docs/sales-forecast/`](../docs/sales-forecast/). Do not add ML deps to the API or incident-analyzer requirements.
 21. Regression-model evaluation is archived — do not load [`archive/2026-11-07-regression-model-eval/`](archive/2026-11-07-regression-model-eval/) unless asked. The handoff is `regression-model-eval-context.md` in that folder. Durable notes stay in [`implementation-memory/sales-forecast.md`](implementation-memory/sales-forecast.md). The fit report remains [`data/eval/evaluation_report.md`](../data/eval/evaluation_report.md).
+22. Knowledge helper (this iteration): signed-in coordinators ask one policy question and receive a model-written answer from the four English documents in `docs/company-knowledge-base/`. Collection name is `healthcore_knowledge`. `POST /knowledge/query` returns `{ "answer": "..." }` only. Do not add a chat history, a public chatbot, LangChain, or a second API. Do not overwrite `data/eval/evaluation_report.md` or `data/eval/sales_forecast/`.
 
 ## Acceptance criteria
 
@@ -50,15 +51,17 @@
 - [x] Sales forecast: `tests/pipelines/` split unit test passes; focused feature/metric tests pass; training script run recorded.
 - [x] Sales forecast: documentation states Game A, metric formulas, leakage rules, actual numbers, and a report-card conclusion.
 - [x] Regression-model evaluation: handoff archived at `archive/2026-11-07-regression-model-eval/regression-model-eval-context.md`. Fit report remains `data/eval/evaluation_report.md`.
+- [x] Knowledge helper code: four documents, separate `setup` / `embed` / `retrieve` / `generate_answer` / `query`, signed-in `POST /knowledge/query`, protected `/knowledge` page, mocked tests, and `docs/rag/rag-design.md`.
+- [ ] Knowledge helper live score: model ids, vector size, minimum score, and Recall@3 of at least 80% after a real embedding model is configured.
 
 ## Interfaces / expected behavior (standing)
 
 | Surface | Expected behavior |
 |---------|-------------------|
 | `uis/website` | Public corporate site; EN/ES via `hc_lang` cookie; enquiry form; brand blues; no auth |
-| `uis/web` | Public `/login`, `/register`, `/forgot-password`, `/reset-password`; protected welcome, `/operations`, `/incidents`, `/suppliers`, `/backoffice/inventory/{products,orders,orders/inbound,orders/outbound}`, `/backoffice/reporting/monthly-clinic-supply-performance`, `/account/profile`, `/account/change-password` |
+| `uis/web` | Public `/login`, `/register`, `/forgot-password`, `/reset-password`; protected welcome, `/operations`, `/incidents`, `/suppliers`, `/knowledge`, `/backoffice/inventory/{products,orders,orders/inbound,orders/outbound}`, `/backoffice/reporting/monthly-clinic-supply-performance`, `/account/profile`, `/account/change-password` |
 | `scripts/` | Phase 1 `analyze.py` + `incidents-healthcore.csv`; `nightly_export.py` (DEV-53); `train_sales_forecast.py` and `eval_sales_forecast.py` (isolated `scripts/sales_forecast` uv env) |
-| `services/api` | Incidents + suppliers (TinyDB) + staff auth + inventory (SQLModel) + telemetry + reporting + JWT task status. Login is `POST /auth/login`. `GET /health` public. Sensitive routes require bearer JWT. CORS from `CORS_ORIGINS` (default `http://localhost:3001`, `http://127.0.0.1:3001`). Public `POST /users` does not return email. Inventory catalogue GETs may be served from in-process TTL cache. Public `POST /telemetry/events`; `GET /telemetry/report` (60s cache). JWT `GET /reporting/...` for clinic-month KPIs and latest pipeline run. JWT `POST /reporting/pipeline-runs` enqueues Celery and returns `202 {"task_id"}`. JWT `GET /tasks/{task_id}` returns normalized Celery state. |
+| `services/api` | Incidents + suppliers (TinyDB) + staff auth + inventory (SQLModel) + telemetry + reporting + JWT task status + knowledge helper. Login is `POST /auth/login`. `GET /health` public. Sensitive routes require bearer JWT. CORS from `CORS_ORIGINS` (default `http://localhost:3001`, `http://127.0.0.1:3001`). Public `POST /users` does not return email. Inventory catalogue GETs may be served from in-process TTL cache. Public `POST /telemetry/events`; `GET /telemetry/report` (60s cache). JWT `GET /reporting/...` for clinic-month KPIs and latest pipeline run. JWT `POST /reporting/pipeline-runs` enqueues Celery and returns `202 {"task_id"}`. JWT `GET /tasks/{task_id}` returns normalized Celery state. JWT `POST /knowledge/query` accepts `{ "question" }` and returns `{ "answer" }`. |
 | Compose | `docker compose up` from repo root: website 3000, staff UI 3001, API 8000, Redis 6379, Flower 5555 on network `healthcore_dev`. Worker is a separate process using `-A app.celery_app`. |
 | Future `services/healthcore-api` | FastAPI `/api/v1` domains; OpenAPI contract for frontends |
 | Agents | Skill discovery before non-trivial work; smallest change that satisfies the ask; no secrets; no git publish unless asked |

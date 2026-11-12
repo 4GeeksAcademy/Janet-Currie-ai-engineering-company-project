@@ -2,11 +2,17 @@
 
 ## Goal
 
-No active implementation ticket. Last completed work: regression-model evaluation ([`archive/2026-11-07-regression-model-eval/`](archive/2026-11-07-regression-model-eval/)). Wait for the next requested iteration.
+Build an internal knowledge helper for HealthCore patient coordinators. A signed-in coordinator asks one policy question in the staff app and receives a short, kind answer written only from four approved documents. The handoff is [`rag-knowledge-base-context.md`](../rag-knowledge-base-context.md).
 
 ## Scope (this iteration)
 
-None. Do not start new work until asked.
+- Copy the four English policy documents into `docs/company-knowledge-base/`.
+- Index them in a local Qdrant collection named `healthcore_knowledge` through an explicit `setup()` command. Starting the API does not rebuild the collection.
+- Keep `setup` and `embed` in `data/process/rag.py`. Keep `retrieve`, `generate_answer`, and `query` in `data/pipelines/rag.py`.
+- Add signed-in `POST /knowledge/query` on the existing API. The body is `{ "question": "..." }`. The response is `{ "answer": "..." }`.
+- Add a protected staff page at `/knowledge` in `uis/web`.
+- Measure retrieval with `data/eval/test-queries.json` once a real embedding model is configured. Do not invent model ids.
+- Write `docs/rag/rag-design.md` with the values that were actually verified.
 
 ## Scope (standing)
 
@@ -29,7 +35,7 @@ None. Do not start new work until asked.
 - Treat implementation and validation as one task (see spec).
 - Do not rewrite `memory-bank/archive/`. Leave `services/api/.coverage` untracked.
 - Celery module is `app.celery_app`. Do not `load_dotenv` at Celery import time.
-- Do not add ML deps to `services/api/pyproject.toml` or stdlib `scripts/requirements.txt`.
+- Do not add sales-forecast training libraries (`scikit-learn`, `scipy`, `matplotlib`) to `services/api/pyproject.toml` or `scripts/requirements.txt`. The knowledge helper may add the Qdrant client to the API project and to `services/api/requirements.txt`. Model calls use the `httpx` package already in the API. Do not add those client libraries to `scripts/requirements.txt`.
 
 ## Essential background
 

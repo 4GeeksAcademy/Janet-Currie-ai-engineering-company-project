@@ -13,6 +13,8 @@ WORKDIR /app
 COPY services/api services/api
 COPY scripts scripts
 COPY data/pipelines data/pipelines
+COPY data/process data/process
+COPY docs/company-knowledge-base docs/company-knowledge-base
 
 WORKDIR /app/services/api
 

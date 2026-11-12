@@ -1,0 +1,72 @@
+[
+  {
+    "id": "insurance-medicaid-georgia",
+    "question": "Can a patient use Medicaid at a Georgia clinic?",
+    "expected_source_document": "insurance-coverage",
+    "expected_section": "United States",
+    "in_domain": true
+  },
+  {
+    "id": "insurance-unlisted",
+    "question": "Does HealthCore accept Humana, or who checks an insurer that is not on the list?",
+    "expected_source_document": "insurance-coverage",
+    "expected_section": "Unlisted insurers",
+    "in_domain": true
+  },
+  {
+    "id": "insurance-country-unknown",
+    "question": "Which insurance does HealthCore accept?",
+    "expected_source_document": "insurance-coverage",
+    "expected_sections": ["United States", "United Kingdom"],
+    "in_domain": true
+  },
+  {
+    "id": "appointment-late-cancel",
+    "question": "Is there a charge for cancelling 12 hours in advance?",
+    "expected_source_document": "appointment-policy",
+    "expected_section": "Cancellation policy",
+    "in_domain": true
+  },
+  {
+    "id": "appointment-medicare-fee",
+    "question": "Do Medicare patients pay a no-show fee?",
+    "expected_source_document": "appointment-policy",
+    "expected_section": "Cancellation policy",
+    "in_domain": true
+  },
+  {
+    "id": "referral-five-days",
+    "question": "What happens if the patient has not received referral options after five business days?",
+    "expected_source_document": "referral-process",
+    "expected_section": "Five business day escalation",
+    "in_domain": true
+  },
+  {
+    "id": "referral-eleven-days",
+    "question": "Is the 11 day referral time a promise to the patient?",
+    "expected_source_document": "referral-process",
+    "expected_section": "Current average",
+    "in_domain": true
+  },
+  {
+    "id": "checklist-documents",
+    "question": "What should a new patient bring to their first visit?",
+    "expected_source_document": "new-patient-checklist",
+    "expected_section": "Documents to bring",
+    "in_domain": true
+  },
+  {
+    "id": "checklist-consent",
+    "question": "Which consent form does a new patient sign in the United Kingdom?",
+    "expected_source_document": "new-patient-checklist",
+    "expected_section": "Before the first appointment",
+    "in_domain": true
+  },
+  {
+    "id": "out-of-domain-capital",
+    "question": "What is the capital of France?",
+    "expected_source_document": null,
+    "in_domain": false,
+    "expect_no_match": true
+  }
+]
