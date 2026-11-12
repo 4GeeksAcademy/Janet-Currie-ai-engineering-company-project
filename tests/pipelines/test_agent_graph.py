@@ -65,9 +65,9 @@ def test_georgia_medicaid_searches_once_then_writes(monkeypatch: pytest.MonkeyPa
     assert result["status"] == "grounded"
     assert "Georgia clinics do not accept Medicaid" in result["answer"]
     events = store.list("georgia-medicaid")
-    assert [event["node"] for event in events] == ["validate", "retrieve", "generate"]
-    assert events[1]["passage_count"] == 1
-    assert events[1]["source_documents"] == ["healthcore-insurance-coverage.en.md"]
+    assert [event["node"] for event in events] == ["validate", "route", "retrieve", "generate"]
+    assert events[2]["passage_count"] == 1
+    assert events[2]["source_documents"] == ["healthcore-insurance-coverage.en.md"]
     assert "question" not in events[0]
     snapshot = graph.get_state({"configurable": {"thread_id": "georgia-medicaid"}})
     assert snapshot.values["answer"] == GEORGIA_ANSWER
@@ -75,7 +75,7 @@ def test_georgia_medicaid_searches_once_then_writes(monkeypatch: pytest.MonkeyPa
     assert snapshot.config["configurable"]["checkpoint_id"]
     TRACE_EXAMPLE.write_text(json.dumps({"run_id": "georgia-medicaid", "events": events}, indent=2) + "\n")
     saved = json.loads(TRACE_EXAMPLE.read_text())
-    assert saved["events"][2]["answer"] == GEORGIA_ANSWER
+    assert saved["events"][3]["answer"] == GEORGIA_ANSWER
     assert GEORGIA_QUESTION not in TRACE_EXAMPLE.read_text()
 
 
@@ -121,6 +121,7 @@ def test_empty_search_uses_the_fixed_sentence(monkeypatch: pytest.MonkeyPatch) -
     assert result["answer"] == NO_MATCH_ANSWER
     assert [event["node"] for event in store.list("no-match")] == [
         "validate",
+        "route",
         "retrieve",
         "no_match",
     ]

@@ -53,10 +53,19 @@ class SqliteTraceStore:
                     status TEXT NOT NULL,
                     passage_count INTEGER NOT NULL,
                     source_documents TEXT NOT NULL,
-                    answer TEXT NOT NULL
+                    answer TEXT NOT NULL,
+                    route TEXT NOT NULL DEFAULT '',
+                    tool_outcome TEXT NOT NULL DEFAULT '',
+                    incident_id TEXT NOT NULL DEFAULT ''
                 )
                 """
             )
+            existing = {row[1] for row in conn.execute("PRAGMA table_info(agent_trace)")}
+            for name in ("route", "tool_outcome", "incident_id"):
+                if name not in existing:
+                    conn.execute(
+                        f"ALTER TABLE agent_trace ADD COLUMN {name} TEXT NOT NULL DEFAULT ''"
+                    )
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.path, check_same_thread=False)
@@ -72,8 +81,9 @@ class SqliteTraceStore:
             connection.execute(
                 """
                 INSERT INTO agent_trace (
-                    run_id, position, node, status, passage_count, source_documents, answer
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    run_id, position, node, status, passage_count, source_documents, answer,
+                    route, tool_outcome, incident_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     run_id,
@@ -83,6 +93,9 @@ class SqliteTraceStore:
                     int(event["passage_count"]),
                     json.dumps(event["source_documents"]),
                     event.get("answer") or "",
+                    event.get("route") or "",
+                    event.get("tool_outcome") or "",
+                    event.get("incident_id") or "",
                 ),
             )
 
@@ -90,7 +103,8 @@ class SqliteTraceStore:
         with self._lock, self._connect() as connection:
             rows = connection.execute(
                 """
-                SELECT run_id, node, status, passage_count, source_documents, answer
+                SELECT run_id, node, status, passage_count, source_documents, answer,
+                       route, tool_outcome, incident_id
                 FROM agent_trace
                 WHERE run_id = ?
                 ORDER BY position
@@ -105,6 +119,9 @@ class SqliteTraceStore:
                 "passage_count": row["passage_count"],
                 "source_documents": json.loads(row["source_documents"]),
                 "answer": row["answer"],
+                "route": row["route"],
+                "tool_outcome": row["tool_outcome"],
+                "incident_id": row["incident_id"],
             }
             for row in rows
         ]

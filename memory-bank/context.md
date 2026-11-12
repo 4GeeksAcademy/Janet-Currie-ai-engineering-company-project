@@ -2,16 +2,15 @@
 
 ## Goal
 
-Wrap the existing knowledge helper in a LangGraph map so a signed-in coordinator's question shows which step ran. The handoff is [`langgraph-agent-base-context.md`](../langgraph-agent-base-context.md). The knowledge helper stays at [`archive/2026-11-07-rag-knowledge-base/rag-knowledge-base-context.md`](archive/2026-11-07-rag-knowledge-base/rag-knowledge-base-context.md).
+Teach the support-agent map to look up one incident from the latest uploaded CSV. Policy questions still use the knowledge search. The handoff is [`langgraph-agent-base-context2.md`](../langgraph-agent-base-context2.md). Part 1 stays archived at [`archive/2026-11-07-langgraph-agent-base/langgraph-agent-base-context.md`](archive/2026-11-07-langgraph-agent-base/langgraph-agent-base-context.md).
 
 ## Scope (this iteration)
 
-- Keep `retrieve()` and `generate_answer()` in [`data/pipelines/rag.py`](../data/pipelines/rag.py). The map calls those functions. It does not call `query()`.
-- Leave `POST /knowledge/query` unchanged. That door still asks the writing model when the search finds nothing.
-- Add a compiled graph in `services/api/app/agent/` and signed-in `POST /agent/query`.
-- A blank question never searches. A search with no passages returns one fixed honest sentence and does not call the writing model. A search with passages calls `generate_answer()` once.
-- Save checkpoints and traces in local SQLite for a normal run. Tests use an in-memory saver.
-- Do not re-cut the documents, add a staff page, or guess model names or the match score.
+- Keep the safe fields from each uploaded incident row in the existing in-memory store. Drop `patient_id`.
+- The agent reads that store directly. The wait limit is 3 seconds. Routing is a fixed id-and-word check.
+- A policy question still calls `retrieve()` and `generate_answer()` in [`data/pipelines/rag.py`](../data/pipelines/rag.py). An incident status is written from the saved fields.
+- Leave `POST /knowledge/query` and `POST /agent/query` in place. The agent door still returns `{ "answer", "run_id" }`.
+- Do not add a stock lookup, a staff page, or a second incident database.
 
 ## Scope (standing)
 

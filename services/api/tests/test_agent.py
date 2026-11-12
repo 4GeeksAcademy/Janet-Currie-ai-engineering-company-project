@@ -129,3 +129,57 @@ def test_writer_and_settings_failures_use_their_own_sentences(
     assert config_response.status_code == 503
     assert config_response.json()["detail"] == agent_graph.NOT_CONFIGURED
     assert "RAG_MIN_SCORE" not in config_response.text
+
+
+def test_signed_in_incident_question_hides_private_fields() -> None:
+    from app import store
+    from src.summarize import AnalysisSummary
+
+    store.clear()
+    store.save_analysis(
+        AnalysisSummary(
+            source_file="incidents.csv",
+            total_records=1,
+            valid_count=1,
+            invalid_count=0,
+            invalid_counts={},
+        ),
+        [
+            {
+                "incident_id": "HC-000006",
+                "date": "2026-01-15",
+                "clinic_id": "UK-MAN-01",
+                "country": "UK",
+                "category": "CLINICAL_CARE",
+                "status": "CLOSED",
+                "patient_id": "PAT-900006",
+                "description": "Closed without a satisfaction score recorded.",
+            }
+        ],
+    )
+    response = client.post(
+        "/agent/query",
+        json={"question": "What is the status of incident HC-000006?"},
+        headers=auth_header(email="agent-incident@healthcore.example"),
+    )
+    store.clear()
+    assert response.status_code == 200
+    body = response.json()
+    assert set(body) == {"answer", "run_id"}
+    assert "HC-000006" in body["answer"]
+    assert "CLOSED" in body["answer"]
+    assert "PAT-" not in response.text
+    assert "patient_id" not in response.text
+    assert "traceback" not in response.text.lower()
+
+
+def test_bad_ticket_id_stays_honest() -> None:
+    response = client.post(
+        "/agent/query",
+        json={"question": "What is the status of ticket 482?"},
+        headers=auth_header(email="agent-bad-id@healthcore.example"),
+    )
+    assert response.status_code == 422
+    assert "PAT-" not in response.text
+    assert "traceback" not in response.text.lower()
+    assert "CLOSED" not in response.text
