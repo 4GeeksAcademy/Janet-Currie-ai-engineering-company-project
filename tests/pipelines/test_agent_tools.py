@@ -120,7 +120,14 @@ def test_incident_question_reads_the_door_once(monkeypatch: pytest.MonkeyPatch) 
     assert result["status"] == "grounded"
     assert "HC-000006" in result["answer"]
     assert "CLOSED" in result["answer"]
-    assert [event["node"] for event in events] == ["validate", "route", "lookup"]
+    assert [event["node"] for event in events] == [
+        "resolve",
+        "validate",
+        "recall",
+        "route",
+        "lookup",
+        "evaluate",
+    ]
     assert "retrieve" not in [event["node"] for event in events]
     assert events[-1]["tool_outcome"] == "found"
     assert events[-1]["incident_id"] == "HC-000006"
@@ -150,8 +157,16 @@ def test_policy_question_does_not_read_incidents(monkeypatch: pytest.MonkeyPatch
     result, trace = _run("What is our referral escalation rule?", "policy-rule")
     events = trace.list("policy-rule")
     assert result["answer"] == POLICY_ANSWER
-    assert [event["node"] for event in events] == ["validate", "route", "retrieve", "generate"]
-    assert events[1]["route"] == "rag"
+    assert [event["node"] for event in events] == [
+        "resolve",
+        "validate",
+        "recall",
+        "route",
+        "retrieve",
+        "generate",
+        "evaluate",
+    ]
+    assert next(event["route"] for event in events if event["node"] == "route") == "rag"
     assert "lookup" not in [event["node"] for event in events]
     RAG_TRACE.write_text(json.dumps({"run_id": "policy-rule", "events": events}, indent=2) + "\n")
 
@@ -186,7 +201,12 @@ def test_missing_timeout_and_bad_id_stay_honest(monkeypatch: pytest.MonkeyPatch)
     bad, bad_trace = _run("What is the status of ticket 482?", "bad-ticket")
     assert bad["status"] == "invalid"
     assert "HC-000006" in bad["answer"]
-    assert [event["node"] for event in bad_trace.list("bad-ticket")] == ["validate", "route"]
+    assert [event["node"] for event in bad_trace.list("bad-ticket")] == [
+        "resolve",
+        "validate",
+        "recall",
+        "route",
+    ]
 
 
 def test_both_paths_keep_the_policy_half_when_the_incident_is_missing(
@@ -230,7 +250,7 @@ def test_two_runs_do_not_share_incident_traces(monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.setattr(agent_graph, "generate_answer", lambda *_args, **_kwargs: "unused")
     trace = MemoryTraceStore()
     graph = compile_agent(InMemorySaver())
-    run_agent(
+    first_result = run_agent(
         graph,
         "What is the status of incident HC-000006?",
         run_id="run-incident",
@@ -248,7 +268,7 @@ def test_two_runs_do_not_share_incident_traces(monkeypatch: pytest.MonkeyPatch) 
     second = trace.list("run-policy")
     assert {event["run_id"] for event in first} == {"run-incident"}
     assert {event["run_id"] for event in second} == {"run-policy"}
-    blob = json.dumps({"first": first, "second": second, "answer": graph.get_state({"configurable": {"thread_id": "run-incident"}}).values["answer"]})
+    blob = json.dumps({"first": first, "second": second, "answer": first_result["answer"]})
     assert "patient_id" not in blob
     assert "PAT-" not in blob
     assert STAFF_TOKEN not in blob

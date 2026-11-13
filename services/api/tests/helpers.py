@@ -28,6 +28,9 @@ _trace_fd, AGENT_TRACE = tempfile.mkstemp(suffix="-agent-traces.sqlite")
 os.close(_trace_fd)
 os.environ["AGENT_CHECKPOINT_PATH"] = AGENT_CHECKPOINT
 os.environ["AGENT_TRACE_PATH"] = AGENT_TRACE
+_memory_fd, AGENT_MEMORY = tempfile.mkstemp(suffix="-agent-memory.sqlite")
+os.close(_memory_fd)
+os.environ["AGENT_MEMORY_PATH"] = AGENT_MEMORY
 
 for path in (str(API_ROOT), str(SCRIPTS), str(REPO_ROOT / "data")):
     if path not in sys.path:

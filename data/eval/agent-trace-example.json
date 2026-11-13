@@ -3,7 +3,29 @@
   "events": [
     {
       "run_id": "georgia-medicaid",
+      "node": "resolve",
+      "status": "",
+      "passage_count": 0,
+      "source_documents": [],
+      "answer": "",
+      "route": "",
+      "tool_outcome": "",
+      "incident_id": ""
+    },
+    {
+      "run_id": "georgia-medicaid",
       "node": "validate",
+      "status": "checked",
+      "passage_count": 0,
+      "source_documents": [],
+      "answer": "",
+      "route": "",
+      "tool_outcome": "",
+      "incident_id": ""
+    },
+    {
+      "run_id": "georgia-medicaid",
+      "node": "recall",
       "status": "checked",
       "passage_count": 0,
       "source_documents": [],
@@ -44,7 +66,20 @@
       "source_documents": [
         "healthcore-insurance-coverage.en.md"
       ],
-      "answer": "Georgia clinics do not accept Medicaid.",
+      "answer": "",
+      "route": "rag",
+      "tool_outcome": "",
+      "incident_id": ""
+    },
+    {
+      "run_id": "georgia-medicaid",
+      "node": "evaluate",
+      "status": "grounded",
+      "passage_count": 1,
+      "source_documents": [
+        "healthcore-insurance-coverage.en.md"
+      ],
+      "answer": "",
       "route": "rag",
       "tool_outcome": "",
       "incident_id": ""

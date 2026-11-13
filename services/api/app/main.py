@@ -30,7 +30,9 @@ for _path in (str(_SCRIPTS), str(_DATA)):
 
 from langgraph.checkpoint.sqlite import SqliteSaver
 
+from app.agent.checkpoint import DurableSafeSaver
 from app.agent.graph import compile_agent
+from app.agent.memory_store import MemoryStore, memory_path
 from app.agent.trace import SqliteTraceStore, store_paths
 from app.database import init_db
 from app.cache import report_cache, response_cache
@@ -55,8 +57,9 @@ async def lifespan(_app: FastAPI):
     init_db()
     checkpoint_path, trace_path = store_paths()
     _app.state.agent_traces = SqliteTraceStore(trace_path)
+    _app.state.agent_memory = MemoryStore(memory_path())
     with SqliteSaver.from_conn_string(checkpoint_path) as checkpointer:
-        _app.state.agent_graph = compile_agent(checkpointer)
+        _app.state.agent_graph = compile_agent(DurableSafeSaver(checkpointer))
         try:
             yield
         finally:
