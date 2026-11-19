@@ -25,6 +25,7 @@ Working branch is `agent-gaurdrails`. The compliance harness is in the Part 1 st
 - Added the compliance harness in `services/api/app/agent/harness.py`, with screening before the existing graph, untrusted-data filtering, and one output release check.
 - Pointed the staff knowledge page at `POST /agent/query`. `POST /knowledge/query` still uses the coordinator prompt.
 - Added `uv run python -m app.agent.guard_summary` for sanitized session counts.
+- Archived the handoff at `memory-bank/archive/2026-11-18-agent-gaurdrails/agent-gaurdrails-context.md`.
 
 ## Validation results
 

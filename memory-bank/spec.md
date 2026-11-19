@@ -33,7 +33,7 @@
 ## Acceptance criteria
 
 - [x] Required memory-bank files exist at `memory-bank/` root.
-- [x] Completed iterations archived: `2026-07-29-monorepo-ai-frontend`, `2026-08-28-supplier-directory`, `2026-08-28-staff-auth`, `2026-08-31-error-handling`, `2026-09-04-bullet-proof`, `2026-09-18-inventory-api`, `2026-09-18-inventory-backoffice-ui`, `2026-09-23-docker-compose`, `2026-09-23-web-vitals`, `2026-09-24-serialization`, `2026-09-30-caching-optimisation`, `2026-10-14-telemetry`, `2026-10-21-data-pipeline`, `2026-11-04-background-processes`, `2026-11-04-message-queue`, `2026-11-05-sales-forecast-model`, `2026-11-07-regression-model-eval`, `2026-11-12-mcp-oauth-tools`, `2026-11-13-agent-memory`.
+- [x] Completed iterations archived: `2026-07-29-monorepo-ai-frontend`, `2026-08-28-supplier-directory`, `2026-08-28-staff-auth`, `2026-08-31-error-handling`, `2026-09-04-bullet-proof`, `2026-09-18-inventory-api`, `2026-09-18-inventory-backoffice-ui`, `2026-09-23-docker-compose`, `2026-09-23-web-vitals`, `2026-09-24-serialization`, `2026-09-30-caching-optimisation`, `2026-10-14-telemetry`, `2026-10-21-data-pipeline`, `2026-11-04-background-processes`, `2026-11-04-message-queue`, `2026-11-05-sales-forecast-model`, `2026-11-07-regression-model-eval`, `2026-11-12-mcp-oauth-tools`, `2026-11-13-agent-memory`, `2026-11-18-agent-gaurdrails`.
 - [x] Project `AGENTS.md` points at the global memory-bank file names.
 - [x] AUTH-088 / API-042 / FE-019 implemented; results in [`TESTING.md`](../TESTING.md).
 - [x] `BulletProofApp-Context.md` moved to `memory-bank/archive/2026-09-04-bullet-proof/`.

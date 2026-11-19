@@ -2,7 +2,7 @@
 
 ## Goal
 
-Add a fail-closed protection harness around the Part 1 staff agent so it serves as the HealthCore compliance assistant. Check each turn before RAG, MCP, answer generation, and memory side effects. Release every answer through one output check. The handoff is [`agent-gaurdrails-context.md`](../agent-gaurdrails-context.md). Part 1 memory stays as built; its handoff is archived.
+Add a fail-closed protection harness around the Part 1 staff agent so it serves as the HealthCore compliance assistant. Check each turn before RAG, MCP, answer generation, and memory side effects. Release every answer through one output check. The handoff is archived at [`archive/2026-11-18-agent-gaurdrails/agent-gaurdrails-context.md`](archive/2026-11-18-agent-gaurdrails/agent-gaurdrails-context.md). Part 1 memory stays as built.
 
 ## Scope (this iteration)
 
@@ -42,7 +42,7 @@ HealthCore: 12 outpatient clinics (US + UK), ~200 staff, ~$28M revenue.
 
 Staff UI is `uis/web` (port 3001), not `uis/backoffice`. FastAPI lives at `services/api`. Browser API calls use `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`.
 
-Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai-frontend/` through `archive/2026-11-13-agent-memory/`.
+Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai-frontend/` through `archive/2026-11-18-agent-gaurdrails/`.
 
 ## Relevant files
 
@@ -52,6 +52,6 @@ Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai
 | `docs/architecture_proposal.md` | Backend blueprint |
 | `memory-bank/implementation-memory/index.md` | Durable implementation catalog |
 | `archive/2026-11-13-agent-memory/agent-memory-context.md` | Archived agent-memory handoff |
-| `agent-gaurdrails-context.md` | Milestone 8 Part 2 harness handoff |
+| `archive/2026-11-18-agent-gaurdrails/agent-gaurdrails-context.md` | Archived harness handoff |
 | `services/api/app/agent/` | Support agent, harness, privacy gate, and memory store |
 | `uis/web/src/components/KnowledgeAssistant.tsx` | Staff entry for the compliance agent |
