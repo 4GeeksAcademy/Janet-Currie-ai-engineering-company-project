@@ -3,11 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { ErrorBanner } from "@/components/ErrorBanner";
 import { toUserMessage } from "@/lib/apiClient";
-import { askKnowledge } from "@/lib/knowledgeApi";
+import { askAgent } from "@/lib/knowledgeApi";
 
 export function KnowledgeAssistant() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const request = useRef<AbortController | null>(null);
@@ -21,7 +22,7 @@ export function KnowledgeAssistant() {
   const submit = async () => {
     const cleaned = question.trim();
     if (!cleaned) {
-      setError("Enter a policy or procedure question.");
+      setError("Enter a compliance question.");
       setAnswer(null);
       return;
     }
@@ -32,9 +33,13 @@ export function KnowledgeAssistant() {
     setLoading(true);
     setError(null);
     try {
-      const next = await askKnowledge(cleaned, controller.signal);
+      const next = await askAgent(cleaned, conversationId, controller.signal);
       if (controller.signal.aborted) return;
-      setAnswer(next);
+      setConversationId(next.conversationId);
+      const proposal = next.memoryProposal;
+      setAnswer(
+        proposal && !next.answer.includes(proposal) ? `${next.answer}\n\n${proposal}` : next.answer,
+      );
     } catch (err) {
       if (controller.signal.aborted) return;
       setAnswer(null);
@@ -46,10 +51,9 @@ export function KnowledgeAssistant() {
 
   return (
     <section className="mx-auto max-w-3xl">
-      <h2 className="text-2xl font-semibold text-slate-900">Knowledge assistant</h2>
+      <h2 className="text-2xl font-semibold text-slate-900">Compliance assistant</h2>
       <p className="mt-2 text-sm text-slate-600">
-        Ask a policy or procedure question. The answer comes from HealthCore&apos;s approved
-        documents about insurance, appointments, referrals, and new patients.
+        Ask a HealthCore compliance question. A refusal or a redirect is shown as the answer.
       </p>
       <form
         className="mt-6 space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
@@ -59,7 +63,7 @@ export function KnowledgeAssistant() {
         }}
       >
         <label htmlFor="knowledge-question" className="block text-sm font-semibold text-slate-800">
-          Policy or procedure question
+          Compliance question
         </label>
         <textarea
           id="knowledge-question"

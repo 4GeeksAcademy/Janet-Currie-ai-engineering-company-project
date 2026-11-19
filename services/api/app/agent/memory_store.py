@@ -103,6 +103,12 @@ class MemoryStore:
                 CREATE UNIQUE INDEX IF NOT EXISTS one_pending_proposal
                 ON agent_proposal(owner_user_id, conversation_id)
                 WHERE status = 'pending';
+                CREATE TABLE IF NOT EXISTS conversation_marker (
+                    conversation_id TEXT NOT NULL,
+                    owner_user_id TEXT NOT NULL,
+                    marker TEXT NOT NULL,
+                    PRIMARY KEY (conversation_id, marker)
+                );
                 """
             )
 
@@ -119,6 +125,7 @@ class MemoryStore:
             conn.execute("DELETE FROM agent_memory")
             conn.execute("DELETE FROM agent_proposal")
             conn.execute("DELETE FROM conversation_owner")
+            conn.execute("DELETE FROM conversation_marker")
 
     def claim_conversation(self, owner_user_id: str, conversation_id: str, now: datetime | None = None) -> bool:
         moment = _stamp(now or utcnow())
@@ -144,6 +151,55 @@ class MemoryStore:
                 ).fetchone()
                 return winner is not None and winner["owner_user_id"] == owner_user_id
         return True
+
+    def mark_topic(self, owner_user_id: str, conversation_id: str, marker: str) -> None:
+        """Remember a safe topic code for this conversation. The question is not stored."""
+
+        if marker != "active_breach":
+            return
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO conversation_marker (conversation_id, owner_user_id, marker)
+                VALUES (?, ?, ?)
+                ON CONFLICT(conversation_id, marker) DO NOTHING
+                """,
+                (conversation_id, owner_user_id, marker),
+            )
+
+    def has_topic(self, owner_user_id: str, conversation_id: str, marker: str) -> bool:
+        with self._lock, self._connect() as conn:
+            row = conn.execute(
+                """
+                SELECT 1 FROM conversation_marker
+                WHERE conversation_id = ? AND owner_user_id = ? AND marker = ?
+                """,
+                (conversation_id, owner_user_id, marker),
+            ).fetchone()
+        return row is not None
+
+    def void_run(
+        self,
+        owner_user_id: str,
+        conversation_id: str,
+        run_id: str,
+        now: datetime | None = None,
+    ) -> None:
+        """Drop a proposal staged during a turn whose answer cannot be released."""
+
+        moment = _stamp(now or utcnow())
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """
+                UPDATE agent_proposal
+                SET status = 'blocked', content = '', rationale = '',
+                    decision_label = 'blocked', privacy_reason = 'output_blocked',
+                    resolved_at = ?
+                WHERE owner_user_id = ? AND conversation_id = ? AND run_id = ?
+                  AND status = 'pending'
+                """,
+                (moment, owner_user_id, conversation_id, run_id),
+            )
 
     def get_pending(
         self,

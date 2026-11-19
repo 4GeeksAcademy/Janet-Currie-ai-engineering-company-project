@@ -28,6 +28,7 @@
 24. Incident lookup is built. The latest upload keeps safe incident rows, without `patient_id`. The agent map chooses policy search, one incident read, or both.
 25. HealthCore tool door: `mcps/healthcore-company-tools` exposes `get_incident_status` and `query_inventory`. Stock changes return `INVENTORY_READ_ONLY`. The agent incident step uses that door. No ticket create and no status change. The handoff is archived — do not load [`archive/2026-11-12-mcp-oauth-tools/`](archive/2026-11-12-mcp-oauth-tools/) unless asked. Durable notes stay in [`implementation-memory/healthcore-tool-door.md`](implementation-memory/healthcore-tool-door.md).
 26. Agent memory: user-scoped SQLite memories, one pending proposal per owner and conversation, confirm before save, and PHI kept out of proposals, checkpoints, traces, and logs. Design: [`docs/agent/memory-design.md`](../docs/agent/memory-design.md). The handoff is archived — do not load [`archive/2026-11-13-agent-memory/`](archive/2026-11-13-agent-memory/) unless asked. No clinic-wide scope, no new staff page, and no Celery cleanup job. Course retention defaults are technical policy pending Compliance review.
+27. Agent harness: screen each staff turn before memory confirmation, RAG, and MCP. Fixed templates cover patient identifiers, instruction overrides, personal tasks, casual asides, active-breach details, and vendor-specific agreement terms. In-domain answers still use the Part 1 path. Missing approved evidence hands off to Compliance. Output, traces, logs, and the guard summary must not echo protected text. The staff knowledge page calls `POST /agent/query`. `POST /knowledge/query` stays the older helper.
 
 ## Acceptance criteria
 
@@ -61,6 +62,7 @@
 - [x] Incident lookup: safe rows saved from the upload, a 3-second read, automatic routing, honest fallbacks, and routing evals. Live model answers stay unverified.
 - [x] HealthCore tool door: incident read, stock read, read-only rejection, staff-token check, and the agent incident step uses the door. Playground and live model answers stay unverified. Handoff archived at `archive/2026-11-12-mcp-oauth-tools/mcp-oauth-tools-context.md`.
 - [x] Agent memory: user-scoped confirm-before-save, PHI gate, safe checkpoint and trace, cleanup, and the two evidence cycles. Live model answers stay unverified until the 4Geeks settings exist. Handoff archived at `archive/2026-11-13-agent-memory/agent-memory-context.md`.
+- [x] Agent harness: input screening, untrusted-data filtering, output release, sanitized guard summary, staff page on `POST /agent/query`, and deterministic coverage of the mandatory HealthCore cases. Live model answers and Qdrant search stay unverified until the 4Geeks settings exist.
 
 ## Interfaces / expected behavior (standing)
 

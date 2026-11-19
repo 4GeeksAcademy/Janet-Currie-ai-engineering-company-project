@@ -2,7 +2,7 @@
 
 ## Current state
 
-Working branch is `agent-memory`. The agent-memory handoff is archived at `memory-bank/archive/2026-11-13-agent-memory/agent-memory-context.md`. User-scoped confirm-before-save memory remains in the support agent. The tool door remains in `mcps/healthcore-company-tools`. Policy search and the incident lookup stay in place.
+Working branch is `agent-gaurdrails`. The compliance harness is in the Part 1 staff agent. Each turn is screened before memory confirmation, retrieval, and MCP. Unsafe model output is replaced and a staged proposal from that turn is voided. The staff knowledge page calls `POST /agent/query` and keeps `conversation_id`. Live model answers and Qdrant search stay unverified.
 
 ## Completed (standing)
 
@@ -22,13 +22,35 @@ Working branch is `agent-memory`. The agent-memory handoff is archived at `memor
 - Archived the handoff at `memory-bank/archive/2026-11-12-mcp-oauth-tools/mcp-oauth-tools-context.md`.
 - Added user-scoped confirm-before-save memory in `services/api/app/agent/`. Policy search and the incident lookup stay. No staff page and no Celery cleanup job.
 - Archived the handoff at `memory-bank/archive/2026-11-13-agent-memory/agent-memory-context.md`.
+- Added the compliance harness in `services/api/app/agent/harness.py`, with screening before the existing graph, untrusted-data filtering, and one output release check.
+- Pointed the staff knowledge page at `POST /agent/query`. `POST /knowledge/query` still uses the coordinator prompt.
+- Added `uv run python -m app.agent.guard_summary` for sanitized session counts.
 
 ## Validation results
 
-- `uv --directory services/api run pytest tests/test_memory_privacy.py tests/test_memory_consolidation.py tests/test_agent_memory.py tests/test_agent.py`: 38 passed, 1 existing deprecation warning.
+- `uv --directory services/api run pytest tests/test_agent_harness.py tests/test_agent.py tests/test_agent_memory.py tests/test_memory_privacy.py tests/test_knowledge.py`: 62 passed, 1 existing deprecation warning.
 - `uv --directory services/api run pytest ../../tests/pipelines/test_agent_graph.py ../../tests/pipelines/test_agent_tools.py`: 12 passed.
-- `uv --directory services/api run pytest`: 239 passed, 1 skipped, 1 existing deprecation warning.
-- Live model answers, Qdrant indexing, Recall@3, and MCP Playground were not run. The local env still has no 4Geeks model ids or key.
+- `uv --directory services/api run pytest`: 263 passed, 1 skipped, 1 existing deprecation warning.
+- `npm test -w uis/web -- --watchAll=false src/components/__tests__/KnowledgeAssistant.test.tsx`: 6 passed. `npm run typecheck -w uis/web` completed with no errors.
+- Staff page in the browser: a signed-in "Hello" rendered the compliance redirect as the answer. The next request to `POST /agent/query` included the returned `conversation_id`. An in-domain referral question reached that route and the page showed the existing sanitized error after HTTP 503, because local search and the writing model are not configured.
+- `uv --directory services/api run python -m app.agent.guard_summary` printed the local session below. It contains codes only.
+
+```json
+{
+  "counts_by_category": {"content": 2, "security": 2, "structural": 0},
+  "counts_by_guard": {
+    "external": {"content": 0, "security": 0, "structural": 0},
+    "intake": {"content": 0, "security": 2, "structural": 0},
+    "output": {"content": 0, "security": 0, "structural": 0},
+    "scope": {"content": 2, "security": 0, "structural": 0}
+  },
+  "session_boundary": "AGENT_GUARD_SESSION plus AGENT_GUARD_LOG",
+  "session_id": "local",
+  "total": 4
+}
+```
+
+- Live model answers, Qdrant indexing, Recall@3, and MCP Playground were not run. The local env still has no 4Geeks model ids or key. The configured inventory database was unreachable, so the browser check used a temporary SQLite file.
 
 ## Blockers
 
@@ -36,7 +58,7 @@ No 4Geeks model ids or API key are in the local env files. Live model answers, i
 
 ## Next steps
 
-1. Publishing `agent-memory` is a separate request.
+1. Publishing `agent-gaurdrails` is a separate request. The syllabus branch name is `feature/agent-guardrails`.
 2. When the 4Geeks settings exist, set the two model ids and `RAG_MIN_SCORE`, run `python -m process.rag`, then `python data/eval/recall_at_3.py`. Do not invent those values.
 
 ## Run commands (durable)
@@ -57,4 +79,4 @@ python3 data/pipelines/pipeline.py
 docker compose up --build
 ```
 
-Last updated: 2026-11-13
+Last updated: 2026-11-18

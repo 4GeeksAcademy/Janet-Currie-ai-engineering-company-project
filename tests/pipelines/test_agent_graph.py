@@ -66,6 +66,7 @@ def test_georgia_medicaid_searches_once_then_writes(monkeypatch: pytest.MonkeyPa
     assert "Georgia clinics do not accept Medicaid" in result["answer"]
     events = store.list("georgia-medicaid")
     assert [event["node"] for event in events] == [
+        "screen",
         "resolve",
         "validate",
         "recall",
@@ -101,7 +102,7 @@ def test_blank_question_does_not_search_or_write(monkeypatch: pytest.MonkeyPatch
     assert result["status"] == "invalid"
     assert result["answer"] == "Question is required"
     events = store.list("blank-question")
-    assert [event["node"] for event in events] == ["resolve", "validate"]
+    assert [event["node"] for event in events] == ["screen", "resolve", "validate"]
     assert events[-1]["status"] == "invalid"
 
 
@@ -126,10 +127,11 @@ def test_empty_search_uses_the_fixed_sentence(monkeypatch: pytest.MonkeyPatch) -
 
     monkeypatch.setattr(agent_graph, "generate_answer", forbidden)
     store = MemoryTraceStore()
-    _graph, result = _run("What is the capital of France?", "no-match", store)
+    _graph, result = _run("What is the referral reminder policy?", "no-match", store)
     assert result["status"] == "no_context"
     assert result["answer"] == NO_MATCH_ANSWER
     assert [event["node"] for event in store.list("no-match")] == [
+        "screen",
         "resolve",
         "validate",
         "recall",
@@ -146,8 +148,8 @@ def test_two_runs_do_not_share_traces(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(agent_graph, "generate_answer", lambda *_args, **_kwargs: "unused")
     store = MemoryTraceStore()
     graph = compile_agent(InMemorySaver())
-    first_result = run_agent(graph, "First question about parking?", run_id="run-a", trace_store=store)
-    second_result = run_agent(graph, "Second question about parking?", run_id="run-b", trace_store=store)
+    first_result = run_agent(graph, "What is the referral reminder for clinic one?", run_id="run-a", trace_store=store)
+    second_result = run_agent(graph, "What is the referral reminder for clinic two?", run_id="run-b", trace_store=store)
     first = store.list("run-a")
     second = store.list("run-b")
     assert first and second

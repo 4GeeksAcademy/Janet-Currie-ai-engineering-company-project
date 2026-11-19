@@ -1,7 +1,7 @@
 """Keep a full checkpoint in this process and a safe copy on disk.
 
 Later nodes in the same turn still read the question. The SQLite file keeps only
-status, route, tool outcome, incident id, and source names.
+status, route, tool outcome, and source names.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from langgraph.checkpoint.base import (
     CheckpointTuple,
 )
 
-DURABLE_KEYS = frozenset({"status", "route", "tool_outcome", "incident_id", "sources_used"})
+DURABLE_KEYS = frozenset({"status", "route", "tool_outcome", "sources_used"})
 
 
 class DurableSafeSaver(BaseCheckpointSaver):

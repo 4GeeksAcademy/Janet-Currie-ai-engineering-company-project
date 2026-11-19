@@ -60,7 +60,7 @@ def test_validator_error_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_sqlite_checkpoint_omits_question_and_answer(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
-    question = "SENTINEL_QUESTION_TEXT_SHOULD_NOT_PERSIST"
+    question = "What is the referral policy? SENTINEL_QUESTION_TEXT_SHOULD_NOT_PERSIST"
     answer = "SENTINEL_ANSWER_TEXT_SHOULD_NOT_PERSIST"
     monkeypatch.setattr("app.agent.graph.load_settings", lambda **_kwargs: __import__("types").SimpleNamespace(k=5, min_score=0.4))
     monkeypatch.setattr("app.agent.graph.retrieve", lambda *_args, **_kwargs: [{"source_document": "ops.md", "text": "hours"}])

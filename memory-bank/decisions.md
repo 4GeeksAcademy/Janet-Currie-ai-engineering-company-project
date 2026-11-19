@@ -143,6 +143,13 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Forgetting is an approved `forget` proposal | It marks a memory deleted and keeps the audit row. No extra HTTP route |
 | Cleanup is a function on the memory store | Redis and Celery stay the reporting queue. A beat job would add an operational service |
 | Decision confidence below 0.7 does not approve | Silence, a bare "yes", and an unclear label close the proposal without a write |
+| The harness screens a turn before `resolve` | A restricted reply must not approve memory, retrieve, or call MCP |
+| Unknown non-compliance questions stop before tools | Empty approved evidence still uses the Compliance handoff. Blank and over-long questions still use the existing validation errors |
+| The compliance system prompt is agent-only | `build_prompt` keeps the coordinator wording for `POST /knowledge/query` |
+| No new compliance documents are added to the knowledge base | Tests inject labeled synthetic passages. Production gaps hand off to Compliance |
+| Durable traces and checkpoints omit `incident_id` | The live turn can still route on the id. The stored row keeps route and tool outcome |
+| Guard events are a local JSONL file, not an HTTP route | Counts are by guard and category. The file is gitignored and contains no staff text |
+| The staff knowledge page calls `POST /agent/query` | The older knowledge route stays available to direct callers and is not the staff entry |
 
 ## Rejected (for now)
 

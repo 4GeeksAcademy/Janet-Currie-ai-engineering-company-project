@@ -3,8 +3,19 @@
   "events": [
     {
       "run_id": "incident-status",
+      "node": "screen",
+      "status": "screened",
+      "passage_count": 0,
+      "source_documents": [],
+      "answer": "",
+      "route": "",
+      "tool_outcome": "",
+      "incident_id": ""
+    },
+    {
+      "run_id": "incident-status",
       "node": "resolve",
-      "status": "",
+      "status": "screened",
       "passage_count": 0,
       "source_documents": [],
       "answer": "",
@@ -43,7 +54,7 @@
       "answer": "",
       "route": "incident",
       "tool_outcome": "",
-      "incident_id": "HC-000006"
+      "incident_id": ""
     },
     {
       "run_id": "incident-status",
@@ -54,7 +65,7 @@
       "answer": "",
       "route": "incident",
       "tool_outcome": "found",
-      "incident_id": "HC-000006"
+      "incident_id": ""
     },
     {
       "run_id": "incident-status",
@@ -65,7 +76,7 @@
       "answer": "",
       "route": "incident",
       "tool_outcome": "found",
-      "incident_id": "HC-000006"
+      "incident_id": ""
     }
   ]
 }
