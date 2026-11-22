@@ -15,3 +15,9 @@ class AgentState(TypedDict, total=False):
     incident_result: dict | None
     tool_outcome: str
     sources_used: list[str]
+    owner_user_id: str
+    conversation_id: str
+    memories: list[str]
+    decision: str
+    decision_note: str
+    memory_proposal: dict | None

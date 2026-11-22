@@ -92,7 +92,7 @@ class SqliteTraceStore:
                     event["status"],
                     int(event["passage_count"]),
                     json.dumps(event["source_documents"]),
-                    event.get("answer") or "",
+                    "",
                     event.get("route") or "",
                     event.get("tool_outcome") or "",
                     event.get("incident_id") or "",

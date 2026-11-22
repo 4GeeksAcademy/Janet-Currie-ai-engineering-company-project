@@ -1,13 +1,13 @@
 # Decisions — Active iteration
 
-Standing decisions that still constrain work. Completed-iteration snapshots: [`archive/2026-07-29-monorepo-ai-frontend/`](archive/2026-07-29-monorepo-ai-frontend/), [`archive/2026-08-28-supplier-directory/`](archive/2026-08-28-supplier-directory/), [`archive/2026-08-28-staff-auth/`](archive/2026-08-28-staff-auth/), [`archive/2026-08-31-error-handling/`](archive/2026-08-31-error-handling/), [`archive/2026-09-04-bullet-proof/`](archive/2026-09-04-bullet-proof/), [`archive/2026-09-18-inventory-api/`](archive/2026-09-18-inventory-api/), [`archive/2026-09-18-inventory-backoffice-ui/`](archive/2026-09-18-inventory-backoffice-ui/), [`archive/2026-09-23-docker-compose/`](archive/2026-09-23-docker-compose/), [`archive/2026-09-23-web-vitals/`](archive/2026-09-23-web-vitals/), [`archive/2026-09-24-serialization/`](archive/2026-09-24-serialization/), [`archive/2026-09-30-caching-optimisation/`](archive/2026-09-30-caching-optimisation/), [`archive/2026-10-14-telemetry/`](archive/2026-10-14-telemetry/), [`archive/2026-10-21-data-pipeline/`](archive/2026-10-21-data-pipeline/), [`archive/2026-11-04-background-processes/`](archive/2026-11-04-background-processes/), [`archive/2026-11-04-message-queue/`](archive/2026-11-04-message-queue/), [`archive/2026-11-05-sales-forecast-model/`](archive/2026-11-05-sales-forecast-model/), [`archive/2026-11-07-regression-model-eval/`](archive/2026-11-07-regression-model-eval/). Architecture rationale: [`docs/architecture_proposal.md`](../docs/architecture_proposal.md). Course/phase guides live in their archives (do not load unless asked).
+Standing decisions that still constrain work. Completed-iteration snapshots: [`archive/2026-07-29-monorepo-ai-frontend/`](archive/2026-07-29-monorepo-ai-frontend/), [`archive/2026-08-28-supplier-directory/`](archive/2026-08-28-supplier-directory/), [`archive/2026-08-28-staff-auth/`](archive/2026-08-28-staff-auth/), [`archive/2026-08-31-error-handling/`](archive/2026-08-31-error-handling/), [`archive/2026-09-04-bullet-proof/`](archive/2026-09-04-bullet-proof/), [`archive/2026-09-18-inventory-api/`](archive/2026-09-18-inventory-api/), [`archive/2026-09-18-inventory-backoffice-ui/`](archive/2026-09-18-inventory-backoffice-ui/), [`archive/2026-09-23-docker-compose/`](archive/2026-09-23-docker-compose/), [`archive/2026-09-23-web-vitals/`](archive/2026-09-23-web-vitals/), [`archive/2026-09-24-serialization/`](archive/2026-09-24-serialization/), [`archive/2026-09-30-caching-optimisation/`](archive/2026-09-30-caching-optimisation/), [`archive/2026-10-14-telemetry/`](archive/2026-10-14-telemetry/), [`archive/2026-10-21-data-pipeline/`](archive/2026-10-21-data-pipeline/), [`archive/2026-11-04-background-processes/`](archive/2026-11-04-background-processes/), [`archive/2026-11-04-message-queue/`](archive/2026-11-04-message-queue/), [`archive/2026-11-05-sales-forecast-model/`](archive/2026-11-05-sales-forecast-model/), [`archive/2026-11-07-regression-model-eval/`](archive/2026-11-07-regression-model-eval/), [`archive/2026-11-12-mcp-oauth-tools/`](archive/2026-11-12-mcp-oauth-tools/), [`archive/2026-11-13-agent-memory/`](archive/2026-11-13-agent-memory/). Architecture rationale: [`docs/architecture_proposal.md`](../docs/architecture_proposal.md). Course/phase guides live in their archives (do not load unless asked).
 
 ## Adopted
 
 | Decision | Rationale |
 |----------|-----------|
 | Project memory bank uses global layout (`context`, `spec`, `progress`, `decisions`, `archive/YYYY-MM-DD-name/` with plan + tech-updates) | Aligns with global working rules; keeps active files concise |
-| Finished course contracts and phase guides live in `archive/`, not repo root or the four active files | AUTH, error-handling, bullet-proof, inventory API, inventory UI, Docker Compose, Web Vitals, serialization, caching, telemetry, data-pipeline, background-processes, message-queue, and sales-forecast guides moved there after completion |
+| Finished course contracts and phase guides live in `archive/`, not repo root or the four active files | AUTH, error-handling, bullet-proof, inventory API, inventory UI, Docker Compose, Web Vitals, serialization, caching, telemetry, data-pipeline, background-processes, message-queue, sales-forecast, MCP OAuth tools, and agent-memory guides moved there after completion |
 | AUTH-088 uses pytest + pytest-cov via `uv` in `services/api`; coverage is measured on `app.auth` | Course requires `uv run pytest --cov`; existing unittest files still run under pytest |
 | AUTH-088 skips Jest for auth crypto; FE-019 adds Jest in `uis/web` for `apiClient` helpers | `authApi.ts` is fetch-only; token storage, `messageForStatus`, `toUserMessage`, and `parseError` are the testable utilities |
 | API-042 extends existing incident/supplier unittest files rather than rewriting them as pytest functions | Smallest change; pytest already collects unittest.TestCase |
@@ -135,6 +135,14 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | The door checks the staff token with `bearer_auth_middleware(verify_staff_token, audience=...)` | mcpauth 0.1.1's built-in `"jwt"` mode needs a JWKS URI and does not accept HS256. The documented custom function checks the shared-secret signature and the expiry. The middleware then checks issuer and audience |
 | The token issuer is `https://healthcore-api` | That middleware requires the issuer to be a URL. The audience stays `healthcore-company-tools`. No second login site was added |
 | Streamable HTTP is served at `/mcp` on port 8001 | That is the path FastMCP 4.1.6 uses for Streamable HTTP |
+| Agent memory uses a separate SQLite file | The memory set is small and needs transactions, ownership, and audit queries. The standard library matches the existing trace store. No new dependency |
+| Agent memory scope is the signed-in user id only | Auth has roles and no clinic membership. A clinic or country name stays inside the sentence. Sharing would invent an authorization model |
+| `conversation_id` is separate from `run_id` | A pending proposal needs more than one turn. The checkpoint thread stays the per-turn `run_id` |
+| Durable checkpoints and new traces omit question and answer text | Those files were keeping staff text. Pending text lives only in the memory database after the privacy gate |
+| Memory lifetimes are course defaults, not a legal retention policy | Pending proposals last 24 hours, incident patterns 30 days, operational corrections 180 days, and presentation preferences last until the same user replaces them. Compliance has not approved these numbers |
+| Forgetting is an approved `forget` proposal | It marks a memory deleted and keeps the audit row. No extra HTTP route |
+| Cleanup is a function on the memory store | Redis and Celery stay the reporting queue. A beat job would add an operational service |
+| Decision confidence below 0.7 does not approve | Silence, a bare "yes", and an unclear label close the proposal without a write |
 
 ## Rejected (for now)
 
@@ -172,6 +180,11 @@ Standing decisions that still constrain work. Completed-iteration snapshots: [`a
 | Retuning the forest during the learning curve | Evaluation must score the frozen settings | If a later ticket owns a new search |
 | Scoring 2024–2025 inside the fit diagnosis | The holdout has to stay unused | If a later ticket is explicitly a final test review |
 | A shaded band on the learning curve | Each point is one chronological prefix, not a repeated sample | If a later design repeats each prefix |
+| Redis as the agent memory store | The broker has no durable audit transaction for approve/reject. Memory stays in its own SQLite file | If a later ticket needs shared multi-process memory with the same constraints |
+| A Qdrant collection for agent memory | Exact owner, status, and expiry filters come first. `healthcore_knowledge` stays policy-only | If semantic recall is required after the relational filter |
+| A knowledge graph or fine-tune for these memories | The facts are short scoped statements that must be expired and revoked | Not for this milestone |
+| Clinic-wide or country-wide memory | The auth model cannot prove clinic membership | If Compliance defines that authorization |
+| Celery cleanup for agent memory | Nightly export stays off Beat, and memory cleanup must stay testable in-process | If a later ticket owns a scheduler |
 
 ## Still provisional
 

@@ -65,18 +65,28 @@ def test_georgia_medicaid_searches_once_then_writes(monkeypatch: pytest.MonkeyPa
     assert result["status"] == "grounded"
     assert "Georgia clinics do not accept Medicaid" in result["answer"]
     events = store.list("georgia-medicaid")
-    assert [event["node"] for event in events] == ["validate", "route", "retrieve", "generate"]
-    assert events[2]["passage_count"] == 1
-    assert events[2]["source_documents"] == ["healthcore-insurance-coverage.en.md"]
+    assert [event["node"] for event in events] == [
+        "resolve",
+        "validate",
+        "recall",
+        "route",
+        "retrieve",
+        "generate",
+        "evaluate",
+    ]
+    retrieve = next(event for event in events if event["node"] == "retrieve")
+    assert retrieve["passage_count"] == 1
+    assert retrieve["source_documents"] == ["healthcore-insurance-coverage.en.md"]
+    assert all(event["answer"] == "" for event in events)
     assert "question" not in events[0]
     snapshot = graph.get_state({"configurable": {"thread_id": "georgia-medicaid"}})
-    assert snapshot.values["answer"] == GEORGIA_ANSWER
     assert snapshot.config["configurable"]["thread_id"] == "georgia-medicaid"
     assert snapshot.config["configurable"]["checkpoint_id"]
     TRACE_EXAMPLE.write_text(json.dumps({"run_id": "georgia-medicaid", "events": events}, indent=2) + "\n")
     saved = json.loads(TRACE_EXAMPLE.read_text())
-    assert saved["events"][3]["answer"] == GEORGIA_ANSWER
+    assert saved["events"][-1]["answer"] == ""
     assert GEORGIA_QUESTION not in TRACE_EXAMPLE.read_text()
+    assert GEORGIA_ANSWER not in TRACE_EXAMPLE.read_text()
 
 
 def test_blank_question_does_not_search_or_write(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -91,7 +101,7 @@ def test_blank_question_does_not_search_or_write(monkeypatch: pytest.MonkeyPatch
     assert result["status"] == "invalid"
     assert result["answer"] == "Question is required"
     events = store.list("blank-question")
-    assert [event["node"] for event in events] == ["validate"]
+    assert [event["node"] for event in events] == ["resolve", "validate"]
     assert events[-1]["status"] == "invalid"
 
 
@@ -120,10 +130,13 @@ def test_empty_search_uses_the_fixed_sentence(monkeypatch: pytest.MonkeyPatch) -
     assert result["status"] == "no_context"
     assert result["answer"] == NO_MATCH_ANSWER
     assert [event["node"] for event in store.list("no-match")] == [
+        "resolve",
         "validate",
+        "recall",
         "route",
         "retrieve",
         "no_match",
+        "evaluate",
     ]
 
 
@@ -133,14 +146,15 @@ def test_two_runs_do_not_share_traces(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(agent_graph, "generate_answer", lambda *_args, **_kwargs: "unused")
     store = MemoryTraceStore()
     graph = compile_agent(InMemorySaver())
-    run_agent(graph, "First question about parking?", run_id="run-a", trace_store=store)
-    run_agent(graph, "Second question about parking?", run_id="run-b", trace_store=store)
+    first_result = run_agent(graph, "First question about parking?", run_id="run-a", trace_store=store)
+    second_result = run_agent(graph, "Second question about parking?", run_id="run-b", trace_store=store)
     first = store.list("run-a")
     second = store.list("run-b")
     assert first and second
     assert {event["run_id"] for event in first} == {"run-a"}
     assert {event["run_id"] for event in second} == {"run-b"}
-    assert graph.get_state({"configurable": {"thread_id": "run-a"}}).values["answer"] == NO_MATCH_ANSWER
+    assert first_result["answer"] == NO_MATCH_ANSWER
+    assert second_result["answer"] == NO_MATCH_ANSWER
     assert graph.get_state({"configurable": {"thread_id": "run-b"}}).config["configurable"]["thread_id"] == "run-b"
 
 

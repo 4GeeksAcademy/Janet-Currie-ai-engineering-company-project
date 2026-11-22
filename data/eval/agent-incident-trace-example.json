@@ -3,7 +3,29 @@
   "events": [
     {
       "run_id": "incident-status",
+      "node": "resolve",
+      "status": "",
+      "passage_count": 0,
+      "source_documents": [],
+      "answer": "",
+      "route": "",
+      "tool_outcome": "",
+      "incident_id": ""
+    },
+    {
+      "run_id": "incident-status",
       "node": "validate",
+      "status": "checked",
+      "passage_count": 0,
+      "source_documents": [],
+      "answer": "",
+      "route": "",
+      "tool_outcome": "",
+      "incident_id": ""
+    },
+    {
+      "run_id": "incident-status",
+      "node": "recall",
       "status": "checked",
       "passage_count": 0,
       "source_documents": [],
@@ -29,7 +51,18 @@
       "status": "grounded",
       "passage_count": 0,
       "source_documents": [],
-      "answer": "Incident HC-000006 is CLOSED. Category: CLINICAL_CARE. Clinic: UK-MAN-01. Country: UK. Date: 2026-01-15.",
+      "answer": "",
+      "route": "incident",
+      "tool_outcome": "found",
+      "incident_id": "HC-000006"
+    },
+    {
+      "run_id": "incident-status",
+      "node": "evaluate",
+      "status": "grounded",
+      "passage_count": 0,
+      "source_documents": [],
+      "answer": "",
       "route": "incident",
       "tool_outcome": "found",
       "incident_id": "HC-000006"

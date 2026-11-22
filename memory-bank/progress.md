@@ -2,7 +2,7 @@
 
 ## Current state
 
-Active work is on branch `mcp-oauth-tools`. The HealthCore tool door is in `mcps/healthcore-company-tools`. It reads one incident and reads stock. The agent incident step calls that door with the staff token. Policy search is unchanged.
+Working branch is `agent-memory`. The agent-memory handoff is archived at `memory-bank/archive/2026-11-13-agent-memory/agent-memory-context.md`. User-scoped confirm-before-save memory remains in the support agent. The tool door remains in `mcps/healthcore-company-tools`. Policy search and the incident lookup stay in place.
 
 ## Completed (standing)
 
@@ -19,26 +19,24 @@ Active work is on branch `mcp-oauth-tools`. The HealthCore tool door is in `mcps
 - An empty agent search returns one fixed sentence and does not call the writing model. A Georgia Medicaid trace is saved at `data/eval/agent-trace-example.json`.
 - The latest incident upload now keeps safe rows in the existing store. `patient_id` is dropped. The agent map chooses policy search, one incident read, or both.
 - Added the read-only tool door. The staff token now carries issuer `https://healthcore-api`, audience `healthcore-company-tools`, and scopes `incidents:read inventory:read`. The agent incident step calls `get_incident_status` through that door.
+- Archived the handoff at `memory-bank/archive/2026-11-12-mcp-oauth-tools/mcp-oauth-tools-context.md`.
+- Added user-scoped confirm-before-save memory in `services/api/app/agent/`. Policy search and the incident lookup stay. No staff page and no Celery cleanup job.
+- Archived the handoff at `memory-bank/archive/2026-11-13-agent-memory/agent-memory-context.md`.
 
 ## Validation results
 
-- `uv --directory mcps/healthcore-company-tools run pytest`: 4 passed.
+- `uv --directory services/api run pytest tests/test_memory_privacy.py tests/test_memory_consolidation.py tests/test_agent_memory.py tests/test_agent.py`: 38 passed, 1 existing deprecation warning.
 - `uv --directory services/api run pytest ../../tests/pipelines/test_agent_graph.py ../../tests/pipelines/test_agent_tools.py`: 12 passed.
-- `services/api/.venv/bin/python -m pytest tests/pipelines/test_rag.py`: 15 passed.
-- `uv --directory services/api run pytest`: 208 passed, 1 skipped, 1 existing deprecation warning.
-- `npm run typecheck`: passed for the website and the staff app.
-- `docker compose config`: passed.
-- MCP Playground was not run from this laptop.
-- Live model answers, the real match score, and Recall@3 were not run. The local env still has no 4Geeks model ids or key. `recall_at_3.py` was not run again.
-- No new staff page was added, so nothing was opened in a browser.
+- `uv --directory services/api run pytest`: 239 passed, 1 skipped, 1 existing deprecation warning.
+- Live model answers, Qdrant indexing, Recall@3, and MCP Playground were not run. The local env still has no 4Geeks model ids or key.
 
 ## Blockers
 
-No 4Geeks model ids or API key are in the local env files. Live model answers, vector size, the real match score, live indexing, and Recall@3 stay unverified until those settings are filled in.
+No 4Geeks model ids or API key are in the local env files. Live model answers, including a live memory proposal from the model, stay unverified until those settings are filled in. The tests use a fake model.
 
 ## Next steps
 
-1. Publishing `mcp-oauth-tools` is a separate request.
+1. Publishing `agent-memory` is a separate request.
 2. When the 4Geeks settings exist, set the two model ids and `RAG_MIN_SCORE`, run `python -m process.rag`, then `python data/eval/recall_at_3.py`. Do not invent those values.
 
 ## Run commands (durable)
@@ -59,4 +57,4 @@ python3 data/pipelines/pipeline.py
 docker compose up --build
 ```
 
-Last updated: 2026-11-07
+Last updated: 2026-11-13

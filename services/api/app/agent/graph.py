@@ -15,6 +15,15 @@ from app.agent.incidents import (
     lookup_incident,
     staff_token_var,
 )
+from app.agent.memory_policy import (
+    asks_to_remember,
+    classify_reply,
+    propose_memory,
+    select_memories,
+    should_propose,
+    subject_key,
+)
+from app.agent.privacy import PRIVACY_REFUSAL, is_phi_block, validate_memory_text
 from app.agent.state import AgentState
 from pipelines.rag import (
     GenerationUnavailableError,
@@ -60,6 +69,10 @@ OTHER_NUMBER = re.compile(r"\b\d{2,}\b")
 
 _trace_store: ContextVar[object | None] = ContextVar("agent_trace_store", default=None)
 _run_id: ContextVar[str | None] = ContextVar("agent_run_id", default=None)
+_memory_store: ContextVar[object | None] = ContextVar("agent_memory_store", default=None)
+_owner_id: ContextVar[str | None] = ContextVar("agent_owner_id", default=None)
+_conversation_id: ContextVar[str | None] = ContextVar("agent_conversation_id", default=None)
+_decision_note: ContextVar[str | None] = ContextVar("agent_decision_note", default=None)
 
 
 def _failed(message: str) -> dict:
@@ -87,7 +100,7 @@ def _write_trace(node: str, state: AgentState) -> None:
         "status": state.get("status") or "",
         "passage_count": len(passages),
         "source_documents": _source_names(passages),
-        "answer": state.get("answer") or "",
+        "answer": "",
         "route": state.get("route") or "",
         "tool_outcome": state.get("tool_outcome") or "",
         "incident_id": state.get("incident_id") or "",
@@ -160,8 +173,12 @@ def search_once(state: AgentState) -> dict:
 
 def write_answer(state: AgentState) -> dict:
     passages = state.get("retrieved_context") or []
+    notes = _notes(state)
     try:
-        answer = generate_answer(state.get("question") or "", passages)
+        if notes:
+            answer = generate_answer(state.get("question") or "", passages, memories=notes)
+        else:
+            answer = generate_answer(state.get("question") or "", passages)
     except ConfigurationError:
         return _failed(NOT_CONFIGURED)
     except (GenerationUnavailableError, EmbeddingError):
@@ -230,7 +247,10 @@ def join_sources(state: AgentState) -> dict:
         policy = NO_MATCH_ANSWER
     else:
         try:
-            policy = generate_answer(state.get("question") or "", passages)
+            if _notes(state):
+                policy = generate_answer(state.get("question") or "", passages, memories=_notes(state))
+            else:
+                policy = generate_answer(state.get("question") or "", passages)
         except (ConfigurationError, GenerationUnavailableError, EmbeddingError):
             policy = "The policy part could not be confirmed."
     incident = incident_answer(state.get("tool_outcome") or "", state.get("incident_result"))
@@ -242,10 +262,179 @@ def join_sources(state: AgentState) -> dict:
     }
 
 
+def _notes(state: AgentState) -> list[str]:
+    notes = state.get("memories") or []
+    return [note for note in notes if isinstance(note, str) and note.strip()]
+
+
+def resolve_pending(state: AgentState) -> dict:
+    store = _memory_store.get()
+    owner = _owner_id.get()
+    conversation = _conversation_id.get()
+    if store is None or not owner or not conversation:
+        return {}
+    try:
+        pending = store.get_pending(owner, conversation)
+    except Exception:
+        logger.info("agent_memory_pending_failed")
+        return {}
+    if pending is None:
+        return {}
+    decision = classify_reply(state.get("question") or "", pending.content)
+    try:
+        outcome = store.resolve(
+            pending.proposal_id,
+            owner_user_id=owner,
+            conversation_id=conversation,
+            label=decision.label,
+            edited_content=decision.edited_content,
+        )
+    except Exception:
+        logger.info("agent_memory_resolve_failed")
+        outcome = {"note": "I could not save that. Nothing was stored."}
+    note = str(outcome.get("note") or "")
+    _decision_note.set(note)
+    remainder = (decision.remainder or "").strip()
+    if remainder and decision.label in {"approve", "edit", "topic_change"}:
+        return {
+            "question": remainder,
+            "decision": decision.label,
+            "decision_note": note,
+            "status": "checked",
+        }
+    return {
+        "question": "",
+        "answer": note,
+        "decision": decision.label,
+        "decision_note": note,
+        "status": "decision_only",
+    }
+
+
+def recall_memories(state: AgentState) -> dict:
+    store = _memory_store.get()
+    owner = _owner_id.get()
+    if store is None or not owner:
+        return {"memories": []}
+    try:
+        notes = select_memories(store.list_active(owner), state.get("question") or "")
+    except Exception:
+        logger.info("agent_memory_read_failed")
+        notes = []
+    return {"memories": notes}
+
+
+def evaluate_turn(state: AgentState) -> dict:
+    answer = state.get("answer") or ""
+    if state.get("status") in {"invalid", "failed", "decision_only"}:
+        return {"memory_proposal": None}
+    store = _memory_store.get()
+    owner = _owner_id.get()
+    conversation = _conversation_id.get()
+    if store is None or not owner or not conversation:
+        return {"memory_proposal": None}
+    question = state.get("question") or ""
+    run_id = _run_id.get() or ""
+    try:
+        candidate = propose_memory(question, answer)
+        if candidate is None and asks_to_remember(question) and is_phi_block(validate_memory_text(question)):
+            store.create_proposal(
+                owner_user_id=owner,
+                conversation_id=conversation,
+                run_id=run_id,
+                action="add",
+                category="operational_correction",
+                subject_key="blocked",
+                content=question,
+                rationale="",
+            )
+            return {"answer": _with_refusal(answer), "memory_proposal": None}
+        if not candidate:
+            return {"memory_proposal": None}
+        content = str(candidate.get("content") or "")
+        if is_phi_block(validate_memory_text(content)):
+            store.create_proposal(
+                owner_user_id=owner,
+                conversation_id=conversation,
+                run_id=run_id,
+                action=str(candidate.get("action") or "add"),
+                category=str(candidate.get("category") or "operational_correction"),
+                subject_key=subject_key(str(candidate.get("subject") or "blocked")),
+                content=content,
+                rationale="",
+            )
+            return {"answer": _with_refusal(answer), "memory_proposal": None}
+        existing = [row.content for row in store.list_active(owner)]
+        allowed, reason = should_propose(
+            question,
+            candidate,
+            state.get("retrieved_context") or [],
+            existing,
+        )
+        if not allowed:
+            if reason in {
+                "patient_identifier",
+                "mrn",
+                "date_of_birth",
+                "clinical_content",
+                "insurance_identifier",
+                "reidentification",
+                "validator_error",
+            }:
+                return {"answer": _with_refusal(answer), "memory_proposal": None}
+            return {"memory_proposal": None}
+        action = str(candidate.get("action") or "add")
+        key = subject_key(str(candidate.get("subject") or content))
+        target = ""
+        if action == "forget":
+            for row in store.list_active(owner):
+                if row.subject_key == key or row.content == content:
+                    target = row.memory_id
+                    break
+        created = store.create_proposal(
+            owner_user_id=owner,
+            conversation_id=conversation,
+            run_id=run_id,
+            action=action,
+            category=str(candidate["category"]),
+            subject_key=key,
+            content=content,
+            rationale=str(candidate.get("rationale") or "It may help on a later question."),
+            target_memory_id=target,
+        )
+    except Exception:
+        logger.info("agent_memory_propose_failed")
+        return {"memory_proposal": None}
+    pending = created.get("proposal") if created.get("ok") else None
+    if pending is None:
+        return {"memory_proposal": None}
+    shown = f"{answer}\n\nI have not saved this yet. Should I remember it?\n{pending.content}".strip()
+    return {
+        "answer": shown,
+        "memory_proposal": {
+            "proposal_id": pending.proposal_id,
+            "content": pending.content,
+            "status": "pending",
+        },
+    }
+
+
+def _with_refusal(answer: str) -> str:
+    if PRIVACY_REFUSAL in answer:
+        return answer
+    return f"{answer}\n\n{PRIVACY_REFUSAL}".strip()
+
+
+def route_after_resolve(state: AgentState) -> str:
+    if state.get("status") == "decision_only":
+        return END
+    return "validate"
+
+
 def route_after_validate(state: AgentState) -> str:
     if state.get("status") == "invalid":
         return END
-    return "route"
+    return "recall"
 
 
 def route_after_choice(state: AgentState) -> str:
@@ -259,7 +448,7 @@ def route_after_choice(state: AgentState) -> str:
 def route_after_lookup(state: AgentState) -> str:
     if state.get("route") == "both":
         return "retrieve"
-    return END
+    return "evaluate"
 
 
 def route_after_retrieve(state: AgentState) -> str:
@@ -276,19 +465,28 @@ def compile_agent(checkpointer):
     """Build the map once. Request code calls the compiled map."""
 
     builder = StateGraph(AgentState)
+    builder.add_node("resolve", _traced("resolve", resolve_pending))
     builder.add_node("validate", _traced("validate", validate_question))
+    builder.add_node("recall", _traced("recall", recall_memories))
     builder.add_node("route", _traced("route", choose_source))
     builder.add_node("lookup", _traced("lookup", lookup_one))
     builder.add_node("retrieve", _traced("retrieve", search_once))
     builder.add_node("generate", _traced("generate", write_answer))
     builder.add_node("no_match", _traced("no_match", say_no_match))
     builder.add_node("join", _traced("join", join_sources))
-    builder.add_edge(START, "validate")
+    builder.add_node("evaluate", _traced("evaluate", evaluate_turn))
+    builder.add_edge(START, "resolve")
+    builder.add_conditional_edges(
+        "resolve",
+        route_after_resolve,
+        {"validate": "validate", END: END},
+    )
     builder.add_conditional_edges(
         "validate",
         route_after_validate,
-        {"route": "route", END: END},
+        {"recall": "recall", END: END},
     )
+    builder.add_edge("recall", "route")
     builder.add_conditional_edges(
         "route",
         route_after_choice,
@@ -297,27 +495,42 @@ def compile_agent(checkpointer):
     builder.add_conditional_edges(
         "lookup",
         route_after_lookup,
-        {"retrieve": "retrieve", END: END},
+        {"retrieve": "retrieve", "evaluate": "evaluate"},
     )
     builder.add_conditional_edges(
         "retrieve",
         route_after_retrieve,
         {"generate": "generate", "no_match": "no_match", "join": "join", END: END},
     )
-    builder.add_edge("generate", END)
-    builder.add_edge("no_match", END)
-    builder.add_edge("join", END)
+    builder.add_edge("generate", "evaluate")
+    builder.add_edge("no_match", "evaluate")
+    builder.add_edge("join", "evaluate")
+    builder.add_edge("evaluate", END)
     return builder.compile(checkpointer=checkpointer)
 
 
-def run_agent(graph, question: str, *, run_id: str, trace_store, staff_token: str | None = None) -> dict:
+def run_agent(
+    graph,
+    question: str,
+    *,
+    run_id: str,
+    trace_store,
+    staff_token: str | None = None,
+    owner_user_id: str | None = None,
+    conversation_id: str | None = None,
+    memory_store=None,
+) -> dict:
     """Run one question. The staff token stays in a context value, not the checkpoint."""
 
     store_token = _trace_store.set(trace_store)
     run_token = _run_id.set(run_id)
     auth_token = staff_token_var.set(staff_token)
+    memory_token = _memory_store.set(memory_store)
+    owner_token = _owner_id.set(owner_user_id)
+    conversation_token = _conversation_id.set(conversation_id)
+    note_token = _decision_note.set(None)
     try:
-        return graph.invoke(
+        result = graph.invoke(
             {
                 "question": question,
                 "retrieved_context": [],
@@ -328,10 +541,25 @@ def run_agent(graph, question: str, *, run_id: str, trace_store, staff_token: st
                 "incident_result": None,
                 "tool_outcome": "",
                 "sources_used": [],
+                "owner_user_id": owner_user_id or "",
+                "conversation_id": conversation_id or "",
+                "memories": [],
+                "decision": "",
+                "decision_note": "",
+                "memory_proposal": None,
             },
             {"configurable": {"thread_id": run_id}},
         )
+        note = result.get("decision_note") or _decision_note.get()
+        answer = result.get("answer") or ""
+        if note and note not in answer:
+            result = {**result, "answer": f"{note}\n\n{answer}".strip()}
+        return result
     finally:
+        _decision_note.reset(note_token)
+        _conversation_id.reset(conversation_token)
+        _owner_id.reset(owner_token)
+        _memory_store.reset(memory_token)
         staff_token_var.reset(auth_token)
         _trace_store.reset(store_token)
         _run_id.reset(run_token)

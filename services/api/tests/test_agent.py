@@ -39,7 +39,9 @@ def test_signed_in_question_returns_answer_and_run_id(monkeypatch: pytest.Monkey
     body = response.json()
     assert body["answer"] == "Georgia clinics do not accept Medicaid."
     assert body["run_id"]
-    assert set(body) == {"answer", "run_id"}
+    assert body["conversation_id"]
+    assert body["memory_proposal"] is None
+    assert set(body) == {"answer", "run_id", "conversation_id", "memory_proposal"}
     forbidden = {"context", "chunks", "score", "vector", "prompt", "checkpoint"}
     assert forbidden.isdisjoint(body)
 
@@ -188,7 +190,7 @@ def test_signed_in_incident_question_hides_private_fields(monkeypatch) -> None:
     store.clear()
     assert response.status_code == 200
     body = response.json()
-    assert set(body) == {"answer", "run_id"}
+    assert set(body) == {"answer", "run_id", "conversation_id", "memory_proposal"}
     assert "HC-000006" in body["answer"]
     assert "CLOSED" in body["answer"]
     assert "PAT-" not in response.text
