@@ -2,15 +2,16 @@
 
 ## Goal
 
-Extend the signed-in support agent so a staff member can confirm operational memories and reuse them later. The handoff is archived at [`archive/2026-11-13-agent-memory/agent-memory-context.md`](archive/2026-11-13-agent-memory/agent-memory-context.md). The tool-door handoff stays archived.
+Add a fail-closed protection harness around the Part 1 staff agent so it serves as the HealthCore compliance assistant. Check each turn before RAG, MCP, answer generation, and memory side effects. Release every answer through one output check. The handoff is archived at [`archive/2026-11-18-agent-gaurdrails/agent-gaurdrails-context.md`](archive/2026-11-18-agent-gaurdrails/agent-gaurdrails-context.md). Part 1 memory stays as built.
 
 ## Scope (this iteration)
 
-- One SQLite file for approved memories and proposal audit, beside the existing agent checkpoint and trace files. It is not the Qdrant policy collection, Redis, or the inventory database.
-- Every memory belongs to the signed-in user id only. A clinic or country name inside a sentence is a subject tag. It does not share that memory with anyone else.
-- `POST /agent/query` accepts an optional `conversation_id` and returns `memory_proposal`. A proposal is not saved until the next message clearly approves it.
-- Policy search and the incident lookup stay as they are. No staff page, no inventory tool on the agent, and no Celery cleanup job.
-- The durable checkpoint and new trace rows do not store the question or the answer text.
+- Screen `POST /agent/query` before memory confirmation, retrieval, and the incident tool. Restricted turns return a fixed template and do not call those downstream steps.
+- Keep the Part 1 contract: `{ "answer", "run_id", "conversation_id", "memory_proposal" }`, user-owned confirm-before-save, and the memory privacy gate.
+- Use an agent-only compliance system message. `POST /knowledge/query` keeps the coordinator prompt and its current contract. The staff page calls the agent.
+- Do not add compliance policy documents. Missing evidence tells staff to contact Compliance. Tests use labeled synthetic fixtures.
+- Durable checkpoints and traces still omit question and answer text, and they no longer store an incident id.
+- Record sanitized block and redirect events. A local command prints session counts. No new HTTP report route.
 
 ## Scope (standing)
 
@@ -41,7 +42,7 @@ HealthCore: 12 outpatient clinics (US + UK), ~200 staff, ~$28M revenue.
 
 Staff UI is `uis/web` (port 3001), not `uis/backoffice`. FastAPI lives at `services/api`. Browser API calls use `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`.
 
-Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai-frontend/` through `archive/2026-11-13-agent-memory/`.
+Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai-frontend/` through `archive/2026-11-18-agent-gaurdrails/`.
 
 ## Relevant files
 
@@ -51,4 +52,6 @@ Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai
 | `docs/architecture_proposal.md` | Backend blueprint |
 | `memory-bank/implementation-memory/index.md` | Durable implementation catalog |
 | `archive/2026-11-13-agent-memory/agent-memory-context.md` | Archived agent-memory handoff |
-| `services/api/app/agent/` | Support agent, privacy gate, and memory store |
+| `archive/2026-11-18-agent-gaurdrails/agent-gaurdrails-context.md` | Archived harness handoff |
+| `services/api/app/agent/` | Support agent, harness, privacy gate, and memory store |
+| `uis/web/src/components/KnowledgeAssistant.tsx` | Staff entry for the compliance agent |

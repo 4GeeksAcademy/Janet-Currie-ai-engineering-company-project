@@ -13,6 +13,8 @@ from contextvars import ContextVar
 
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
+from app.agent.harness import tool_row_is_unsafe
+
 logger = logging.getLogger("healthcore.agent")
 staff_token_var: ContextVar[str | None] = ContextVar("agent_staff_token", default=None)
 SAFE_FIELDS = ("incident_id", "date", "clinic_id", "country", "category", "status")
@@ -63,6 +65,8 @@ def call_incident_tool(incident_id: str, token: str) -> dict:
         )
         tools = await client.get_tools(server_name="healthcore")
         tool = next(item for item in tools if item.name == "get_incident_status")
+        if tool.name != "get_incident_status":
+            raise ValueError("The incident tool is not authorized.")
         return _payload(await tool.ainvoke({"incident_id": incident_id}))
 
     return asyncio.run(_call())
@@ -99,7 +103,10 @@ def lookup_incident(incident_id: str) -> dict:
         return {"outcome": "timeout", "incident": None}
     if outcome != "found":
         return {"outcome": "not_found" if outcome == "not_found" else "unavailable", "incident": None}
-    return {"outcome": "found", "incident": _row_from_payload(payload)}
+    row = _row_from_payload(payload)
+    if row is None or tool_row_is_unsafe(row):
+        return {"outcome": "unavailable", "incident": None}
+    return {"outcome": "found", "incident": row}
 
 
 def format_incident(row: dict) -> str:

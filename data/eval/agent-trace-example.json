@@ -3,8 +3,19 @@
   "events": [
     {
       "run_id": "georgia-medicaid",
+      "node": "screen",
+      "status": "screened",
+      "passage_count": 0,
+      "source_documents": [],
+      "answer": "",
+      "route": "",
+      "tool_outcome": "",
+      "incident_id": ""
+    },
+    {
+      "run_id": "georgia-medicaid",
       "node": "resolve",
-      "status": "",
+      "status": "screened",
       "passage_count": 0,
       "source_documents": [],
       "answer": "",

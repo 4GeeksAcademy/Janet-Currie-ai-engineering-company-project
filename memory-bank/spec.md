@@ -28,11 +28,12 @@
 24. Incident lookup is built. The latest upload keeps safe incident rows, without `patient_id`. The agent map chooses policy search, one incident read, or both.
 25. HealthCore tool door: `mcps/healthcore-company-tools` exposes `get_incident_status` and `query_inventory`. Stock changes return `INVENTORY_READ_ONLY`. The agent incident step uses that door. No ticket create and no status change. The handoff is archived — do not load [`archive/2026-11-12-mcp-oauth-tools/`](archive/2026-11-12-mcp-oauth-tools/) unless asked. Durable notes stay in [`implementation-memory/healthcore-tool-door.md`](implementation-memory/healthcore-tool-door.md).
 26. Agent memory: user-scoped SQLite memories, one pending proposal per owner and conversation, confirm before save, and PHI kept out of proposals, checkpoints, traces, and logs. Design: [`docs/agent/memory-design.md`](../docs/agent/memory-design.md). The handoff is archived — do not load [`archive/2026-11-13-agent-memory/`](archive/2026-11-13-agent-memory/) unless asked. No clinic-wide scope, no new staff page, and no Celery cleanup job. Course retention defaults are technical policy pending Compliance review.
+27. Agent harness: screen each staff turn before memory confirmation, RAG, and MCP. Fixed templates cover patient identifiers, instruction overrides, personal tasks, casual asides, active-breach details, and vendor-specific agreement terms. In-domain answers still use the Part 1 path. Missing approved evidence hands off to Compliance. Output, traces, logs, and the guard summary must not echo protected text. The staff knowledge page calls `POST /agent/query`. `POST /knowledge/query` stays the older helper.
 
 ## Acceptance criteria
 
 - [x] Required memory-bank files exist at `memory-bank/` root.
-- [x] Completed iterations archived: `2026-07-29-monorepo-ai-frontend`, `2026-08-28-supplier-directory`, `2026-08-28-staff-auth`, `2026-08-31-error-handling`, `2026-09-04-bullet-proof`, `2026-09-18-inventory-api`, `2026-09-18-inventory-backoffice-ui`, `2026-09-23-docker-compose`, `2026-09-23-web-vitals`, `2026-09-24-serialization`, `2026-09-30-caching-optimisation`, `2026-10-14-telemetry`, `2026-10-21-data-pipeline`, `2026-11-04-background-processes`, `2026-11-04-message-queue`, `2026-11-05-sales-forecast-model`, `2026-11-07-regression-model-eval`, `2026-11-12-mcp-oauth-tools`, `2026-11-13-agent-memory`.
+- [x] Completed iterations archived: `2026-07-29-monorepo-ai-frontend`, `2026-08-28-supplier-directory`, `2026-08-28-staff-auth`, `2026-08-31-error-handling`, `2026-09-04-bullet-proof`, `2026-09-18-inventory-api`, `2026-09-18-inventory-backoffice-ui`, `2026-09-23-docker-compose`, `2026-09-23-web-vitals`, `2026-09-24-serialization`, `2026-09-30-caching-optimisation`, `2026-10-14-telemetry`, `2026-10-21-data-pipeline`, `2026-11-04-background-processes`, `2026-11-04-message-queue`, `2026-11-05-sales-forecast-model`, `2026-11-07-regression-model-eval`, `2026-11-12-mcp-oauth-tools`, `2026-11-13-agent-memory`, `2026-11-18-agent-gaurdrails`.
 - [x] Project `AGENTS.md` points at the global memory-bank file names.
 - [x] AUTH-088 / API-042 / FE-019 implemented; results in [`TESTING.md`](../TESTING.md).
 - [x] `BulletProofApp-Context.md` moved to `memory-bank/archive/2026-09-04-bullet-proof/`.
@@ -61,6 +62,7 @@
 - [x] Incident lookup: safe rows saved from the upload, a 3-second read, automatic routing, honest fallbacks, and routing evals. Live model answers stay unverified.
 - [x] HealthCore tool door: incident read, stock read, read-only rejection, staff-token check, and the agent incident step uses the door. Playground and live model answers stay unverified. Handoff archived at `archive/2026-11-12-mcp-oauth-tools/mcp-oauth-tools-context.md`.
 - [x] Agent memory: user-scoped confirm-before-save, PHI gate, safe checkpoint and trace, cleanup, and the two evidence cycles. Live model answers stay unverified until the 4Geeks settings exist. Handoff archived at `archive/2026-11-13-agent-memory/agent-memory-context.md`.
+- [x] Agent harness: input screening, untrusted-data filtering, output release, sanitized guard summary, staff page on `POST /agent/query`, and deterministic coverage of the mandatory HealthCore cases. Live model answers and Qdrant search stay unverified until the 4Geeks settings exist.
 
 ## Interfaces / expected behavior (standing)
 

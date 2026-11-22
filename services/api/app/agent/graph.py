@@ -8,6 +8,14 @@ from contextvars import ContextVar
 
 from langgraph.graph import END, START, StateGraph
 
+from app.agent.guard_events import record_event
+from app.agent.harness import (
+    fallback_decision,
+    keep_notes,
+    keep_passages,
+    release_answer,
+    screen_question,
+)
 from app.agent.incidents import (
     INCIDENT_ID_RE,
     INVALID_INCIDENT_ID,
@@ -30,6 +38,7 @@ from pipelines.rag import (
     RetrievalError,
     RetrievalUnavailableError,
     generate_answer,
+    prompt_audience,
     retrieve,
 )
 from process.rag import (
@@ -46,8 +55,7 @@ SEARCH_UNAVAILABLE = "The knowledge search is unavailable. Please try again."
 ANSWER_UNAVAILABLE = "The answer service is unavailable. Please try again."
 NOT_CONFIGURED = "The knowledge assistant is not configured. Please try again later."
 NO_MATCH_ANSWER = (
-    "The HealthCore knowledge base does not contain enough information, "
-    "and the coordinator should check with the right team."
+    "The approved HealthCore material does not settle this. Please contact Compliance."
 )
 QUESTION_REQUIRED = "Question is required"
 QUESTION_TOO_LONG = "Question is too long."
@@ -103,7 +111,7 @@ def _write_trace(node: str, state: AgentState) -> None:
         "answer": "",
         "route": state.get("route") or "",
         "tool_outcome": state.get("tool_outcome") or "",
-        "incident_id": state.get("incident_id") or "",
+        "incident_id": "",
     }
     try:
         store.append(run_id, event)  # type: ignore[attr-defined]
@@ -163,8 +171,17 @@ def search_once(state: AgentState) -> dict:
         return {**_failed(NOT_CONFIGURED), "sources_used": _sources(state, "rag")}
     except (RetrievalUnavailableError, RetrievalError, EmbeddingError):
         return {**_failed(SEARCH_UNAVAILABLE), "sources_used": _sources(state, "rag")}
+    kept, reason = keep_passages(passages)
+    if reason:
+        record_event(
+            run_id=_run_id.get() or "",
+            guard="external",
+            reason_code=reason,
+            action="block",
+            category="security" if reason != "malformed_passage" else "structural",
+        )
     return {
-        "retrieved_context": passages,
+        "retrieved_context": kept,
         "status": "retrieved",
         "answer": "",
         "sources_used": _sources(state, "rag"),
@@ -321,12 +338,21 @@ def recall_memories(state: AgentState) -> dict:
     except Exception:
         logger.info("agent_memory_read_failed")
         notes = []
-    return {"memories": notes}
+    safe, reason = keep_notes(notes)
+    if reason:
+        record_event(
+            run_id=_run_id.get() or "",
+            guard="external",
+            reason_code=reason,
+            action="block",
+            category="security",
+        )
+    return {"memories": safe}
 
 
 def evaluate_turn(state: AgentState) -> dict:
     answer = state.get("answer") or ""
-    if state.get("status") in {"invalid", "failed", "decision_only"}:
+    if state.get("status") in {"invalid", "failed", "decision_only", "refused", "redirected"}:
         return {"memory_proposal": None}
     store = _memory_store.get()
     owner = _owner_id.get()
@@ -425,6 +451,61 @@ def _with_refusal(answer: str) -> str:
     return f"{answer}\n\n{PRIVACY_REFUSAL}".strip()
 
 
+def screen_turn(state: AgentState) -> dict:
+    store = _memory_store.get()
+    owner = _owner_id.get()
+    conversation = _conversation_id.get()
+    breach_context = False
+    confirmation_open = False
+    if store is not None and owner and conversation:
+        try:
+            breach_context = bool(store.has_topic(owner, conversation, "active_breach"))
+            confirmation_open = bool(store.has_pending(owner, conversation))
+        except Exception:
+            logger.info("agent_guard_marker_failed")
+    try:
+        decision = screen_question(
+            state.get("question") or "",
+            breach_context=breach_context,
+            confirmation_open=confirmation_open,
+        )
+    except Exception:
+        logger.info("agent_guard_screen_failed")
+        decision = fallback_decision()
+    if decision.action == "allow":
+        return {"status": "screened"}
+    if (
+        store is not None
+        and owner
+        and conversation
+        and decision.reason_code in {"active_breach", "breach_followup"}
+    ):
+        try:
+            store.mark_topic(owner, conversation, "active_breach")
+        except Exception:
+            logger.info("agent_guard_mark_failed")
+    record_event(
+        run_id=_run_id.get() or "",
+        guard=decision.guard,
+        reason_code=decision.reason_code,
+        action=decision.action,
+        category=decision.category,
+    )
+    return {
+        "question": "",
+        "retrieved_context": [],
+        "answer": decision.answer,
+        "status": "refused" if decision.action == "block" else "redirected",
+        "memory_proposal": None,
+    }
+
+
+def route_after_screen(state: AgentState) -> str:
+    if state.get("status") in {"refused", "redirected"}:
+        return END
+    return "resolve"
+
+
 def route_after_resolve(state: AgentState) -> str:
     if state.get("status") == "decision_only":
         return END
@@ -465,6 +546,7 @@ def compile_agent(checkpointer):
     """Build the map once. Request code calls the compiled map."""
 
     builder = StateGraph(AgentState)
+    builder.add_node("screen", _traced("screen", screen_turn))
     builder.add_node("resolve", _traced("resolve", resolve_pending))
     builder.add_node("validate", _traced("validate", validate_question))
     builder.add_node("recall", _traced("recall", recall_memories))
@@ -475,7 +557,12 @@ def compile_agent(checkpointer):
     builder.add_node("no_match", _traced("no_match", say_no_match))
     builder.add_node("join", _traced("join", join_sources))
     builder.add_node("evaluate", _traced("evaluate", evaluate_turn))
-    builder.add_edge(START, "resolve")
+    builder.add_edge(START, "screen")
+    builder.add_conditional_edges(
+        "screen",
+        route_after_screen,
+        {"resolve": "resolve", END: END},
+    )
     builder.add_conditional_edges(
         "resolve",
         route_after_resolve,
@@ -529,6 +616,7 @@ def run_agent(
     owner_token = _owner_id.set(owner_user_id)
     conversation_token = _conversation_id.set(conversation_id)
     note_token = _decision_note.set(None)
+    audience_token = prompt_audience.set("compliance")
     try:
         result = graph.invoke(
             {
@@ -553,9 +641,25 @@ def run_agent(
         note = result.get("decision_note") or _decision_note.get()
         answer = result.get("answer") or ""
         if note and note not in answer:
-            result = {**result, "answer": f"{note}\n\n{answer}".strip()}
-        return result
+            answer = f"{note}\n\n{answer}".strip()
+        released = release_answer(answer, result.get("retrieved_context") or [])
+        if not released.allowed:
+            record_event(
+                run_id=run_id,
+                guard="output",
+                reason_code=released.reason_code,
+                action="block",
+                category=released.category,
+            )
+            if memory_store is not None and owner_user_id and conversation_id:
+                try:
+                    memory_store.void_run(owner_user_id, conversation_id, run_id)
+                except Exception:
+                    logger.info("agent_guard_void_failed")
+            return {**result, "answer": released.answer, "memory_proposal": None, "status": "refused"}
+        return {**result, "answer": answer}
     finally:
+        prompt_audience.reset(audience_token)
         _decision_note.reset(note_token)
         _conversation_id.reset(conversation_token)
         _owner_id.reset(owner_token)

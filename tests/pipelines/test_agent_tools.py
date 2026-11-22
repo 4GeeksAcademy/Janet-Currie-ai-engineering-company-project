@@ -121,6 +121,7 @@ def test_incident_question_reads_the_door_once(monkeypatch: pytest.MonkeyPatch) 
     assert "HC-000006" in result["answer"]
     assert "CLOSED" in result["answer"]
     assert [event["node"] for event in events] == [
+        "screen",
         "resolve",
         "validate",
         "recall",
@@ -130,7 +131,8 @@ def test_incident_question_reads_the_door_once(monkeypatch: pytest.MonkeyPatch) 
     ]
     assert "retrieve" not in [event["node"] for event in events]
     assert events[-1]["tool_outcome"] == "found"
-    assert events[-1]["incident_id"] == "HC-000006"
+    assert events[-1]["incident_id"] == ""
+    assert "HC-000006" not in json.dumps([{key: event[key] for key in ("route", "tool_outcome", "incident_id")} for event in events])
     assert "PAT-" not in result["answer"]
     assert STAFF_TOKEN not in json.dumps(events)
     assert STAFF_TOKEN not in result["answer"]
@@ -158,6 +160,7 @@ def test_policy_question_does_not_read_incidents(monkeypatch: pytest.MonkeyPatch
     events = trace.list("policy-rule")
     assert result["answer"] == POLICY_ANSWER
     assert [event["node"] for event in events] == [
+        "screen",
         "resolve",
         "validate",
         "recall",
@@ -202,6 +205,7 @@ def test_missing_timeout_and_bad_id_stay_honest(monkeypatch: pytest.MonkeyPatch)
     assert bad["status"] == "invalid"
     assert "HC-000006" in bad["answer"]
     assert [event["node"] for event in bad_trace.list("bad-ticket")] == [
+        "screen",
         "resolve",
         "validate",
         "recall",
