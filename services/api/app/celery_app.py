@@ -61,7 +61,7 @@ def configure_celery(app: Celery | None = None, *, url: str | None = None) -> Ce
         worker_prefetch_multiplier=1,
         worker_concurrency=WORKER_CONCURRENCY,
         task_reject_on_worker_lost=False,
-        include=["app.tasks.pipeline_run"],
+        include=["app.tasks.pipeline_run", "app.tasks.rfp_intake"],
     )
     return target
 

@@ -55,6 +55,10 @@ JSON_ROUTES: dict[tuple[str, str], str] = {
     ("GET", "/tasks/{task_id}"): "TaskStatusResponse",
     ("POST", "/knowledge/query"): "KnowledgeAnswer",
     ("POST", "/agent/query"): "AgentAnswer",
+    ("POST", "/rfp/tickets"): "TicketAccepted",
+    ("GET", "/rfp/tickets"): "TicketListResponse",
+    ("GET", "/rfp/tickets/{ticket_id}"): "TicketDetail",
+    ("POST", "/rfp/tickets/{ticket_id}/reprocess"): "TicketAccepted",
 }
 
 SPECIAL_ROUTES: dict[tuple[str, str], str] = {

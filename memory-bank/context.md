@@ -2,16 +2,15 @@
 
 ## Goal
 
-Add a fail-closed protection harness around the Part 1 staff agent so it serves as the HealthCore compliance assistant. Check each turn before RAG, MCP, answer generation, and memory side effects. Release every answer through one output check. The handoff is archived at [`archive/2026-11-18-agent-gaurdrails/agent-gaurdrails-context.md`](archive/2026-11-18-agent-gaurdrails/agent-gaurdrails-context.md). Part 1 memory stays as built.
+Milestone 9 Part 1 only: turn an uploaded institutional PDF into a pollable RFP intake ticket. The existing staff UI and FastAPI app accept the file, the existing Celery worker runs a dedicated graph under `data/pipelines/rfp_intake/`, and Revenue Cycle sees department workstreams. Part 2 drafting and Part 3 arbitration are out of scope. The contract is archived at [`archive/2026-11-27-milestone-9-part-1/milestone-9-part-1-context.md`](archive/2026-11-27-milestone-9-part-1/milestone-9-part-1-context.md).
 
 ## Scope (this iteration)
 
-- Screen `POST /agent/query` before memory confirmation, retrieval, and the incident tool. Restricted turns return a fixed template and do not call those downstream steps.
-- Keep the Part 1 contract: `{ "answer", "run_id", "conversation_id", "memory_proposal" }`, user-owned confirm-before-save, and the memory privacy gate.
-- Use an agent-only compliance system message. `POST /knowledge/query` keeps the coordinator prompt and its current contract. The staff page calls the agent.
-- Do not add compliance policy documents. Missing evidence tells staff to contact Compliance. Tests use labeled synthetic fixtures.
-- Durable checkpoints and traces still omit question and answer text, and they no longer store an incident id.
-- Record sanitized block and redirect events. A local command prints session counts. No new HTTP report route.
+- Authenticated `/backoffice/rfp` upload and ticket polling in `uis/web`.
+- `POST /rfp/tickets` returns `202` after an opaque save under repo-root `data/raw/<ticket_id>.pdf`. Conversion and models run only in the worker.
+- SQLModel tickets, metadata, department sections, and the Part 2 handoff on `DATABASE_URL`. `init_db()` creates the tables. No Alembic.
+- Deterministic privacy gate before any RFP model call. The staff-agent graph and `app/agent/privacy.py` stay unchanged.
+- Classifier, parallel `revenue` / `clinical` / `compliance` workers, and synthesizer. Status values are `analyzing`, `discarded`, and `intake_complete`.
 
 ## Scope (standing)
 
@@ -42,7 +41,7 @@ HealthCore: 12 outpatient clinics (US + UK), ~200 staff, ~$28M revenue.
 
 Staff UI is `uis/web` (port 3001), not `uis/backoffice`. FastAPI lives at `services/api`. Browser API calls use `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`.
 
-Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai-frontend/` through `archive/2026-11-18-agent-gaurdrails/`.
+Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai-frontend/` through `archive/2026-11-27-milestone-9-part-1/`.
 
 ## Relevant files
 
@@ -53,5 +52,9 @@ Completed iterations (do not load unless asked): `archive/2026-07-29-monorepo-ai
 | `memory-bank/implementation-memory/index.md` | Durable implementation catalog |
 | `archive/2026-11-13-agent-memory/agent-memory-context.md` | Archived agent-memory handoff |
 | `archive/2026-11-18-agent-gaurdrails/agent-gaurdrails-context.md` | Archived harness handoff |
-| `services/api/app/agent/` | Support agent, harness, privacy gate, and memory store |
+| `services/api/app/agent/` | Support agent, harness, privacy gate, and memory store. Do not add RFP nodes |
 | `uis/web/src/components/KnowledgeAssistant.tsx` | Staff entry for the compliance agent |
+| `archive/2026-11-27-milestone-9-part-1/milestone-9-part-1-context.md` | Archived Part 1 contract |
+| `data/pipelines/rfp_intake/` | Dedicated intake graph |
+| `services/api/app/rfp/` | Ticket persistence and upload orchestration |
+| `uis/web/src/app/(protected)/backoffice/rfp/page.tsx` | Staff intake page |

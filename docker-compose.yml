@@ -46,6 +46,7 @@ services:
       - ./scripts:/app/scripts
       - ./data/pipelines:/app/data/pipelines
       - ./data/process:/app/data/process
+      - ./data/raw:/app/data/raw
       - ./docs/company-knowledge-base:/app/docs/company-knowledge-base
       - backend_venv:/app/services/api/.venv
     depends_on:
@@ -107,6 +108,7 @@ services:
       - ./services/api:/app/services/api
       - ./scripts:/app/scripts
       - ./data/pipelines:/app/data/pipelines
+      - ./data/raw:/app/data/raw
       - backend_venv:/app/services/api/.venv
     command: celery -A app.celery_app worker --loglevel=info --concurrency=1
     depends_on:

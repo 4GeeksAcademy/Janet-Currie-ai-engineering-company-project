@@ -45,6 +45,7 @@ from app.routers import (  # noqa: E402
     knowledge,
     profiles,
     reporting,
+    rfp,
     suppliers,
     tasks,
     telemetry,
@@ -104,6 +105,7 @@ app.include_router(suppliers.router)
 app.include_router(inventory.router)
 app.include_router(telemetry.router)
 app.include_router(reporting.router)
+app.include_router(rfp.router)
 app.include_router(tasks.router)
 app.include_router(knowledge.router)
 app.include_router(agent.router)

@@ -2,13 +2,22 @@
 
 ## Current state
 
-Working branch is `agent-gaurdrails`. The compliance harness is in the Part 1 staff agent. Each turn is screened before memory confirmation, retrieval, and MCP. Unsafe model output is replaced and a staged proposal from that turn is voided. The staff knowledge page calls `POST /agent/query` and keeps `conversation_id`. Live model answers and Qdrant search stay unverified.
+Working branch is `milestone-9`. Milestone 9 Part 1 is implemented in the existing API, Celery worker, and staff UI. Part 2 and Part 3 are not started. The Part 1 contract is archived. Live Meridian, Thames, and MedFlow uploads are unverified because `LLM_API_KEY`, `LLM_BASE_URL`, and `GENERATION_MODEL_ID` are empty. Docker is not running, so the API and worker images were not rebuilt.
 
 ## Completed (standing)
 
 - Public site, staff UI, incident CLI, supplier directory, staff JWT auth, error handling, bullet-proof tests, inventory API, inventory backoffice UI, Docker Compose, Web Vitals, serialization, caching, telemetry, clinic-supply pipeline, nightly telemetry export, Redis/Celery message queue, sales-forecast feasibility (unsupported vs seasonal-naive), regression-model evaluation (overfitting; do not stage).
 
 ## Completed (this iteration)
+
+- Added opaque PDF intake at `POST /rfp/tickets`, ticket reads, and reprocess on the same ticket. Tables are created by the existing `init_db()`.
+- Added `data/pipelines/rfp_intake/` and Celery task `app.tasks.rfp_intake`. The privacy gate runs before any model call. `intake_complete` is one transaction.
+- Added `/backoffice/rfp` inside the existing staff shell, with the nav label `RFP intake`.
+- A broker failure returns HTTP 503 with the same ticket. The page keeps that ticket visible and shows the fixed retry message.
+- Pinned `markitdown==0.0.1a3` in the API requirements. Readability stays local because `textstat` shadowed the API tests.
+- Archived the contract at `memory-bank/archive/2026-11-27-milestone-9-part-1/milestone-9-part-1-context.md`.
+
+## Earlier iterations still in force
 
 - Recorded the knowledge-helper scope and narrowed the API library ban.
 - Copied the four English policy documents into `docs/company-knowledge-base/`.
@@ -28,6 +37,17 @@ Working branch is `agent-gaurdrails`. The compliance harness is in the Part 1 st
 - Archived the handoff at `memory-bank/archive/2026-11-18-agent-gaurdrails/agent-gaurdrails-context.md`.
 
 ## Validation results
+
+- From `services/api`: `uv run pytest ../../tests/pipelines/rfp_intake -q` passed (20 tests) before the full suite.
+- From `services/api`: `uv run pytest tests/test_rfp_api.py tests/test_rfp_persistence.py tests/test_rfp_task.py tests/test_serialization_audit.py -q` passed (17 tests).
+- From `services/api`: `uv run pytest -q --tb=line` passed: 275 passed, 1 skipped, 1 existing deprecation warning, in 135.03s. This suite does not collect `tests/pipelines/rfp_intake`.
+- `npm test -w uis/web -- --watchAll=false src/lib/__tests__/rfp.test.ts src/components/__tests__/RfpIntake.test.tsx`: 8 passed. `npm run typecheck -w uis/web` completed with no errors.
+- `docker compose config --quiet` completed with no errors. Images were not rebuilt.
+- Host API on temporary SQLite, with Redis unset: anonymous `GET /rfp/tickets` returned 401. A signed-in synthetic PDF returned 503 `analyzing` / `failed`, detail reason `processing_failed`, fixed message, no stored path or original filename. One opaque `data/raw/<ticket_id>.pdf` was written and then removed.
+- Browser: unsigned `/backoffice/rfp` redirected to `/login`. Password entry and token injection were blocked, so the signed-in page upload was not exercised in the browser. Jest covers multipart upload, no double submit, polling, three owners, and fixed messages.
+- PHI marker checks are in `tests/pipelines/rfp_intake/test_privacy.py` and `test_graph.py`. Those tests passed in the pipeline run. A live PDF containing the markers was not uploaded.
+
+## Prior validation still relevant
 
 - `uv --directory services/api run pytest tests/test_agent_harness.py tests/test_agent.py tests/test_agent_memory.py tests/test_memory_privacy.py tests/test_knowledge.py`: 62 passed, 1 existing deprecation warning.
 - `uv --directory services/api run pytest ../../tests/pipelines/test_agent_graph.py ../../tests/pipelines/test_agent_tools.py`: 12 passed.
@@ -59,8 +79,9 @@ No 4Geeks model ids or API key are in the local env files. Live model answers, i
 
 ## Next steps
 
-1. Publishing `agent-gaurdrails` is a separate request. The syllabus branch name is `feature/agent-guardrails`.
-2. When the 4Geeks settings exist, set the two model ids and `RAG_MIN_SCORE`, run `python -m process.rag`, then `python data/eval/recall_at_3.py`. Do not invent those values.
+1. When `LLM_API_KEY`, `LLM_BASE_URL`, and `GENERATION_MODEL_ID` are set, upload the Meridian, Thames, and MedFlow PDFs through the signed-in page and record the three outcomes.
+2. With Docker running, rebuild the API and worker images and confirm both containers see `data/raw`.
+3. Knowledge-helper live scoring stays separate: set the two model ids and `RAG_MIN_SCORE`, then run `python -m process.rag` and `python data/eval/recall_at_3.py`. Do not invent those values.
 
 ## Run commands (durable)
 
@@ -80,4 +101,4 @@ python3 data/pipelines/pipeline.py
 docker compose up --build
 ```
 
-Last updated: 2026-11-18
+Last updated: 2026-11-27

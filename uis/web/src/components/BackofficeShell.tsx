@@ -11,6 +11,7 @@ const nav = [
   { href: "/backoffice/inventory/products", label: "Inventory" },
   { href: "/backoffice/reporting/monthly-clinic-supply-performance", label: "Clinic supply report" },
   { href: "/knowledge", label: "Knowledge assistant" },
+  { href: "/backoffice/rfp", label: "RFP intake" },
   { href: "/suppliers", label: "Supplier directory" },
   { href: "/account/profile", label: "Profile" },
   { href: "/account/change-password", label: "Change password" },

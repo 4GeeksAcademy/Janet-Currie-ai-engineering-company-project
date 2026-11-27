@@ -1,5 +1,20 @@
 # Spec — Active iteration
 
+## Milestone 9 Part 1 requirements
+
+1. Signed-in staff can upload one PDF at `/backoffice/rfp`. `POST /rfp/tickets` returns `202` with `analyzing` and `queued`. The request does not convert the PDF or call a model.
+2. The PDF is stored only as repo-root `data/raw/<ticket_id>.pdf`. Backend and worker share `./data/raw:/app/data/raw`. Git ignores `data/raw/*.pdf` and leaves `healthcore_sales.csv` tracked.
+3. Tickets, RFP metadata, department sections, and `intake_summary` persist through SQLModel. Tests use temporary SQLite. `created_by_user_id` is `str(TinyDB id)`.
+4. The worker task receives `ticket_id` only. A privacy hit or non-RFP classification becomes `discarded` with a safe reason code. An accepted RFP completes only after revenue, clinical, and compliance rows and the handoff commit together.
+5. The page polls until a terminal business status or `processing_state=failed`, and shows fixed messages. It does not preview the PDF or render raw server errors.
+6. Part 2 and Part 3 behavior is not implemented.
+
+## Milestone 9 Part 1 acceptance
+
+- [x] Upload, worker, and page follow the requirements above. Deterministic tests cover the worker. A live Redis worker and a rebuilt image were not run.
+- [x] Focused pipeline, API, and UI tests pass without a live model.
+- [ ] Live Meridian, Thames, and MedFlow uploads are reported only if the model settings are present. Those settings are empty, so this stays open.
+
 ## Requirements
 
 1. Memory bank follows global layout: `context.md`, `spec.md`, `progress.md`, `decisions.md`, and `archive/YYYY-MM-DD-name/` (with `implementation-plan.md` and `tech-updates.md` when archiving).
@@ -33,7 +48,7 @@
 ## Acceptance criteria
 
 - [x] Required memory-bank files exist at `memory-bank/` root.
-- [x] Completed iterations archived: `2026-07-29-monorepo-ai-frontend`, `2026-08-28-supplier-directory`, `2026-08-28-staff-auth`, `2026-08-31-error-handling`, `2026-09-04-bullet-proof`, `2026-09-18-inventory-api`, `2026-09-18-inventory-backoffice-ui`, `2026-09-23-docker-compose`, `2026-09-23-web-vitals`, `2026-09-24-serialization`, `2026-09-30-caching-optimisation`, `2026-10-14-telemetry`, `2026-10-21-data-pipeline`, `2026-11-04-background-processes`, `2026-11-04-message-queue`, `2026-11-05-sales-forecast-model`, `2026-11-07-regression-model-eval`, `2026-11-12-mcp-oauth-tools`, `2026-11-13-agent-memory`, `2026-11-18-agent-gaurdrails`.
+- [x] Completed iterations archived: `2026-07-29-monorepo-ai-frontend`, `2026-08-28-supplier-directory`, `2026-08-28-staff-auth`, `2026-08-31-error-handling`, `2026-09-04-bullet-proof`, `2026-09-18-inventory-api`, `2026-09-18-inventory-backoffice-ui`, `2026-09-23-docker-compose`, `2026-09-23-web-vitals`, `2026-09-24-serialization`, `2026-09-30-caching-optimisation`, `2026-10-14-telemetry`, `2026-10-21-data-pipeline`, `2026-11-04-background-processes`, `2026-11-04-message-queue`, `2026-11-05-sales-forecast-model`, `2026-11-07-regression-model-eval`, `2026-11-12-mcp-oauth-tools`, `2026-11-13-agent-memory`, `2026-11-18-agent-gaurdrails`, `2026-11-27-milestone-9-part-1`.
 - [x] Project `AGENTS.md` points at the global memory-bank file names.
 - [x] AUTH-088 / API-042 / FE-019 implemented; results in [`TESTING.md`](../TESTING.md).
 - [x] `BulletProofApp-Context.md` moved to `memory-bank/archive/2026-09-04-bullet-proof/`.
@@ -69,9 +84,9 @@
 | Surface | Expected behavior |
 |---------|-------------------|
 | `uis/website` | Public corporate site; EN/ES via `hc_lang` cookie; enquiry form; brand blues; no auth |
-| `uis/web` | Public `/login`, `/register`, `/forgot-password`, `/reset-password`; protected welcome, `/operations`, `/incidents`, `/suppliers`, `/knowledge`, `/backoffice/inventory/{products,orders,orders/inbound,orders/outbound}`, `/backoffice/reporting/monthly-clinic-supply-performance`, `/account/profile`, `/account/change-password` |
+| `uis/web` | Public `/login`, `/register`, `/forgot-password`, `/reset-password`; protected welcome, `/operations`, `/incidents`, `/suppliers`, `/knowledge`, `/backoffice/rfp`, `/backoffice/inventory/{products,orders,orders/inbound,orders/outbound}`, `/backoffice/reporting/monthly-clinic-supply-performance`, `/account/profile`, `/account/change-password` |
 | `scripts/` | Phase 1 `analyze.py` + `incidents-healthcore.csv`; `nightly_export.py` (DEV-53); `train_sales_forecast.py` and `eval_sales_forecast.py` (isolated `scripts/sales_forecast` uv env) |
-| `services/api` | Incidents + suppliers (TinyDB) + staff auth + inventory (SQLModel) + telemetry + reporting + JWT task status + knowledge helper. Login is `POST /auth/login`. `GET /health` public. Sensitive routes require bearer JWT. CORS from `CORS_ORIGINS` (default `http://localhost:3001`, `http://127.0.0.1:3001`). Public `POST /users` does not return email. Inventory catalogue GETs may be served from in-process TTL cache. Public `POST /telemetry/events`; `GET /telemetry/report` (60s cache). JWT `GET /reporting/...` for clinic-month KPIs and latest pipeline run. JWT `POST /reporting/pipeline-runs` enqueues Celery and returns `202 {"task_id"}`. JWT `GET /tasks/{task_id}` returns normalized Celery state. JWT `POST /knowledge/query` accepts `{ "question" }` and returns `{ "answer" }`. JWT `POST /agent/query` accepts `{ "question", "conversation_id"? }` and returns `{ "answer", "run_id", "conversation_id", "memory_proposal" }`. `memory_proposal` is null when nothing is waiting. The bearer token is not a memory key. |
+| `services/api` | Incidents + suppliers (TinyDB) + staff auth + inventory (SQLModel) + telemetry + reporting + JWT task status + knowledge helper + RFP intake. Login is `POST /auth/login`. `GET /health` public. Sensitive routes require bearer JWT. CORS from `CORS_ORIGINS` (default `http://localhost:3001`, `http://127.0.0.1:3001`). Public `POST /users` does not return email. Inventory catalogue GETs may be served from in-process TTL cache. Public `POST /telemetry/events`; `GET /telemetry/report` (60s cache). JWT `GET /reporting/...` for clinic-month KPIs and latest pipeline run. JWT `POST /reporting/pipeline-runs` enqueues Celery and returns `202 {"task_id"}`. JWT `GET /tasks/{task_id}` returns normalized Celery state. JWT `POST /knowledge/query` accepts `{ "question" }` and returns `{ "answer" }`. JWT `POST /agent/query` accepts `{ "question", "conversation_id"? }` and returns `{ "answer", "run_id", "conversation_id", "memory_proposal" }`. `memory_proposal` is null when nothing is waiting. The bearer token is not a memory key. JWT `POST /rfp/tickets` accepts one PDF and returns `202` with `ticket_id`, `status`, and `processing_state`. JWT `GET /rfp/tickets` and `GET /rfp/tickets/{ticket_id}` return safe ticket fields. Any signed-in user may read tickets. |
 | Compose | `docker compose up` from repo root: website 3000, staff UI 3001, API 8000, Redis 6379, Flower 5555 on network `healthcore_dev`. Worker is a separate process using `-A app.celery_app`. |
 | Future `services/healthcore-api` | FastAPI `/api/v1` domains; OpenAPI contract for frontends |
 | Agents | Skill discovery before non-trivial work; smallest change that satisfies the ask; no secrets; no git publish unless asked |

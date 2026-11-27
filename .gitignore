@@ -43,3 +43,4 @@ scripts/incident_metrics_export.csv
 data/raw/telemetry_*.csv
 data/raw/nightly_export.log
 data/raw/*.tmp.*
+data/raw/*.pdf
